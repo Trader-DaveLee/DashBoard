@@ -3784,12 +3784,14 @@ function drawSimulationChart(containerId, result) {
   if (!container) return;
 
   const { paths, stats } = result;
-  const width = 820, height = 320;
-  const padL = 72, padR = 24, padT = 28, padB = 40;
+  const width = 820, height = 300; // Height slightly reduced to fit better
+  const padL = 72, padR = 60, padT = 32, padB = 40; // Increased right pad for legend/label
   const innerW = width - padL - padR;
   const innerH = height - padT - padB;
 
-  // 샘플링: 1000개 중 50개
+  const htmlTooltip = document.getElementById('sim-html-tooltip');
+
+  // Sampling for path performance
   const samplePaths = paths.filter((_, i) => i % 20 === 0);
   const xMax = paths[0].length - 1;
 
@@ -3797,87 +3799,86 @@ function drawSimulationChart(containerId, result) {
   const minY = Math.min(...allY);
   const maxY = Math.max(...allY);
   const diff = maxY - minY || 100;
-  const yBottom = minY - diff * 0.08;
-  const yTop    = maxY + diff * 0.08;
+  const yBottom = minY - diff * 0.1;
+  const yTop    = maxY + diff * 0.1;
 
   const scaleX = x => padL + (x / xMax) * innerW;
   const scaleY = y => padT + innerH - ((y - yBottom) / (yTop - yBottom)) * innerH;
 
-  // 중앙/분위 경로
   const sortedByFinal = [...paths].sort((a, b) => a[xMax].y - b[xMax].y);
   const medianPath = sortedByFinal[Math.floor(paths.length / 2)];
   const p10Path    = sortedByFinal[Math.floor(paths.length * 0.10)];
   const p90Path    = sortedByFinal[Math.floor(paths.length * 0.90)];
 
-  // 격자
-  const xTicks = 5, yTicks = 5;
-
-  // X 격자선 & 레이블 (Start 제거, 숫자만)
+  // X-Axis Grid & Labels
+  const xTicks = 5;
   let xGridLines = '';
   for (let i = 0; i <= xTicks; i++) {
     const xVal = Math.round((i / xTicks) * xMax);
     const cx = scaleX(xVal);
-    // i===0 는 Y축과 겹치므로 격자만 그리고 레이블 생략
-    xGridLines += `<line x1="${cx}" y1="${padT}" x2="${cx}" y2="${padT + innerH}" stroke="var(--border-main)" stroke-width="${i === 0 ? 0 : 1}" stroke-dasharray="4,4" opacity="0.9"/>`;
+    // Draw grid for all except the first Y-axis overlap
     if (i > 0) {
-      xGridLines += `<text x="${cx}" y="${padT + innerH + 15}" fill="var(--text-muted)" font-size="10" font-weight="700" text-anchor="middle">${xVal}</text>`;
+      xGridLines += `<line x1="${cx}" y1="${padT}" x2="${cx}" y2="${padT + innerH}" stroke="var(--border-main)" stroke-width="1" stroke-dasharray="4,4" opacity="0.8"/>`;
+      xGridLines += `<text x="${cx}" y="${padT + innerH + 16}" fill="var(--text-muted)" font-size="10" font-weight="700" text-anchor="middle">${xVal}</text>`;
     }
   }
 
-  // Y 격자선 & 레이블
+  // Y-Axis Grid & Labels
+  const yTicks = 5;
   let yGridLines = '';
   for (let i = 0; i <= yTicks; i++) {
     const yVal = yBottom + ((yTop - yBottom) * i) / yTicks;
     const cy = scaleY(yVal);
-    yGridLines += `<line x1="${padL}" y1="${cy}" x2="${padL + innerW}" y2="${cy}" stroke="var(--border-main)" stroke-width="1" stroke-dasharray="4,4" opacity="0.9"/>`;
-    yGridLines += `<text x="${padL - 8}" y="${cy + 4}" fill="var(--text-muted)" font-size="10" font-weight="700" text-anchor="end">${moneyAbsNatural(yVal)}</text>`;
+    yGridLines += `<line x1="${padL}" y1="${cy}" x2="${padL + innerW}" y2="${cy}" stroke="var(--border-main)" stroke-width="1" stroke-dasharray="4,4" opacity="0.8"/>`;
+    yGridLines += `<text x="${padL - 10}" y="${cy + 4}" fill="var(--text-muted)" font-size="10" font-weight="700" text-anchor="end">${moneyAbsNatural(yVal)}</text>`;
   }
 
-  // "Trades" 레이블 — 가로축 오른쪽 끝
-  const tradesLabel = `<text x="${padL + innerW + padR - 2}" y="${padT + innerH + 15}" fill="var(--text-muted)" font-size="10" font-weight="800" text-anchor="end">Trades</text>`;
+  // "Trades" Label at the end of X-axis
+  const tradesLabel = `<text x="${padL + innerW + 10}" y="${padT + innerH + 16}" fill="var(--text-muted)" font-size="10" font-weight="900" text-anchor="start">Trades</text>`;
 
-  // 시작 잔고 수평선
+  // Start Balance Reference Line
   const startY = scaleY(paths[0][0].y);
-  const startLine = `<line x1="${padL}" y1="${startY}" x2="${padL + innerW}" y2="${startY}" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="6,4" opacity="0.4"/>`;
+  const startLine = `<line x1="${padL}" y1="${startY}" x2="${padL + innerW}" y2="${startY}" stroke="var(--text-muted)" stroke-width="1.2" stroke-dasharray="6,4" opacity="0.4"/>`;
 
-  // 샘플 경로들
+  // Paths
   const pathSvgs = samplePaths.map(p => {
     const d = p.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
     return `<path d="${d}" class="sim-path-line" stroke="var(--accent)"/>`;
   });
 
-  // p10 / p90 / median
   const p10D = p10Path.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
   const p90D = p90Path.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
   const medD = medianPath.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
 
-  // 축 테두리
+  // Axes
   const axes = `
     <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + innerH}" stroke="var(--text-muted)" stroke-width="1.5" opacity="0.55"/>
     <line x1="${padL}" y1="${padT + innerH}" x2="${padL + innerW}" y2="${padT + innerH}" stroke="var(--text-muted)" stroke-width="1.5" opacity="0.55"/>
   `;
 
-  // 범례 (간격 넓게, 오른쪽 상단)
-  const legendY = padT + 6;
-  const legendX = padL + innerW;
+  // Legend (Refined positions)
+  const legX = padL + innerW - 140;
+  const legY = padT - 12;
   const legend = `
-    <line x1="${legendX - 132}" y1="${legendY}" x2="${legendX - 112}" y2="${legendY}" stroke="var(--accent)" stroke-width="2.5"/>
-    <text x="${legendX - 108}" y="${legendY + 4}" fill="var(--text-muted)" font-size="9" font-weight="800">Median</text>
-    <line x1="${legendX - 62}" y1="${legendY}" x2="${legendX - 44}" y2="${legendY}" stroke="var(--green)" stroke-width="1.6" stroke-dasharray="4,3" opacity="0.8"/>
-    <text x="${legendX - 40}" y="${legendY + 4}" fill="var(--text-muted)" font-size="9" font-weight="800">P90</text>
-    <line x1="${legendX - 14}" y1="${legendY}" x2="${legendX + 4}" y2="${legendY}" stroke="var(--red)" stroke-width="1.6" stroke-dasharray="4,3" opacity="0.7"/>
-    <text x="${legendX + 8}" y="${legendY + 4}" fill="var(--text-muted)" font-size="9" font-weight="800">P10</text>
+    <g transform="translate(${legX}, ${legY})">
+      <line x1="0" y1="0" x2="16" y2="0" stroke="var(--accent)" stroke-width="3"/>
+      <text x="20" y="4" fill="var(--text-muted)" font-size="9" font-weight="800">Median</text>
+      
+      <line x1="60" y1="0" x2="76" y2="0" stroke="var(--green)" stroke-width="2" stroke-dasharray="3,2"/>
+      <text x="80" y="4" fill="var(--text-muted)" font-size="9" font-weight="800">P90</text>
+      
+      <line x1="110" y1="0" x2="126" y2="0" stroke="var(--red)" stroke-width="2" stroke-dasharray="3,2"/>
+      <text x="130" y="4" fill="var(--text-muted)" font-size="9" font-weight="800">P10</text>
+    </g>
   `;
 
-  // 마우스오버 툴팁을 위한 오버레이 레이어 (투명 rect + crosshair + tooltip)
-  const tooltipOverlay = `
-    <g id="sim-crosshair" style="display:none; pointer-events:none;">
-      <line id="sim-vline" x1="0" y1="${padT}" x2="0" y2="${padT + innerH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>
-      <circle id="sim-dot-med" r="4" fill="var(--accent)" stroke="#fff" stroke-width="1.5"/>
-      <circle id="sim-dot-p90" r="3.5" fill="var(--green)" stroke="#fff" stroke-width="1.5" opacity="0.85"/>
-      <circle id="sim-dot-p10" r="3.5" fill="var(--red)" stroke="#fff" stroke-width="1.5" opacity="0.8"/>
-      <rect id="sim-tip-bg" rx="6" fill="var(--bg-panel)" stroke="var(--border-main)" stroke-width="1" filter="drop-shadow(0 2px 8px rgba(0,0,0,0.12))"/>
-      <text id="sim-tip-text" font-size="10" font-weight="700" fill="var(--text-main)"/>
+  // Internal SVG markers for interaction
+  const interactionMarkers = `
+    <g id="sim-markers" style="display:none; pointer-events:none;">
+      <line id="sim-vline" x1="0" y1="${padT}" x2="0" y2="${padT + innerH}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4,2" opacity="0.7"/>
+      <circle id="sim-dot-med" r="4.5" fill="var(--accent)" stroke="#fff" stroke-width="2"/>
+      <circle id="sim-dot-p90" r="3.5" fill="var(--green)" stroke="#fff" stroke-width="1.5"/>
+      <circle id="sim-dot-p10" r="3.5" fill="var(--red)" stroke="#fff" stroke-width="1.5"/>
     </g>
     <rect x="${padL}" y="${padT}" width="${innerW}" height="${innerH}" fill="transparent" id="sim-hover-zone"/>
   `;
@@ -3894,78 +3895,70 @@ function drawSimulationChart(containerId, result) {
       <path d="${medD}" class="sim-median-line"/>
       ${legend}
       ${tradesLabel}
-      ${tooltipOverlay}
+      ${interactionMarkers}
     </svg>
   `;
 
-  // -- 인터랙션: 마우스 오버 크로스헤어 --
   const svg = container.querySelector('#sim-svg');
   const hoverZone = container.querySelector('#sim-hover-zone');
-  const crosshair = container.querySelector('#sim-crosshair');
+  const markers = container.querySelector('#sim-markers');
   const vline = container.querySelector('#sim-vline');
   const dotMed = container.querySelector('#sim-dot-med');
   const dotP90 = container.querySelector('#sim-dot-p90');
   const dotP10 = container.querySelector('#sim-dot-p10');
-  const tipBg  = container.querySelector('#sim-tip-bg');
-  const tipText = container.querySelector('#sim-tip-text');
 
-  if (!hoverZone || !crosshair) return;
+  if (!hoverZone || !markers || !htmlTooltip) return;
 
-  const getTradeIdx = (mouseX) => {
-    const rect = svg.getBoundingClientRect();
-    const svgW = rect.width;
-    const ratio = svgW / width;
-    const relX = mouseX - rect.left;
-    const svgX = relX / ratio;
-    const frac = Math.max(0, Math.min(1, (svgX - padL) / innerW));
-    return Math.round(frac * xMax);
+  const getIdx = (mx) => {
+    const r = svg.getBoundingClientRect();
+    const svgX = (mx - r.left) * (width / r.width);
+    const frac = (svgX - padL) / innerW;
+    return clamp(Math.round(frac * xMax), 0, xMax);
   };
 
   hoverZone.addEventListener('mousemove', (e) => {
-    const idx = getTradeIdx(e.clientX);
-    if (idx < 0 || idx > xMax) return;
-
+    const idx = getIdx(e.clientX);
     const cx = scaleX(idx);
-    const medY = scaleY(medianPath[idx].y);
-    const p90Y = scaleY(p90Path[idx].y);
-    const p10Y = scaleY(p10Path[idx].y);
+    const my = scaleY(medianPath[idx].y);
+    const y90 = scaleY(p90Path[idx].y);
+    const y10 = scaleY(p10Path[idx].y);
 
-    crosshair.style.display = '';
+    markers.style.display = '';
     vline.setAttribute('x1', cx); vline.setAttribute('x2', cx);
-    dotMed.setAttribute('cx', cx); dotMed.setAttribute('cy', medY);
-    dotP90.setAttribute('cx', cx); dotP90.setAttribute('cy', p90Y);
-    dotP10.setAttribute('cx', cx); dotP10.setAttribute('cy', p10Y);
+    dotMed.setAttribute('cx', cx); dotMed.setAttribute('cy', my);
+    dotP90.setAttribute('cx', cx); dotP90.setAttribute('cy', y90);
+    dotP10.setAttribute('cx', cx); dotP10.setAttribute('cy', y10);
 
-    // 툴팁 텍스트
-    const lines = [
-      { label: `Trade ${idx}`, value: '', color: 'var(--text-muted)' },
-      { label: 'Median', value: moneyAbsNatural(medianPath[idx].y), color: 'var(--accent)' },
-      { label: 'P90', value: moneyAbsNatural(p90Path[idx].y), color: 'var(--green)' },
-      { label: 'P10', value: moneyAbsNatural(p10Path[idx].y), color: 'var(--red)' },
-    ];
+    // HTML Tooltip updates
+    htmlTooltip.innerHTML = `
+      <div class="sim-tip-title">Trade # ${idx}</div>
+      <div class="sim-tip-row"><span class="sim-tip-median">Median</span> <span class="sim-tip-median">${moneyAbsNatural(medianPath[idx].y)}</span></div>
+      <div class="sim-tip-row"><span class="sim-tip-p90">P90 (Opt)</span> <span class="sim-tip-p90">${moneyAbsNatural(p90Path[idx].y)}</span></div>
+      <div class="sim-tip-row"><span class="sim-tip-p10">P10 (Cons)</span> <span class="sim-tip-p10">${moneyAbsNatural(p10Path[idx].y)}</span></div>
+    `;
+    htmlTooltip.classList.add('visible');
 
-    tipText.innerHTML = '';
-    lines.forEach((ln, i) => {
-      const dy = i === 0 ? 14 : i * 16 + 14;
-      tipText.innerHTML += `<tspan x="0" dy="${i === 0 ? 0 : 16}" fill="${ln.color}" font-weight="${i === 0 ? 700 : 800}">${ln.label}${ln.value ? '  ' + ln.value : ''}</tspan>`;
-    });
-
-    // 박스 크기 (대략)
-    const tipW = 120, tipH = 70;
-    let tipX = cx + 10;
-    let tipY = medY - 10;
-    if (tipX + tipW > padL + innerW) tipX = cx - tipW - 10;
-    if (tipY + tipH > padT + innerH) tipY = padT + innerH - tipH;
-    if (tipY < padT) tipY = padT;
-
-    tipBg.setAttribute('x', tipX); tipBg.setAttribute('y', tipY);
-    tipBg.setAttribute('width', tipW); tipBg.setAttribute('height', tipH);
-    tipText.setAttribute('x', tipX + 8); tipText.setAttribute('y', tipY + 14);
+    // Tooltip position
+    const r = container.getBoundingClientRect();
+    const tx = (e.clientX - r.left);
+    const ty = (e.clientY - r.top);
+    
+    let left = tx + 15;
+    let top = ty - 40;
+    if (left + 140 > r.width) left = tx - 155;
+    if (top + 80 > r.height) top = r.height - 85;
+    if (top < 0) top = 10;
+    
+    htmlTooltip.style.left = `${left}px`;
+    htmlTooltip.style.top = `${top}px`;
   });
 
   hoverZone.addEventListener('mouseleave', () => {
-    crosshair.style.display = 'none';
+    markers.style.display = 'none';
+    htmlTooltip.classList.remove('visible');
   });
+}
+
 }
 
 function round(value) {
