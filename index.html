@@ -187,27 +187,44 @@
       </article>
 
       <article class="card simulation-card" style="margin-bottom: 24px;">
-        <div class="section-head">
-          <div>
+        <div class="simulation-header">
+          <div class="simulation-title">
             <h3>Monte Carlo Simulation</h3>
-            <p>미래 성과 확률 및 파산 위험 예측</p>
+            <p>Historical PnL 데이터를 기반으로 한 1,000번의 미래 성과 시뮬레이션</p>
           </div>
-          <div class="inline-actions">
-            <div class="input-inline">
-              <label>시작 자산</label>
-              <input type="number" id="sim-start-balance" style="width:100px;" />
+          <div class="simulation-controls">
+            <div class="sim-input-group">
+              <label>Starting Capital</label>
+              <div class="sim-input-wrapper">
+                <span>$</span>
+                <input type="number" id="sim-start-balance" placeholder="10,000" />
+              </div>
             </div>
-            <div class="input-inline">
-              <label>시뮬 횟수</label>
-              <input type="number" id="sim-trade-count" value="50" style="width:60px;" />
+            <div class="sim-input-group">
+              <label>Trade Count</label>
+              <div class="sim-input-wrapper">
+                <input type="number" id="sim-trade-count" value="50" />
+              </div>
             </div>
-            <button type="button" id="btn-run-sim" class="tool-btn primary-btn">시뮬레이션 실행</button>
+            <button type="button" id="btn-run-sim" class="sim-run-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                <polyline points="16 7 22 7 22 13"></polyline>
+              </svg>
+              시뮬레이션 가동
+            </button>
           </div>
         </div>
-        <div class="simulation-dashboard">
-          <div id="simulation-chart" class="chart-box" style="height: 320px;"></div>
+
+        <div class="simulation-body">
+          <div id="simulation-chart-container" class="simulation-chart-container">
+            <div id="simulation-chart" class="simulation-chart"></div>
+            <!-- HTML Tooltip -->
+            <div id="sim-html-tooltip" class="sim-tooltip" style="display: none;"></div>
+          </div>
+          
           <div id="simulation-stats" class="simulation-stats-grid">
-            <div class="empty-placeholder">시뮬레이션을 실행하여 미래 성과를 예측해 보세요.</div>
+            <div class="empty-placeholder">상단 설정을 마친 후 시뮬레이션 버튼을 클릭하세요.</div>
           </div>
         </div>
       </article>
