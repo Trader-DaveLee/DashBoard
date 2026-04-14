@@ -3567,6 +3567,77 @@ function portfolioItem(label, value) {
   `;
 }
 
+function initSimulationUI(trades) {
+  const btn = document.getElementById('btn-run-sim');
+  if (!btn) return;
+
+  btn.onclick = () => {
+    // CRITICAL: Fetch live input values exactly when the user clicks 'Projection'.
+    // This ensures that even after tab switching or re-rendering, we look at the actual elements in the current DOM.
+    const startBalInput = document.getElementById('sim-start-balance');
+    const tradeCountInput = document.getElementById('sim-trade-count');
+
+    if (!startBalInput || !tradeCountInput) {
+      console.warn("Monte Carlo inputs not found in DOM.");
+      return;
+    }
+
+    const closedTrades = trades.filter(t => t.status === 'CLOSED');
+    if (closedTrades.length < 5) {
+      showModal({ type: 'ALERT', title: '데이터 부족', desc: '시뮬레이션을 실행하려면 최소 5건 이상의 종료된 트레이드가 필요합니다.' });
+      return;
+    }
+
+    const startBalance = Number(startBalInput.value) || 10000;
+    const tradeCount = Number(tradeCountInput.value) || 50;
+
+    const result = runMonteCarlo(closedTrades, { startBalance, tradeCount, iterationCount: 1000 });
+    if (result) {
+      renderSimulationResult(result);
+    }
+  };
+}
+
+function renderSimulationResult(result) {
+  const { paths, stats } = result;
+  
+  const statsContainer = document.getElementById('simulation-stats');
+  if (!statsContainer) return;
+
+  const ruinProb = stats.probRuin;
+
+  // Design: Replaced badges with simple, clean descriptions as requested.
+  statsContainer.innerHTML = `
+    <div class="sim-stat-card">
+      <span class="sim-stat-label">파산 확률 (50% DD)</span>
+      <div class="sim-stat-value ${ruinProb > 10 ? 'negative' : 'positive'}">${ruinProb.toFixed(1)}%</div>
+      <p class="sim-stat-desc">50% 자산 감소가 발생할 확률적 가능성</p>
+    </div>
+    <div class="sim-stat-card">
+      <span class="sim-stat-label">기대 최종 자산</span>
+      <div class="sim-stat-value">${moneyAbsNatural(stats.avgFinal)}</div>
+      <p class="sim-stat-desc">모든 시뮬레이션의 가중 평균 결과값</p>
+    </div>
+    <div class="sim-stat-card">
+      <span class="sim-stat-label">중앙값 (Median)</span>
+      <div class="sim-stat-value">${moneyAbsNatural(stats.medianFinal)}</div>
+      <p class="sim-stat-desc">가장 높은 빈도로 나타나는 미래 자산 규모</p>
+    </div>
+    <div class="sim-stat-card">
+      <span class="sim-stat-label">상위 10% (낙관)</span>
+      <div class="sim-stat-value positive">${moneyAbsNatural(stats.p90)}</div>
+      <p class="sim-stat-desc">상위 10% 성과의 낙관적 성장 시나리오</p>
+    </div>
+    <div class="sim-stat-card">
+      <span class="sim-stat-label">하위 10% (보수)</span>
+      <div class="sim-stat-value negative">${moneyAbsNatural(stats.p10)}</div>
+      <p class="sim-stat-desc">하위 10% 방어망 기준 보수적 결과 예상</p>
+    </div>
+  `;
+
+  drawSimulationChart('simulation-chart', result);
+}
+
 function emptyState(text) {
   return `<div class="empty-state">${escapeHtml(text)}</div>`;
 }
@@ -3708,78 +3779,11 @@ function clamp(value, min, max) {
 /**
  * 🎲 Simulation Module
  */
-function initSimulationUI(trades) {
-  const btn = document.getElementById('btn-run-sim');
-  const startBalInput = document.getElementById('sim-start-balance');
-  const tradeCountInput = document.getElementById('sim-trade-count');
-  if (!btn || !startBalInput || !tradeCountInput) return;
+// Pre-existing initSimulationUI removed to avoid duplication
 
-  // 현재 총 자산을 기본값으로 설정 (한 번만)
-  if (!startBalInput.value) {
-    const latestBalance = (state.db.meta.balanceHistory || [])[0]?.val || 10000;
-    startBalInput.value = Math.round(latestBalance);
-  }
 
-  btn.onclick = () => {
-    const closedTrades = trades.filter(t => t.status === 'CLOSED');
-    if (closedTrades.length < 5) {
-      showModal({ type: 'ALERT', title: '데이터 부족', desc: '시뮬레이션을 실행하려면 최소 5건 이상의 종료된 트레이드가 필요합니다.' });
-      return;
-    }
+// Pre-existing renderSimulationResult removed
 
-    const startBalance = Number(startBalInput.value);
-    const tradeCount = Number(tradeCountInput.value) || 50;
-
-    const result = runMonteCarlo(closedTrades, { startBalance, tradeCount, iterationCount: 1000 });
-    if (result) {
-      renderSimulationResult(result);
-    }
-  };
-}
-
-function renderSimulationResult(result) {
-  const { paths, stats } = result;
-  
-  const statsContainer = document.getElementById('simulation-stats');
-  if (!statsContainer) return;
-
-  const ruinProb = stats.probRuin;
-  let ruinStatus = { label: 'Safe', class: 'grade-a' };
-  if (ruinProb > 20) ruinStatus = { label: 'Danger', class: 'grade-d' };
-  else if (ruinProb > 10) ruinStatus = { label: 'Warning', class: 'grade-c' };
-  else if (ruinProb > 5) ruinStatus = { label: 'Moderate', class: 'grade-b' };
-
-  // V3.1.0: Premium Stats Card markup
-  statsContainer.innerHTML = `
-    <div class="sim-stat-card">
-      <span class="sim-stat-label">파산 확률 (50% DD)</span>
-      <div class="sim-stat-value ${ruinProb > 10 ? 'negative' : 'positive'}">${ruinProb.toFixed(1)}%</div>
-      <span class="sim-stat-badge ${ruinStatus.class}">${ruinStatus.label}</span>
-    </div>
-    <div class="sim-stat-card">
-      <span class="sim-stat-label">기대 최종 자산</span>
-      <div class="sim-stat-value">${moneyAbsNatural(stats.avgFinal)}</div>
-      <span class="sim-stat-badge grade-b">Expected</span>
-    </div>
-    <div class="sim-stat-card">
-      <span class="sim-stat-label">중앙값 (Median)</span>
-      <div class="sim-stat-value">${moneyAbsNatural(stats.medianFinal)}</div>
-      <span class="sim-stat-badge grade-b">Median</span>
-    </div>
-    <div class="sim-stat-card">
-      <span class="sim-stat-label">상위 10% (낙관)</span>
-      <div class="sim-stat-value positive">${moneyAbsNatural(stats.p90)}</div>
-      <span class="sim-stat-badge grade-a">Optimistic</span>
-    </div>
-    <div class="sim-stat-card">
-      <span class="sim-stat-label">하위 10% (보수)</span>
-      <div class="sim-stat-value negative">${moneyAbsNatural(stats.p10)}</div>
-      <span class="sim-stat-badge grade-d">Conservative</span>
-    </div>
-  `;
-
-  drawSimulationChart('simulation-chart', result);
-}
 
 function drawSimulationChart(containerId, result) {
   const container = document.getElementById(containerId);
