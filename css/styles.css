@@ -1882,13 +1882,40 @@ body.modal-open { overflow: hidden; }
 }
 
 .btn-ticker-settings {
-  background: var(--bg-panel); border: 1px solid var(--border-subtle); cursor: pointer; font-size: 14px; opacity: 0.7;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  padding: 4px; display: grid; place-items: center;
-  position: absolute; right: 0; top: 0; bottom: 0; z-index: 10;
-  width: 28px; border-radius: 0; border-left: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: none;
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  width: 32px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--text-muted);
 }
-.btn-ticker-settings:hover { opacity: 1; color: var(--accent); background: var(--bg-hover); }
+.btn-ticker-settings svg {
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-ticker-settings:hover {
+  background: var(--bg-panel);
+  color: var(--accent);
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.05);
+  opacity: 1;
+}
+.btn-ticker-settings:hover svg {
+  transform: rotate(90deg);
+}
+[data-theme='dark'] .btn-ticker-settings {
+  background: rgba(0, 0, 0, 0.2);
+  border-left-color: rgba(255, 255, 255, 0.05);
+}
 
 .btn-refresh-modern {
   display: flex; align-items: center; gap: 8px; padding: 6px 14px;
