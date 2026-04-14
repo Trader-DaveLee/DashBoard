@@ -3711,7 +3711,8 @@ function clamp(value, min, max) {
 function initSimulationUI(trades) {
   const btn = document.getElementById('btn-run-sim');
   const startBalInput = document.getElementById('sim-start-balance');
-  if (!btn || !startBalInput) return;
+  const tradeCountInput = document.getElementById('sim-trade-count');
+  if (!btn || !startBalInput || !tradeCountInput) return;
 
   // 현재 총 자산을 기본값으로 설정 (한 번만)
   if (!startBalInput.value) {
@@ -3727,7 +3728,7 @@ function initSimulationUI(trades) {
     }
 
     const startBalance = Number(startBalInput.value);
-    const tradeCount = Number(document.getElementById('sim-trade-count').value) || 50;
+    const tradeCount = Number(tradeCountInput.value) || 50;
 
     const result = runMonteCarlo(closedTrades, { startBalance, tradeCount, iterationCount: 1000 });
     if (result) {
