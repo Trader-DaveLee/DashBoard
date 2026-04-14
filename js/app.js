@@ -1482,7 +1482,13 @@ function renderNav() {
 
   els['nav'].querySelectorAll('button').forEach(button => {
     button.onclick = () => {
-      state.view = button.dataset.view;
+      const targetView = button.dataset.view;
+      // 내비게이션 직접 클릭 시 Library 날짜 필터 초기화 (캘린더 점프는 유지)
+      if (targetView === 'library') {
+        setVal('f-from', '');
+        setVal('f-to', '');
+      }
+      state.view = targetView;
       renderViews();
     };
   });
@@ -1501,9 +1507,6 @@ export function renderViews() {
   }
   
   if (state.view === 'library') {
-    // Default to All-Time when entering Library
-    setVal('f-from', '');
-    setVal('f-to', '');
     safeCall('renderLibrary(view)', () => renderLibrary());
   }
   if (state.view === 'playbook') safeCall('renderPlaybook(view)', () => renderPlaybook());
