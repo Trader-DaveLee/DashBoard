@@ -1,0 +1,382 @@
+/* 📱 Trading DashBoard Mobile Lite (v1.0) 
+   Targeting screen widths <= 768px
+*/
+
+@media (max-width: 768px) {
+
+  /* 1. Global Layout Resets */
+  :root {
+    --header-height: 92px; /* Adjusted for 2-tier topbar (60px main + 32px ticker) */
+    --tabbar-height: 65px;
+  }
+
+  body {
+    padding-bottom: var(--tabbar-height);
+    font-size: 14px;
+    overflow-x: hidden;
+  }
+
+  .container {
+    padding: 12px;
+    padding-top: calc(var(--header-height) + 8px);
+    width: 100%;
+    margin: 0;
+  }
+
+  /* 2. Topbar Optimization for 2-Tier */
+  .topbar {
+    height: auto !important;
+    min-height: var(--header-height);
+    padding: 0 !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+
+  .topbar-main {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  .global-price-bar {
+    padding: 4px 12px !important;
+    min-height: 32px !important;
+  }
+
+  .price-ticker-list {
+    gap: 16px !important;
+  }
+
+  .ticker-price {
+    font-size: 12px !important;
+  }
+
+  .topbar .brand h1 {
+    font-size: 16px;
+  }
+
+  .topbar .brand p {
+    display: none;
+  }
+
+  .topbar-side {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .backup-actions,
+  #nav,
+  .topbar-status {
+    display: none !important;
+    /* Hidden on mobile topbar */
+  }
+
+  /* 3. Mobile Bottom Tab Bar */
+  .mobile-tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--tabbar-height);
+    background: var(--bg-nav);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border-main);
+    display: flex !important;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 2000;
+    padding: 0 10px;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    background: none;
+    border: none;
+    flex: 1;
+    padding: 8px 0;
+    transition: 0.2s;
+  }
+
+  .tab-item.active {
+    color: var(--accent);
+  }
+
+  .tab-item svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* 4. Overview Optimization */
+  .overview-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .date-filter-box {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    background: var(--bg-input);
+    border-radius: 12px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 20px;
+  }
+
+  .metric-card {
+    padding: 16px !important;
+    min-height: 90px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+  }
+
+  .metric-value {
+    font-size: 20px;
+  }
+
+  .overview-top-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .overview-panel-fill {
+    width: 100% !important;
+  }
+
+  /* Hide heavy/complex elements on mobile for pure record viewing focus */
+  .overview-calendar-card,
+  .quick-launch-section,
+  .simulation-card,
+  .chart-grid {
+    display: none !important;
+  }
+
+  /* 5. Library (History) Optimization for Mobile */
+  .library-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .trade-table-wrapper {
+    margin: 0 -12px;
+    border-radius: 0;
+  }
+
+  .trade-table th:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(5)),
+  .trade-table td:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(5)) {
+    display: none;
+    /* Only show Ticker, Side, PnL on very small screens */
+  }
+
+  /* 6. Memo Widget Fullscreen for Mobile - FORCED STYLES */
+  .memo-widget {
+    display: none !important;
+  }
+
+  #view-memo {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: var(--tabbar-height);
+    background: var(--bg-main);
+    z-index: 1500;
+  }
+
+  #view-memo.active {
+    display: flex !important;
+  }
+
+  /* Overriding desktop absolute/fixed styles with !important to ensure visibility */
+  .memo-panel {
+    width: 100vw !important;
+    height: 100% !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: auto !important;
+    right: auto !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 1 !important;
+    background: var(--bg-main) !important;
+  }
+
+  .memo-header {
+    border-radius: 0 !important;
+  }
+
+  .memo-close-btn {
+    display: none !important;
+  }
+
+  .memo-messages {
+    flex: 1;
+    padding: 16px !important;
+  }
+
+  /* 7. FAB & Trade Detail Modal (v1.3) */
+
+
+  #mobile-trade-detail-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 5000;
+  }
+
+  #mobile-trade-detail-overlay.active {
+    display: flex !important;
+  }
+
+  .mobile-trade-detail-content {
+    background: var(--bg-panel);
+    width: 92%;
+    max-height: 85vh;
+    border-radius: 32px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+    animation: modalSlideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes modalSlideUp {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .mobile-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-panel);
+  }
+
+  .mobile-modal-header h3 {
+    font-size: 16px;
+    font-weight: 900;
+  }
+
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .mobile-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-detail-kv {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: var(--bg-input);
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .kv-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .kv-row span {
+    color: var(--text-muted);
+  }
+
+  .mobile-detail-section {
+    margin-bottom: 24px;
+  }
+
+  .mobile-detail-section h4 {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .mobile-detail-section p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-main);
+  }
+
+  .mobile-detail-chart {
+    width: 100%;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg-input);
+  }
+
+  .badge-good { color: var(--green); background: var(--green-soft); padding: 2px 8px; border-radius: 6px; }
+  .badge-danger { color: var(--red); background: var(--red-soft); padding: 2px 8px; border-radius: 6px; }
+
+  /* V1.6: Hide Edit Button on History Item */
+  .overview-history-item button[data-action="edit"] {
+    display: none !important;
+  }
+
+  /* V1.6: Advanced Risk Insights Mobile Optimization */
+  .risk-report-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .risk-item {
+    padding: 16px !important;
+  }
+  .risk-label {
+    font-size: 11px !important;
+  }
+  .risk-value {
+    font-size: 18px !important;
+  }
+}

@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trading DashBoard</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' fill='%230f172a'/%3E%3Cpolyline points='18 9 12 15 8 11 4 15' stroke='white'/%3E%3Cpolyline points='14 9 18 9 18 13' stroke='white'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="./css/mobile.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-main">
+      <div class="topbar-left">
+        <div class="brand">
+          <div class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" style="width:22px; height:22px;">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+              <polyline points="16 7 22 7 22 13"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h1>Trading DashBoard</h1>
+            <p>Since 2026</p>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-side">
+        <nav id="nav"></nav>
+        <div class="backup-actions">
+          <button id="force-save-draft" type="button" class="btn-draft">💾 임시저장</button>
+          <span class="divider">|</span>
+          <button id="export-json" type="button">백업 저장</button>
+          <button id="import-json-btn" type="button">데이터 복원</button>
+          <button id="open-guide-btn" type="button">사용 가이드</button>
+          <input id="import-json" type="file" accept="application/json" hidden />
+        </div>
+        <div class="auth-box">
+          <button id="btn-login" type="button" class="btn-login">Google 로그인</button>
+          <div id="user-info" class="user-info hidden">
+            <img id="user-photo" src="" alt="Profile" />
+            <button id="btn-logout" type="button" class="btn-logout-icon" title="로그아웃">🚪</button>
+          </div>
+        </div>
+        <button id="btn-theme-toggle" class="btn-theme-toggle" title="테마 변경">🌓</button>
+        <div class="topbar-status">
+          <strong id="journal-status">시스템 정상</strong>
+          <span id="journal-sub-status">준비 완료</span>
+        </div>
+      </div>
+    </div>
+    <div id="global-price-bar" class="global-price-bar">
+      <div id="price-ticker-list" class="price-ticker-list">
+        <span class="ticker-loading">Bybit & Stocks 실시간 로딩 중...</span>
+      </div>
+      <button id="btn-ticker-settings" class="btn-ticker-settings" title="시세 종목 편집">⚙️</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="view-overview" class="view active">
+
+      <div class="quick-launch-section">
+        <div class="realtime-clock" id="realtime-clock"></div>
+        <div class="quick-launch-links">
+          <div id="quick-launch-grid" class="quick-launch-grid"></div>
+          <button type="button" id="btn-manage-quick-links" class="gear-btn fixed-btn" title="빠른 링크 관리">⚙️</button>
+        </div>
+      </div>
+
+      <div class="section-head overview-hero">
+        <div>
+          <h3 class="overview-title">Overview</h3>
+          <p class="overview-subtitle">트레이딩 성과 요약</p>
+        </div>
+        <div class="date-filter-box">
+          <span class="filter-label">📊 통계 기간</span>
+          <input type="date" id="overview-from" />
+          <span class="filter-sep">~</span>
+          <input type="date" id="overview-to" />
+          <button type="button" id="overview-search" class="tool-btn">조회</button>
+          <button type="button" id="overview-clear" class="tool-btn">전체</button>
+        </div>
+      </div>
+
+      <div class="overview-top-row">
+        <div id="metrics" class="metrics-grid"></div>
+        <article class="card premium-balance-card overview-bank-card">
+          <div class="section-head inner-divider">
+            <div>
+              <h3>💼 Portfolio Status</h3>
+              <p>현재 자산 구성 및 총액</p>
+            </div>
+          </div>
+          <div id="overview-portfolio" class="portfolio-overview"></div>
+        </article>
+      </div>
+
+      <div class="overview-calendar-grid" style="margin-bottom: 24px;">
+        <article class="card overview-calendar-card overview-panel-fill">
+          <div class="section-head">
+            <div>
+              <h3>월간 캘린더 (Heatmap)</h3>
+              <p>일별 순손익 및 클릭하여 해당 일자 복기</p>
+            </div>
+            <div class="inline-actions">
+              <button id="prev-month" class="tool-btn">◀</button>
+              <strong id="calendar-title" class="calendar-title"></strong>
+              <button id="next-month" class="tool-btn">▶</button>
+            </div>
+          </div>
+          <div id="calendar" class="calendar calendar-large"></div>
+        </article>
+
+        <article class="card overview-history-card overview-panel-fill">
+          <div class="section-head history-head compact-head">
+            <div>
+              <h3>최근 히스토리</h3>
+            </div>
+          </div>
+          <div id="overview-history-list" class="overview-history-list compact-history-list"></div>
+        </article>
+      </div>
+
+      <!-- V1.8.5 Economic Indicators Board -->
+      <article class="card overview-economic-card" style="margin-bottom: 24px;">
+        <div class="section-head">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <h3>Major Economic Events</h3>
+            <button type="button" id="btn-eco-settings" class="icon-btn-sm" title="경제 지표 필터 설정" style="background:none; border:none; cursor:pointer; font-size:16px; opacity:0.6; transition:0.2s;">⚙️</button>
+          </div>
+          <button type="button" id="btn-add-eco-event" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px;">
+             <span style="font-size: 16px;">+</span>
+             <span>Add Indicator</span>
+          </button>
+        </div>
+        <div id="economic-indicator-list" class="economic-list-grid">
+          <div class="empty-placeholder">로딩 중...</div>
+        </div>
+        <div class="economic-pagination">
+          <button id="btn-eco-prev" class="tool-btn btn-sm">◀ Previous</button>
+          <span id="eco-page-info">Page 1 / 3</span>
+          <button id="btn-eco-next" class="tool-btn btn-sm">Next Day ▶</button>
+        </div>
+      </article>
+
+      <div class="grid grid-2" style="margin-bottom:24px;">
+        <article class="card chart-card">
+          <div class="section-head">
+            <div>
+              <h3>Equity Curve</h3>
+              <p>순수 매매 성과 누적 곡선</p>
+            </div>
+            <div class="premium-capsule-nav" data-target="equity">
+              <button type="button" data-range="1W">1W</button>
+              <button type="button" data-range="1">1M</button>
+              <button type="button" data-range="3">3M</button>
+              <button type="button" data-range="12">1Y</button>
+              <button type="button" class="active" data-range="ALL">ALL</button>
+            </div>
+          </div>
+          <div id="equity-chart" class="chart-box"></div>
+        </article>
+        <article class="card chart-card">
+          <div class="section-head">
+            <div>
+              <h3>Balance Curve</h3>
+              <p>입출금이 반영된 실제 계좌 잔고 추이</p>
+            </div>
+            <div class="premium-capsule-nav" data-target="balance">
+              <button type="button" data-range="1W">1W</button>
+              <button type="button" data-range="1">1M</button>
+              <button type="button" data-range="3">3M</button>
+              <button type="button" data-range="12">1Y</button>
+              <button type="button" class="active" data-range="ALL">ALL</button>
+            </div>
+          </div>
+          <div id="balance-chart" class="chart-box"></div>
+        </article>
+      </div>
+
+      <article class="card overview-risk-report-card" style="margin-bottom: 24px;">
+        <div class="section-head">
+          <div>
+            <h3>Advanced Risk Insights</h3>
+            <p>트레이딩 효율 및 리스크 성향 정밀 분석</p>
+          </div>
+        </div>
+        <div id="overview-risk-report" class="risk-report-grid">
+          <!-- Advanced metrics will be rendered here -->
+          <div class="empty-placeholder">데이터 분석 결과가 여기에 표시됩니다.</div>
+        </div>
+      </article>
+
+      <article class="card simulation-card" style="margin-bottom: 24px;">
+        <div class="section-head">
+          <div>
+            <h3>Monte Carlo Simulation</h3>
+            <p>미래 성과 확률 및 파산 위험 예측</p>
+          </div>
+          <div class="inline-actions">
+            <div class="input-inline">
+              <label>시작 자산</label>
+              <input type="number" id="sim-start-balance" style="width:100px;" />
+            </div>
+            <div class="input-inline">
+              <label>시뮬 횟수</label>
+              <input type="number" id="sim-trade-count" value="50" style="width:60px;" />
+            </div>
+            <button type="button" id="btn-run-sim" class="tool-btn primary-btn">시뮬레이션 실행</button>
+          </div>
+        </div>
+        <div class="simulation-dashboard">
+          <div id="simulation-chart" class="chart-box" style="height: 320px;"></div>
+          <div id="simulation-stats" class="simulation-stats-grid">
+            <div class="empty-placeholder">시뮬레이션을 실행하여 미래 성과를 예측해 보세요.</div>
+          </div>
+        </div>
+      </article>
+
+      <div class="grid grid-2">
+        <article class="card chart-card">
+          <div class="section-head">
+            <div>
+              <h3>셋업 성과</h3>
+              <p>Entry setup 평균 R</p>
+            </div>
+          </div>
+          <div id="setup-chart" class="chart-box"></div>
+        </article>
+        <div class="stack">
+          <article class="card compact-section">
+            <div class="section-head">
+              <div>
+                <h3>주요 실수</h3>
+                <p>빈도 및 누적 손실</p>
+              </div>
+            </div>
+            <div id="mistake-list" class="stack"></div>
+          </article>
+          <article class="card compact-section">
+            <div class="section-head">
+              <div>
+                <h3>Desk Notes</h3>
+                <p>자동 분석 인사이트</p>
+              </div>
+            </div>
+            <div id="research-notes" class="stack"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-journal" class="view">
+      <div class="grid grid-journal">
+        <div class="journal-form-wrapper">
+          <form id="trade-form" class="form-stack">
+            <input type="hidden" id="trade-id" />
+
+            <article class="phase-card phase-blue" id="journal-pretrade-phase">
+              <div class="phase-header">
+                <h3>Pre-Trade Context</h3>
+                <p>거래 기본 정보와 진입 근거</p>
+              </div>
+
+              <div id="pretrade-brief" class="summary-box section-summary">티커·방향·셋업을 선택하면 프리뷰가 표시됩니다.</div>
+
+              <details class="context-guide details-guide" style="margin-top:16px;">
+                <summary>작성 가이드 보기</summary>
+                <div class="details-guide-body">
+                  <p><strong>이 섹션의 목적</strong>은 “왜 지금 이 거래를 열려고 하는지”를 한 번 더 언어로 점검하는 것입니다. 실제 손절/추가진입/익절 판단이 흔들릴 때 가장 먼저
+                    돌아볼 기준이 됩니다.</p>
+                  <ul>
+                    <li><strong>시장 컨텍스트</strong>: 구조, 유동성 위치, 뉴스/촉매를 적습니다.</li>
+                    <li><strong>진입 논리 및 무효화</strong>: 진입 트리거, 틀렸다고 보는 가격/조건, 추가 진입 조건, 익절 계획을 적습니다.</li>
+                    <li>리스크 계산이 좋아도 <strong>맥락이 약하면 좋은 거래가 아닙니다.</strong> 손절은 명확한데 진입 이유가 흐리면 규모를 줄이거나 패스하는 것이 맞습니다.
+                    </li>
+                  </ul>
+                </div>
+              </details>
+
+              <div class="field-grid cols-2 pretrade-top-grid" style="margin-top:24px;">
+                <label><span>날짜/시간</span>
+                  <div class="input-group flex-group">
+                    <input id="trade-date" type="datetime-local" required />
+                    <button type="button" id="btn-now" class="tool-btn fixed-btn">지금</button>
+                  </div>
+                </label>
+                <label><span>방향</span><select id="side">
+                    <option value="LONG">LONG</option>
+                    <option value="SHORT">SHORT</option>
+                  </select></label>
+              </div>
+
+              <div class="field-grid cols-3 pretrade-bottom-grid" style="margin-top:16px;">
+                <label><span>티커</span>
+                  <div class="input-group flex-group">
+                    <select id="ticker" required></select>
+                    <button type="button" id="btn-manage-ticker" class="gear-btn fixed-btn">⚙️</button>
+                  </div>
+                </label>
+                <label><span>Entry Setup</span>
+                  <div class="input-group flex-group">
+                    <select id="setup-entry"></select>
+                    <button type="button" id="btn-manage-setup-entry" class="gear-btn fixed-btn">⚙️</button>
+                  </div>
+                </label>
+                <label><span>Exit Setup</span>
+                  <div class="input-group flex-group">
+                    <select id="setup-exit"></select>
+                    <button type="button" id="btn-manage-setup-exit" class="gear-btn fixed-btn">⚙️</button>
+                  </div>
+                </label>
+              </div>
+
+              <div class="field-grid cols-1" style="margin-top: 32px;">
+                <div class="premium-label-wrapper">
+                  <span class="premium-label-line"></span>
+                  <label>Rule Verification (원칙 점검)</label>
+                </div>
+                <div id="trade-checklist-container" class="trade-checklist-grid"></div>
+              </div>
+
+              <div class="field-grid cols-2 journal-context-grid" style="margin-top: 32px;">
+                <label><span>시장 컨텍스트</span><textarea id="context" class="auto-resize" placeholder="진입 전 시장 흐름, 유동성, 구조"
+                    style="min-height: 108px;"></textarea></label>
+                <label><span>진입 논리 및 무효화 기준</span><textarea id="thesis" class="auto-resize"
+                    placeholder="왜 여기서 진입하는지, 어디서 틀렸다고 볼지" style="min-height: 108px;"></textarea></label>
+              </div>
+
+              <div class="context-helper-row" style="margin-top:16px;">
+                <div class="context-helper-group">
+                  <span class="muted-caption">시장 컨텍스트 프롬프트</span>
+                  <div class="chips compact-chips">
+                    <button type="button" id="btn-context-structure" class="chip-btn">구조/유동성</button>
+                    <button type="button" id="btn-context-catalyst" class="chip-btn">뉴스/촉매</button>
+                  </div>
+                </div>
+                <div class="context-helper-group">
+                  <span class="muted-caption">논리 프롬프트</span>
+                  <div class="chips compact-chips">
+                    <button type="button" id="btn-thesis-trigger" class="chip-btn">엔트리/추가진입</button>
+                    <button type="button" id="btn-thesis-invalidation" class="chip-btn">무효화/청산</button>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top: 32px;">
+                <div class="mini-head">
+                  <h4>진입 차트 링크 (Entry Charts)</h4><button type="button" id="add-entry-chart" class="tool-btn btn-sm">＋
+                    링크 추가</button>
+                </div>
+                <div id="entry-charts-container" class="stack"></div>
+              </div>
+            </article>
+
+            <article class="phase-card phase-yellow" id="journal-risk-phase">
+              <div class="phase-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                  <h3>Risk &amp; Execution</h3>
+                  <p>리스크 예산, 진입 전략, 체결 구조를 주문하듯 설계</p>
+                </div>
+                <button type="button" id="btn-realtime-chart" class="tool-btn btn-sm accent-outline-btn"
+                  style="margin-top: 2px;">📊 실시간 차트</button>
+              </div>
+
+              <details class="details-guide" style="margin-top:8px;">
+                <summary>사용 가이드 보기</summary>
+                <div class="details-guide-body">
+                  <p><strong>입력 순서</strong>: 현재가 → 손절가 → 목표가 → 리스크(%) → 진입 전략 → 추천안 생성/조정 → 실제 체결 반영.</p>
+                  <ul>
+                    <li><strong>단일 진입</strong>: 한 번에 진입할 때 적합합니다. 변동성이 낮고 손절이 명확할 때 유리합니다.</li>
+                    <li><strong>균형 분할</strong>: 현재가와 손절 사이를 무난하게 나눠 들어가는 기본형입니다.</li>
+                    <li><strong>눌림 분할 (Cost Averaging)</strong>: 더 좋은 가격을 기다리며 손절 쪽으로 분할 진입합니다. 박스권 재진입, 지지 확인형 전략에
+                      유효합니다.</li>
+                    <li><strong>피라미딩</strong>: 진입가보다 높은 가격에서 추세 확인 후 추가 진입하는 전략입니다. 강한 추세/브레이크아웃 환경에서 더 유효합니다.</li>
+                    <li><strong>Step / Leg</strong>: 분할 진입의 각 단계를 뜻합니다. 한 번에 전부 들어가지 않고 계획된 순서대로 진입하는 단위입니다.</li>
+                    <li><strong>비중 스타일 (Risk Share Mode)</strong>: 각 단계에 허용 리스크를 어떻게 배분할지 정합니다. 균등 배분은 고르게, 초기 진입 비중↑은 첫
+                      진입을 크게, 확인 후 비중↑은 뒤쪽 단계를 더 크게 둡니다.</li>
+                  </ul>
+                  <p><strong>과신하면 안 되는 경우</strong>: 손절 기준이 불명확하거나, 변동성 이벤트 직전/직후이거나, 목표가가 비현실적일 때 계산값은 참고치일 뿐입니다.</p>
+                </div>
+              </details>
+
+              <div class="execution-section-group" style="margin-top:24px;">
+                <div class="mini-head">
+                  <h4>RISK BUDGET</h4><span class="muted-caption">이번 트레이드에 쓸 최대 손실과 레버리지</span>
+                </div>
+                <div class="field-grid cols-3 compact-panel execution-grid">
+                  <label><span>매매용 시드 ($)</span><input id="account-size" type="number" step="1" value="10000" /></label>
+                  <label><span>리스크 (%)</span><input id="risk-pct" type="number" step="0.01" value="0.5" /></label>
+                  <label><span>레버리지</span><input id="leverage" type="number" step="0.1" value="5" /></label>
+                </div>
+              </div>
+
+              <div class="execution-section-group" style="margin-top:18px;">
+                <div class="mini-head">
+                  <h4>ENTRY STRATEGY</h4><span class="muted-caption">추천 진입 구조를 계산하는 방식</span>
+                </div>
+                <div class="field-grid cols-3 compact-panel execution-grid">
+                  <label><span>Planner Mode</span>
+                    <select id="planner-mode">
+                      <option value="SINGLE">Single Entry</option>
+                      <option value="BALANCED">Balanced Scale-in</option>
+                      <option value="AVERAGING">Cost Averaging</option>
+                      <option value="PYRAMID">Pyramiding</option>
+                    </select>
+                  </label>
+                  <label><span>진입 단계 수</span>
+                    <select id="planner-legs">
+                      <option value="1">1단계</option>
+                      <option value="2">2단계</option>
+                      <option value="3" selected>3단계</option>
+                      <option value="4">4단계</option>
+                    </select>
+                  </label>
+                  <label><span>비중 스타일</span>
+                    <select id="planner-weight-mode">
+                      <option value="EQUAL">균등 배분</option>
+                      <option value="FRONTLOADED">초기 진입 비중↑</option>
+                      <option value="BACKLOADED" selected>확인 후 비중↑</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="planner-mode-note" class="muted-caption planner-mode-note" style="margin-top:10px;">
+                  현재가/손절가/목표가를 기준으로 전략별 추천 진입 단계를 계산합니다.</div>
+              </div>
+
+              <div class="execution-section-group" style="margin-top:18px;">
+                <div class="mini-head">
+                  <h4>PRICE MAP</h4><span class="muted-caption">기준가를 설정하여 손절/목표 거리와 리스크 범위를 빠르게 확인합니다.</span>
+                </div>
+                <div class="field-grid cols-3 compact-panel execution-grid">
+                  <label><span>Entry Price</span><input id="current-price" type="number" step="0.01" /></label>
+                  <label><span>Stop Loss</span><input id="stop-price" type="number" step="0.01" /></label>
+                  <label><span>Target Profit</span><input id="target-price" type="number" step="0.01"
+                      placeholder="예상 목표가" /></label>
+                </div>
+                <div id="price-map-distance-summary" class="summary-box" style="margin-top:12px;">Entry Price, Stop
+                  Loss, Target Profit을 입력하면 거리 비율이 자동 계산됩니다.</div>
+              </div>
+
+              <details class="details-guide compact-guide" style="margin-top:18px;">
+                <summary>수수료·체결 방식 고급 설정</summary>
+                <div class="field-grid cols-3 compact-panel execution-grid" style="margin-top:12px;">
+                  <label><span>Maker Fee (%)</span><input id="maker-fee" type="number" step="0.001"
+                      value="0.02" /></label>
+                  <label><span>Taker Fee (%)</span><input id="taker-fee" type="number" step="0.001"
+                      value="0.05" /></label>
+                  <label><span>손절 체결 방식</span><select id="stop-type">
+                      <option value="M">Maker</option>
+                      <option value="T">Taker</option>
+                    </select></label>
+                </div>
+              </details>
+
+              <div class="mini-head" style="margin-top:24px; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                <div>
+                  <h4>AUTO ENTRY PLANNER</h4>
+                  <div class="muted-caption" style="margin-top:6px;">현재가·손절가·목표가·전략 모드를 기준으로 추천 진입 단계와 수량/레버리지를 계산합니다.
+                  </div>
+                </div>
+                <div class="inline-actions">
+                  <button type="button" id="btn-generate-plan" class="tool-btn btn-sm">추천안 재계산</button>
+                  <button type="button" id="btn-apply-plan" class="tool-btn btn-sm primary-btn">추천안 적용</button>
+                </div>
+              </div>
+              <div id="planner-summary" class="summary-box">현재가, 손절가, 리스크를 입력하면 추천 진입 구조가 표시됩니다.</div>
+
+              <div class="field-grid cols-1" style="margin-top: 32px; gap: 32px;">
+                <div>
+                  <div class="mini-head">
+                    <h4>EXECUTION ENTRIES (실제 체결 / Risk Share %)</h4><button type="button" id="add-entry"
+                      class="tool-btn btn-sm">＋ 추가</button>
+                  </div>
+                  <div id="entries" class="stack" style="gap:8px;"></div>
+                </div>
+                <div>
+                  <div class="mini-head">
+                    <h4>TARGET / FILLED EXITS (OPEN=Planned · FILLED=실제 체결)</h4>
+                    <button type="button" id="add-exit" class="tool-btn btn-sm">＋ 추가</button>
+                  </div>
+                  <div id="exits" class="stack" style="gap:8px;"></div>
+                </div>
+              </div>
+
+              <div class="field-grid" style="margin-top: 24px;">
+                <label style="display:block; width:fit-content;">
+                  <span
+                    style="display:block; margin-bottom:8px; font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">PnL
+                    미세조정</span>
+                  <div style="display:flex; gap:6px; align-items:center;">
+                    <select id="pnl-adjustment-sign"
+                      style="width: 48px; height:42px; padding: 0 8px; font-weight:800; border-radius: 10px; border: 1px solid var(--border-main); background:var(--bg-panel); color:var(--text-main);">
+                      <option value="1">+</option>
+                      <option value="-1">-</option>
+                    </select>
+                    <div style="position:relative; width: 110px;">
+                      <span
+                        style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-weight:900; pointer-events:none; z-index:2;">$</span>
+                      <input type="number" id="pnl-adjustment" step="0.01" placeholder="0.00"
+                        style="padding: 10px 12px 10px 24px; font-size:14px; height:42px; border-radius:10px; background:var(--bg-input); border:1px solid var(--border-main); font-weight:800; width:100%; color:var(--text-main);" />
+                    </div>
+                    <button type="button" id="btn-apply-adjustment" class="tool-btn"
+                      style="height:42px; padding:0 16px; border-radius:10px; font-size:12px; white-space:nowrap; background:var(--accent-soft); color:var(--accent); border:1px solid var(--border-subtle);">적용</button>
+                  </div>
+                </label>
+              </div>
+
+              <div id="calc-summary" class="summary-box" style="margin-top: 24px;">유효한 입력값이 필요합니다.</div>
+            </article>
+
+            <article class="phase-card phase-green">
+              <div class="phase-header">
+                <h3>Live Management</h3>
+                <p>홀딩 중 발생한 대응과 심리 로그</p>
+              </div>
+              <div class="live-panel">
+                <div class="mini-head align-start">
+                  <div><span class="muted-caption">포지션 보유 중 발생하는 시그널과 대응을 시간순으로 기록하세요.</span></div>
+                  <div class="quick-actions">
+                    <button type="button" id="btn-insert-time" class="tool-btn btn-sm fixed-btn">🕒 시간 삽입</button>
+                    <button type="button" class="tool-btn btn-sm btn-live-action fixed-btn" data-text="[본절 로스 이동] ">📈
+                      본절 이동</button>
+                    <button type="button" class="tool-btn btn-sm btn-live-action fixed-btn" data-text="[부분청산] ">✂️
+                      부분청산</button>
+                    <button type="button" class="tool-btn btn-sm btn-live-action fixed-btn" data-text="[추가 진입] ">➕
+                      추가진입</button>
+                  </div>
+                </div>
+                <textarea id="live-notes" class="auto-resize live-notes"
+                  placeholder="[2026-04-01 09:35:10] NY open reclaim 확인"></textarea>
+
+                <div style="margin-top: 24px;">
+                  <div class="mini-head">
+                    <h4>진행 중 차트 링크 (Live Charts)</h4><button type="button" id="add-live-chart" class="tool-btn btn-sm">＋
+                      링크 추가</button>
+                  </div>
+                  <div id="live-charts-container" class="stack"></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="phase-card phase-purple">
+              <div class="phase-header" style="margin-bottom: 24px;">
+                <h3>Post-Trade Assessment</h3>
+                <p>리스크 사용, 손익 결과, 다음 복기 포인트를 한 번에 정리</p>
+              </div>
+
+              <div class="post-assessment-shell">
+                <div class="assessment-top">
+                  <div class="eval-status-badge" id="eval-status-badge">OPEN (Projected)</div>
+                  <div class="assessment-top-controls">
+                    <div class="eval-time-wrapper">
+                      <label>종료 시간</label>
+                      <div class="input-group flex-group">
+                        <input id="trade-end-date" type="datetime-local" />
+                        <button type="button" id="btn-end-now" class="tool-btn fixed-btn">지금 종료</button>
+                      </div>
+                      <div id="holding-preview" class="muted-caption hold-preview">홀딩시간 —</div>
+                    </div>
+                    <div class="eval-grade-wrapper">
+                      <label>Grade</label>
+                      <select id="grade" class="eval-grade-select">
+                        <option value="S">S (완벽 원칙)</option>
+                        <option value="A">A (우량 셋업)</option>
+                        <option value="B" selected>B (일반 셋업)</option>
+                        <option value="C">C (원칙 이탈)</option>
+                        <option value="D">D (뇌동 매매)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="assessment-grid">
+                  <div class="assessment-item"><label>사용 리스크</label><strong id="assessment-risk-used">$0</strong></div>
+                  <div class="assessment-item"><label>허용 리스크</label><strong id="assessment-risk-budget">$0</strong>
+                  </div>
+                  <div class="assessment-item"><label>예상 PnL</label><strong id="assessment-projected-pnl">$0</strong>
+                  </div>
+                  <div class="assessment-item"><label>최종 PnL</label><strong id="assessment-final-pnl">$0</strong></div>
+                  <div class="assessment-item"><label>예상 R</label><strong id="assessment-projected-r">0.00R</strong>
+                  </div>
+                  <div class="assessment-item"><label>최종 R</label><strong id="assessment-final-r">0.00R</strong></div>
+                  <div class="assessment-item"><label>본절가 (BEP)</label><strong id="assessment-bep">0.00</strong></div>
+                  <div class="assessment-item"><label>잔여 리스크</label><strong id="assessment-residual">$0</strong></div>
+                  <div class="assessment-item"><label>누적 수수료</label><strong id="assessment-fees">$0</strong></div>
+                  <div class="assessment-item"><label>계좌 영향</label><strong id="assessment-account-impact">0.00%</strong>
+                  </div>
+                </div>
+
+                <div id="post-assessment-copy" class="assessment-copy">리스크 사용 평가, 청산 상태 요약, 다음 복기 포인트가 여기에 표시됩니다.</div>
+              </div>
+
+              <div class="field-grid cols-2 post-review-grid" style="margin-top: 24px;">
+                <label>
+                  <span>태그</span>
+                  <input id="tags" placeholder="trend, ny-open, sweep" />
+                  <div id="quick-tags" class="chips" style="margin-top: 12px;"></div>
+                </label>
+                <label>
+                  <span>실수 태그</span>
+                  <input id="mistakes" placeholder="fomo, early exit, oversize" />
+                  <div id="quick-mistakes" class="chips" style="margin-top: 12px;"></div>
+                </label>
+              </div>
+
+              <div class="field-grid cols-1" style="margin-top: 20px; margin-bottom: 28px;">
+                <label>
+                  <span>Review &amp; Lessons (복기)</span>
+                  <textarea id="review" class="auto-resize" placeholder="잘한 점, 실수, 다음 매매를 위한 피드백..."
+                    style="min-height: 120px;"></textarea>
+                </label>
+              </div>
+
+              <div>
+                <div class="mini-head">
+                  <h4>종료 차트 링크 (Exit Charts)</h4><button type="button" id="add-exit-chart" class="tool-btn btn-sm">＋ 링크
+                    추가</button>
+                </div>
+                <div id="exit-charts-container" class="stack"></div>
+              </div>
+            </article>
+
+            <div class="journal-actions-sticky">
+              <div class="trade-status-dock" id="status-toggle" aria-label="트레이드 상태 선택">
+                <button type="button" class="status-chip" data-value="OPEN">OPEN</button>
+                <button type="button" class="status-chip" data-value="CLOSED">CLOSED</button>
+                <select id="status" hidden>
+                  <option value="OPEN">OPEN</option>
+                  <option value="CLOSED">CLOSED</option>
+                </select>
+              </div>
+              <button type="button" id="undo-journal" class="tool-btn">↶ 되돌리기</button>
+              <button type="submit" class="tool-btn primary-btn">💾 Save & Update Trade</button>
+              <button type="button" id="reset-form" class="tool-btn">초기화</button>
+              <button type="button" id="duplicate-trade" class="tool-btn">복제</button>
+              <button type="button" id="delete-trade" class="tool-btn danger-btn">삭제</button>
+            </div>
+          </form>
+        </div>
+
+        <aside class="journal-sidebar stack" id="journal-sidebar">
+          <article class="card premium-balance-card">
+            <div class="section-head no-bottom">
+              <div>
+                <h3>💳 Account Status</h3>
+                <p>포트폴리오 자산 스냅샷</p>
+              </div>
+              <span class="subtle-pill accent">Local</span>
+            </div>
+            <div class="bank-balance-shell">
+              <div class="bank-balance-head">
+                <span>총 자산</span>
+                <strong id="bal-total">$0</strong>
+              </div>
+              <div class="bank-grid cols-2">
+                <label class="bank-asset-card"><span>💵 현금</span><input type="number" id="bal-cash" value="0"></label>
+                <label class="bank-asset-card"><span>🪙 코인</span><input type="number" id="bal-crypto" value="0"></label>
+                <label class="bank-asset-card"><span>₮ USDT</span><input type="number" id="bal-usdt" value="0"></label>
+                <label class="bank-asset-card"><span>📈 주식</span><input type="number" id="bal-stock" value="0"></label>
+              </div>
+              <div class="bank-action-row"
+                style="display:flex; gap:8px; align-items:center; padding: 0 16px 16px; border-bottom: 1px solid var(--line); margin-bottom:16px;">
+                <select id="balance-type" style="width: 100px; padding: 10px; font-weight:800; border-radius: 8px;">
+                  <option value="PNL">매매손익</option>
+                  <option value="DEPOSIT">입금(+)</option>
+                  <option value="WITHDRAWAL">출금(-)</option>
+                  <option value="MANUAL">단순조정</option>
+                </select>
+                <input type="text" id="balance-memo" placeholder="메모 (선택)" style="flex:1;" />
+                <button type="button" id="btn-update-balance" class="tool-btn primary-btn">기록</button>
+              </div>
+              <div id="balance-history" class="balance-history-container"></div>
+            </div>
+          </article>
+
+          <article class="card compact-card risk-summary-card" id="risk-planner-card">
+            <div id="realtime-chart-board" class="realtime-chart-board hidden">
+              <div class="chart-board-header">
+                <strong>Real-time Chart Board</strong>
+                <button type="button" id="btn-clear-rt-chart" class="tool-btn btn-sm">초기화</button>
+              </div>
+              <div id="rt-chart-container" class="rt-chart-container" tabindex="0">
+                <div class="paste-placeholder">이미지 붙여넣기 (Ctrl+V)</div>
+              </div>
+            </div>
+            <div class="section-head">
+              <div>
+                <h3>Risk Planner</h3>
+                <p>자동 주문 설계 · 포지션 상태 · Scale-In 시뮬레이터</p>
+              </div>
+            </div>
+            <div class="detail-box risk-box">
+              <div class="kv">
+                <div>허용 손실 (Risk)</div>
+                <div id="risk-risk-dollar" class="mono negative">$0</div>
+                <div>사용 중 리스크</div>
+                <div id="risk-actual-risk" class="mono negative">$0</div>
+                <div>리스크 사용률</div>
+                <div id="risk-risk-usage" class="mono">0.0%</div>
+                <div>예상 수익 (Reward)</div>
+                <div id="risk-projected-pnl" class="mono positive">$0</div>
+                <div>예상 R-Multiple</div>
+                <div id="risk-projected-r" class="mono">0.00R</div>
+                <div>잔여 리스크</div>
+                <div id="risk-remaining-risk" class="mono">$0</div>
+                <div style="grid-column: 1 / -1; height: 1px; background: var(--line); margin: 8px 0;"></div>
+                <div>총 진입 수량</div>
+                <div id="risk-qty" class="mono" style="font-size:16px; color:var(--accent); font-weight:900;">0.00000
+                </div>
+                <div>필요 증거금</div>
+                <div id="risk-margin" class="mono">$0</div>
+                <div>포지션 사용률</div>
+                <div id="risk-slider" class="mono">0.0%</div>
+                <div>가중 레버리지</div>
+                <div id="risk-weighted-lev" class="mono">1.00x</div>
+                <div>평균 진입가</div>
+                <div id="risk-avg-entry" class="mono">0.00</div>
+                <div>본절가 (BEP)</div>
+                <div id="risk-bep" class="mono">0.00</div>
+                <div style="grid-column: 1 / -1; height: 1px; background: var(--line); margin: 8px 0;"></div>
+                <div>총 노출금액</div>
+                <div id="risk-notional" class="mono">$0</div>
+                <div>손절 거리</div>
+                <div id="risk-stop-distance" class="mono">0.0%</div>
+                <div>누적 수수료</div>
+                <div id="risk-fees" class="mono">$0</div>
+                <div>실현 PnL</div>
+                <div id="risk-realized" class="mono">$0</div>
+                <div>미실현 PnL</div>
+                <div id="risk-unrealized" class="mono">$0</div>
+                <div>잔여 포지션 리스크</div>
+                <div id="risk-residual" class="mono">$0</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card compact-card">
+            <div class="section-head">
+              <div>
+                <h3>Desk Rules</h3>
+                <p>원칙 및 체크리스트 관리</p>
+              </div>
+            </div>
+            <div class="stack">
+              <div class="premium-label-wrapper" style="margin-bottom: 0px;">
+                <span class="premium-label-line"></span>
+                <label>Rule Memo</label>
+              </div>
+              <textarea id="desk-rules" class="auto-resize rules-box" placeholder="항상 되새길 일반 원칙들..."></textarea>
+
+              <div class="checklist-manager" style="margin-top: 12px;">
+                <div class="premium-label-wrapper" style="margin-bottom: 12px;">
+                  <span class="premium-label-line"></span>
+                  <label>Master Checklist</label>
+                </div>
+                <div id="master-checklist-list" class="stack" style="margin-bottom:12px;"></div>
+                <div class="input-group flex-group">
+                  <input type="text" id="new-check-input" placeholder="새 항목...">
+                  <button type="button" id="btn-add-check" class="tool-btn primary-btn fixed-btn">추가</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-library" class="view">
+      <article class="card">
+        <div class="section-head">
+          <div>
+            <h3>Trade Library</h3>
+            <p>검색 · 비교 · 복기 · 유사 샘플 탐색</p>
+          </div>
+        </div>
+        <div class="filter-grid filter-grid-extended">
+          <label><span>검색</span><input id="q" placeholder="ticker, thesis, tag, mistake..." /></label>
+          <label><span>From</span><input id="f-from" type="date" /></label>
+          <label><span>To</span><input id="f-to" type="date" /></label>
+          <label><span>상태</span><select id="f-status">
+              <option value="ALL">ALL</option>
+              <option>OPEN</option>
+              <option>CLOSED</option>
+            </select></label>
+          <label><span>방향</span><select id="f-side">
+              <option value="ALL">ALL</option>
+              <option>LONG</option>
+              <option>SHORT</option>
+            </select></label>
+          <label><span>셋업</span><input id="f-setup" placeholder="BREAKOUT" /></label>
+          <label><span>태그</span><input id="f-tag" placeholder="trend, sweep" /></label>
+          <label><span>실수</span><input id="f-mistake" placeholder="fomo, early exit" /></label>
+          <label><span>Grade</span><select id="f-grade">
+              <option value="ALL">ALL</option>
+              <option>S</option>
+              <option>A</option>
+              <option>B</option>
+              <option>C</option>
+              <option>D</option>
+            </select></label>
+          <label><span>정렬</span><select id="sort">
+              <option value="newest">최신순</option>
+              <option value="oldest">오래된순</option>
+              <option value="bestR">R 높은순</option>
+              <option value="worstR">R 낮은순</option>
+            </select></label>
+          <div class="inline-actions align-end">
+            <button id="clear-filters" type="button" class="tool-btn">필터 초기화</button>
+          </div>
+        </div>
+
+        <div class="review-bar">
+          <div class="review-meta">
+            <span class="subtle-pill accent" id="library-result-count">0개 결과</span>
+            <span class="subtle-pill" id="review-position">0 / 0</span>
+            <span class="subtle-pill white" id="review-breadcrumb">선택 없음</span>
+          </div>
+          <div class="inline-actions">
+            <button id="prev-trade" type="button" class="tool-btn">이전</button>
+            <button id="next-trade" type="button" class="tool-btn">다음</button>
+            <button id="filter-same-setup" type="button" class="tool-btn">같은 셋업</button>
+            <button id="filter-same-ticker" type="button" class="tool-btn">같은 종목</button>
+            <button id="clear-quick-filter" type="button" class="tool-btn">필터 해제</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th>상태</th>
+                <th>티커</th>
+                <th>방향</th>
+                <th>셋업</th>
+                <th>Avg In</th>
+                <th>Avg Out</th>
+                <th>PnL</th>
+                <th>R</th>
+                <th>Grade</th>
+                <th>태그</th>
+              </tr>
+            </thead>
+            <tbody id="trade-table"></tbody>
+          </table>
+        </div>
+        <div id="library-pagination" class="pagination-bar"></div>
+      </article>
+
+      <div class="grid grid-2 detail-grid">
+        <article class="card">
+          <div class="section-head">
+            <div>
+              <h3>상세 복기</h3>
+              <p>행 클릭 시 로드</p>
+            </div>
+          </div>
+          <div id="detail"></div>
+        </article>
+        <article class="card">
+          <div class="section-head">
+            <div>
+              <h3>Review Console</h3>
+              <p>유사 샘플과 통계 비교</p>
+            </div>
+          </div>
+          <div id="detail-insights" class="stack"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-playbook" class="view">
+      <div class="section-head section-head-large">
+        <div>
+          <h3>A+ Playbook</h3>
+          <p>Grade S 및 A 등급의 모범 셋업 갤러리입니다.</p>
+        </div>
+      </div>
+      <div id="playbook-gallery" class="playbook-grid"></div>
+    </section>
+
+    <!-- Mobile View: Chat/Memo (FullScreen) -->
+    <section id="view-memo" class="view">
+      <!-- Logic in mobile.js will move the memo panel here -->
+    </section>
+  </main>
+
+  <nav class="mobile-tab-bar">
+    <button class="tab-item active" data-tab="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>홈</span>
+    </button>
+
+    <button class="tab-item" data-tab="memo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <span>메모</span>
+    </button>
+  </nav>
+
+  <div id="app-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div id="modal-title" class="modal-title">알림</div>
+      <div id="modal-desc" class="modal-desc"></div>
+      <input type="text" id="modal-input" class="modal-input" />
+      <div class="modal-actions">
+        <button id="modal-btn-cancel" class="tool-btn">취소</button>
+        <button id="modal-btn-confirm" class="tool-btn primary-btn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="list-manage-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 600px; max-width: 95vw;">
+      <div id="list-manage-title" class="modal-title">항목 관리</div>
+      <div class="input-group flex-group" style="margin-bottom: 24px;">
+        <input type="text" id="list-manage-input" placeholder="새 항목 추가..." style="flex:1;" />
+        <button type="button" id="list-manage-add" class="tool-btn primary-btn fixed-btn">추가</button>
+      </div>
+      <div id="list-manage-items" class="stack" style="max-height: 380px; overflow-y: auto; padding-right:4px;"></div>
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button id="list-manage-close" class="tool-btn primary-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ql-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 640px; max-width: 95vw;">
+      <div class="modal-title">Quick Launch 관리</div>
+      <div class="field-grid cols-3" style="gap:16px; margin-bottom: 24px; align-items:end;">
+        <label><span>이름</span><input type="text" id="ql-name" placeholder="예: 바이낸스" /></label>
+        <label><span>URL</span><input type="text" id="ql-url" placeholder="https://..." /></label>
+        <label><span>아이콘(이모지)</span>
+          <div class="input-group flex-group">
+            <input type="text" id="ql-icon" placeholder="🔗" style="width:100%;" />
+            <button type="button" id="ql-add" class="tool-btn primary-btn fixed-btn">추가</button>
+          </div>
+        </label>
+      </div>
+      <div id="ql-items" class="stack" style="max-height: 380px; overflow-y: auto; padding-right:4px;"></div>
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button id="ql-close" class="tool-btn primary-btn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="guide-modal" class="modal-overlay guide-overlay">
+    <div class="modal-card guide-card">
+      <div class="guide-head">
+        <div>
+          <div class="modal-title" style="margin-bottom:4px;">Trading Desk Dashboard 사용 가이드</div>
+          <div class="guide-subtitle">실전 기록 · 리스크 관리 · 복기를 하나의 루틴으로 묶는 방법</div>
+        </div>
+        <button id="guide-close" class="tool-btn primary-btn fixed-btn">닫기</button>
+      </div>
+      <div class="guide-body">
+        <section class="guide-section">
+          <h4>이 도구를 어떻게 써야 하나요?</h4>
+          <p>이 홈페이지는 단순 기록장이 아니라 <strong>매매 전 계획 → 보유 중 대응 → 종료 후 복기 → 다음 매매 개선</strong>까지 이어지는 개인용 트레이딩 운영 도구입니다. 핵심은
+            모든 거래를 다 예쁘게 적는 것이 아니라, <strong>반복 가능한 패턴과 반복되는 실수</strong>를 뽑아내는 데 있습니다.</p>
+          <div class="guide-callout">가장 중요한 원칙: 진입 후 기록이 아니라 <strong>진입 전에 계획을 먼저 적고</strong>, 종료 후에는 반드시 한 줄이라도 복기를
+            남기세요.</div>
+        </section>
+
+        <section class="guide-section">
+          <h4>권장 사용 순서</h4>
+          <ol class="guide-steps">
+            <li><strong>Overview</strong>에서 오늘 상태를 확인합니다. 최근 성과, 포트폴리오 상태, Quick Launch를 확인하고 필요한 화면으로 이동합니다.</li>
+            <li><strong>Journal → Pre-Trade Context</strong>에서 티커, 방향, Entry/Exit Setup, 체크리스트, 시장 컨텍스트, 진입 논리를 정리합니다.
+            </li>
+            <li><strong>Risk &amp; Execution</strong>에서 현재가, 손절가, 목표가, 리스크(%), 레버리지를 입력하고 진입 구조를 설계합니다.</li>
+            <li><strong>Live Management</strong>에서 본절 이동, 부분청산, 추가진입, 계획 변경 같은 핵심 이벤트만 시간과 함께 기록합니다.</li>
+            <li><strong>Post-Trade Assessment</strong>에서 최종 손익, R, 리스크 사용, 수수료, 태그/실수, 복기를 정리합니다.</li>
+            <li><strong>Library</strong>에서 거래를 다시 불러와 비교하고, 같은 셋업/티커/실수 기준으로 복기합니다.</li>
+            <li><strong>Playbook</strong>에는 반복 가능한 A급/S급 거래만 남겨서 다음 매매에 재사용합니다.</li>
+          </ol>
+        </section>
+
+        <section class="guide-section">
+          <h4>중점적으로 써야 하는 기능</h4>
+          <div class="guide-grid">
+            <article class="guide-tile">
+              <strong>Pre-Trade Context</strong>
+              <p>손절이 어디인지보다 먼저, 왜 지금 진입하는지와 어디서 아이디어가 무효화되는지를 적는 곳입니다.</p>
+            </article>
+            <article class="guide-tile">
+              <strong>Risk &amp; Execution</strong>
+              <p>이 탭의 핵심은 손익 계산보다 <strong>규모를 통제하는 것</strong>입니다. 현재가, 손절, 목표, 리스크, 레버리지를 기준으로 포지션 구조를 잡으세요.</p>
+            </article>
+            <article class="guide-tile">
+              <strong>Live Management</strong>
+              <p>모든 생각을 적을 필요는 없습니다. 본절 이동, 부분청산, 추가진입, 계획 변경처럼 나중에 복기 가치가 있는 이벤트만 남기면 충분합니다.</p>
+            </article>
+            <article class="guide-tile">
+              <strong>Post-Trade Assessment</strong>
+              <p>수익/손실보다 <strong>계획 대비 실제 실행 차이</strong>를 보는 곳입니다. 태그, 실수, 리뷰를 여기서 정리하세요.</p>
+            </article>
+            <article class="guide-tile">
+              <strong>Library</strong>
+              <p>미복기 거래를 다시 불러와서 비교하는 탭입니다. 같은 셋업, 같은 종목, 같은 실수로 필터해 패턴을 찾는 데 쓰세요.</p>
+            </article>
+            <article class="guide-tile">
+              <strong>Playbook</strong>
+              <p>잘 된 거래를 모으는 곳이 아니라, <strong>다음에도 다시 실행할 패턴</strong>만 남기는 곳으로 쓰는 것이 맞습니다.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <h4>Risk &amp; Execution를 잘 쓰는 법</h4>
+          <ul class="guide-list">
+            <li><strong>현재가 / 손절가 / 목표가</strong>를 먼저 정하고, 그 다음 리스크(%)와 레버리지를 조정하세요.</li>
+            <li>레버리지는 손익을 크게 만드는 버튼이 아니라 <strong>필요 증거금과 체감 변동</strong>을 조정하는 변수입니다.</li>
+            <li>레버리지를 올렸다고 해서 아이디어가 좋아지는 것은 아닙니다. 손절이 넓고 논리가 약하면 규모를 줄이는 것이 우선입니다.</li>
+            <li>Price Map의 거리(%), bp, RR, 수수료 차감 후 예상 순손익을 함께 보면서 과도한 거래를 피하세요.</li>
+            <li>레버리지 값은 Journal 전반 계산과 연동되므로, 값 변경 후 수량/증거금/예상 손익이 어떻게 바뀌는지 확인하는 습관이 중요합니다.</li>
+          </ul>
+        </section>
+
+        <section class="guide-section">
+          <h4>추천 루틴</h4>
+          <div class="guide-dual">
+            <div>
+              <strong>매매 전</strong>
+              <ul class="guide-list">
+                <li>체크리스트 통과 여부 확인</li>
+                <li>손절이 명확한지 확인</li>
+                <li>리스크(%)와 레버리지 확인</li>
+                <li>목표가가 현실적인지 확인</li>
+              </ul>
+            </div>
+            <div>
+              <strong>매매 후</strong>
+              <ul class="guide-list">
+                <li>종료 시간 입력</li>
+                <li>실수 태그 최소 1개라도 점검</li>
+                <li>Review에 다음 매매 교정 포인트 한 줄 작성</li>
+                <li>필요하면 Playbook 후보로 남김</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <h4>주의할 점</h4>
+          <ul class="guide-list">
+            <li>이 도구는 <strong>실행 보조와 복기용</strong>입니다. 시장 데이터를 자동으로 받아오지 않기 때문에 가격/손절/목표 입력은 사용자가 책임지고 넣어야 합니다.</li>
+            <li>로컬/브라우저 저장 구조이므로 <strong>정기 백업(JSON 내보내기)</strong>를 습관화하는 것이 좋습니다.</li>
+            <li>차트는 링크 중심으로 기록하세요. 타임프레임별 링크를 남기면 Playbook과 Library에서 더 빠르게 복기할 수 있습니다.</li>
+            <li>Playbook은 많이 쌓는 것보다 <strong>정말 다시 쓸 거래만 남기는 것</strong>이 훨씬 유용합니다.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="memo-widget" class="memo-widget">
+    <button id="memo-fab" class="memo-fab" title="메모장 열기">
+      <div class="fab-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <span class="memo-badge" id="memo-badge" style="display: none;"></span>
+    </button>
+
+    <div id="memo-panel" class="memo-panel memo-hide">
+      <div class="memo-header">
+        <div class="memo-header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </div>
+        <div class="memo-header-info">
+          <h4>Trader's Insight</h4>
+          <p>Trading Ideas & Notes</p>
+        </div>
+        <div class="memo-header-actions">
+          <button id="memo-export-toggle" class="memo-header-btn" title="메모 내보내기 (AI 분석용)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+          <button id="memo-close" class="memo-header-btn memo-close-btn" title="닫기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="memo-export-ui" class="memo-export-panel memo-hide">
+        <div class="export-row">
+          <div class="export-field">
+            <label>시작일</label>
+            <input type="date" id="memo-export-start">
+          </div>
+          <div class="export-field">
+            <label>종료일</label>
+            <input type="date" id="memo-export-end">
+          </div>
+          <button id="memo-export-download" class="memo-download-btn">추출</button>
+        </div>
+      </div>
+
+      <div class="memo-controls-row">
+        <div class="memo-search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="memo-search" placeholder="검색 또는 #태그...">
+        </div>
+
+        <div class="memo-month-nav">
+          <button id="memo-prev-month" class="memo-nav-btn" title="이전 달">◀</button>
+          <span id="memo-month-title">2026-04</span>
+          <button id="memo-next-month" class="memo-nav-btn" title="다음 달">▶</button>
+          <button id="memo-history-toggle" class="memo-history-btn" title="공지 히스토리">📜</button>
+        </div>
+      </div>
+
+      <div id="memo-pin-area" class="memo-pin-area memo-hide">
+        <!-- Pinned memo content will go here -->
+      </div>
+
+      <button id="memo-pin-restore" class="memo-pin-restore memo-hide" title="공지 다시 보기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:14px; height:14px">
+          <path d="m21 15-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </button>
+
+      <div id="memo-messages" class="memo-messages">
+        <!-- Memos will be rendered here -->
+      </div>
+
+      <div class="memo-input-box-wrapper">
+        <div id="memo-status-bar" class="memo-status-bar" style="display: none;">
+          <span id="memo-status-text">수정 중...</span>
+          <button id="memo-status-cancel" class="memo-status-cancel" title="취소">&times;</button>
+        </div>
+        <div class="memo-input-box">
+          <div class="memo-input-container">
+            <div id="memo-input" contenteditable="true" data-placeholder="메모를 입력하세요... (Enter로 전송)"></div>
+            <button id="memo-send" class="memo-send-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Data & Service Modules -->
+  <script src="js/market-service.js?v=2.1.8"></script>
+  <script type="module" src="js/app.js?v=2.1.8"></script>
+  <script type="module" src="./js/memo.js?v=2.1.8"></script>
+  <!-- Mobile Trade Detail Modal -->
+  <div id="mobile-trade-detail-overlay" class="modal-overlay">
+    <div class="mobile-trade-detail-content">
+      <div id="mobile-trade-detail-header" class="mobile-modal-header">
+        <h3 id="mobile-trade-detail-title">거래 정보</h3>
+        <button id="mobile-trade-detail-close" class="modal-close-btn">&times;</button>
+      </div>
+      <div id="mobile-trade-detail-body" class="mobile-modal-body">
+        <!-- Details & Charts injected here via mobile.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- V1.9.9 Ticker Settings Modal (Wide & Dual) -->
+  <div id="ticker-settings-modal" class="modal-overlay guide-overlay">
+    <div class="guide-card">
+      <div class="guide-head">
+        <div>
+          <h3 class="modal-title" style="font-size: 24px;">Market Ticker Management</h3>
+          <p class="guide-subtitle">상단 바 시세 전광판의 종목과 노출 순서를 관리합니다.</p>
+        </div>
+        <button id="btn-save-ticker-settings" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px; border-radius: 10px;">Save</button>
+      </div>
+      <div class="guide-body">
+        <div class="guide-dual">
+          <!-- US Stock Section -->
+          <div class="guide-section">
+            <h4 style="display:flex; align-items:center; gap:8px;">🇺🇸 US Stock Portfolio</h4>
+            <div class="ticker-search-container" style="margin-bottom: 15px;">
+              <input type="text" id="stock-search-input" class="ticker-search-input" placeholder="Search Stocks (TSLA, AAPL...)" autocomplete="off">
+              <div id="stock-search-results" class="search-results-popover"></div>
+            </div>
+            <div id="selected-stock-list" class="selected-ticker-list">
+              <!-- Selected Stocks -->
+            </div>
+          </div>
+
+          <!-- Crypto Section -->
+          <div class="guide-section">
+            <h4 style="display:flex; align-items:center; gap:8px;">🔥 Crypto Perpetual</h4>
+            <div class="ticker-search-container" style="margin-bottom: 15px;">
+              <input type="text" id="crypto-search-input" class="ticker-search-input" placeholder="Search Coins (BTC, ETH...)" autocomplete="off">
+              <div id="crypto-search-results" class="search-results-popover"></div>
+            </div>
+            <div id="selected-crypto-list" class="selected-ticker-list">
+              <!-- Selected Cryptos -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- V1.9.9 Economic Filter Modal (Wide) -->
+  <div id="eco-filter-modal" class="modal-overlay guide-overlay">
+    <div class="guide-card" style="width: min(800px, 94vw);">
+      <div class="guide-head">
+        <div>
+          <h3 class="modal-title" style="font-size: 24px;">Economic Calendar Filters</h3>
+          <p class="guide-subtitle">매매에 참고할 국가 및 지표 중요도를 설정합니다.</p>
+        </div>
+        <button id="btn-apply-eco-filters" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px; border-radius: 10px;">Save</button>
+      </div>
+      <div class="guide-body">
+        <div class="guide-dual-asym" style="gap: 28px;">
+          <div class="guide-section">
+            <h4 class="filter-group-title">대상 국가 (Countries)</h4>
+            <div class="filter-options-grid" id="eco-country-filters" style="grid-template-columns: repeat(2, 1fr);">
+              <label class="custom-check"><input type="checkbox" value="US"><span>🇺🇸 United States</span></label>
+              <label class="custom-check"><input type="checkbox" value="KR"><span>🇰🇷 South Korea</span></label>
+              <label class="custom-check"><input type="checkbox" value="EU"><span>🇪🇺 European Union</span></label>
+              <label class="custom-check"><input type="checkbox" value="CN"><span>🇨🇳 China</span></label>
+              <label class="custom-check"><input type="checkbox" value="JP"><span>🇯🇵 Japan</span></label>
+              <label class="custom-check"><input type="checkbox" value="GB"><span>🇬🇧 United Kingdom</span></label>
+            </div>
+          </div>
+
+          <div class="guide-section">
+            <h4 class="filter-group-title">지표 중요도 (Impact)</h4>
+            <div id="eco-impact-filters" style="display: flex; flex-direction: column; gap: 12px;">
+              <label class="custom-check"><input type="checkbox" value="high"><span>🔥 High Impact (Market Mover)</span></label>
+              <label class="custom-check"><input type="checkbox" value="med"><span>⚡ Medium Impact</span></label>
+              <label class="custom-check"><input type="checkbox" value="low"><span>💧 Low Impact</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- V3.0.0 Economic Manual Entry Modal -->
+  <div id="eco-entry-modal" class="modal-overlay guide-overlay">
+    <div class="guide-card" style="width: min(500px, 94vw);">
+      <div class="guide-head">
+        <div>
+          <h3 class="modal-title" style="font-size: 22px;">Add Economic Indicator</h3>
+          <p class="guide-subtitle">중요하다고 판단되는 경제 지표를 수동으로 등록합니다.</p>
+        </div>
+        <button id="btn-close-eco-entry" class="gear-btn" style="border-radius: 50%; width: 40px; height: 40px; padding:0;">×</button>
+      </div>
+      <div class="guide-body">
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display:block; font-weight:700; margin-bottom:8px; color:var(--text-muted);">날짜 및 시간</label>
+          <input type="datetime-local" id="input-eco-datetime" class="ticker-search-input" style="width:100%;">
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display:block; font-weight:700; margin-bottom:8px; color:var(--text-muted);">대상 국가</label>
+          <select id="input-eco-country" class="ticker-search-input" style="width:100%; height:45px;">
+            <option value="US">🇺🇸 United States</option>
+            <option value="KR">🇰🇷 South Korea</option>
+            <option value="EU">🇪🇺 European Union</option>
+            <option value="CN">🇨🇳 China</option>
+            <option value="JP">🇯🇵 Japan</option>
+            <option value="GB">🇬🇧 United Kingdom</option>
+            <option value="AU">🇦🇺 Australia</option>
+            <option value="CA">🇨🇦 Canada</option>
+            <option value="CH">🇨🇭 Switzerland</option>
+            <option value="ALL">🌐 Global / Other</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display:block; font-weight:700; margin-bottom:8px; color:var(--text-muted);">지표 명칭 (Event Title)</label>
+          <input type="text" id="input-eco-title" class="ticker-search-input" placeholder="예: 소비자물가지수 (CPI)" style="width:100%;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display:block; font-weight:700; margin-bottom:8px; color:var(--text-muted);">지표 메모 및 전략 (Description)</label>
+          <textarea id="input-eco-memo" class="ticker-search-input" placeholder="지표의 성격이나 대응 전략을 자유롭게 기록하세요." style="width:100%; height:80px; padding:12px; resize:none;"></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 28px;">
+          <label style="display:block; font-weight:700; margin-bottom:8px; color:var(--text-muted);">중요도 (Impact)</label>
+          <select id="input-eco-impact" class="ticker-search-input" style="width:100%; height:45px;">
+            <option value="high">🔥 High Impact</option>
+            <option value="med">⚡ Medium Impact</option>
+            <option value="low">💧 Low Impact</option>
+          </select>
+        </div>
+
+        <button id="btn-save-eco-event" class="btn btn-primary" style="width:100%; padding:14px; font-size:16px; border-radius:12px;">지표 등록하기 (Save)</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/mobile.js?v=3.1.0"></script>
+</body>
+
+</html>
