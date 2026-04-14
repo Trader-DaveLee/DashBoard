@@ -152,15 +152,11 @@ input:focus, select:focus, textarea:focus {
 }
 
 .global-price-bar {
-  width: 100%; 
-  background: #d9edf7; /* Lighter blue as requested */
-  border-top: 1px solid var(--border-subtle);
-  padding: 4px 0; display: flex; align-items: center;
-  font-family: var(--font-mono); font-size: 11px; min-height: 32px;
-  overflow: hidden; position: relative;
-  z-index: 10;
+  width: 100%; background: #b5c6ce; border-top: 1px solid var(--border-subtle);
+  padding: 4px 40px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 11px; min-height: 28px;
 }
-[data-theme='dark'] .global-price-bar { background: rgba(0, 122, 255, 0.15); }
+[data-theme='dark'] .global-price-bar { background: rgba(181, 198, 206, 0.15); }
 
 .price-ticker-list { display: flex; gap: 24px; align-items: center; }
 .ticker-loading { font-size: 10px; color: var(--text-muted); font-style: italic; }

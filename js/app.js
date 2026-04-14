@@ -3443,8 +3443,6 @@ function stepSelectedTrade(direction) {
   renderLibrary();
 }
 
-
-
 function openSelectedInJournal(id = state.selectedTradeId) {
   const trade = state.db.trades.find(row => row.id === id);
   if (!trade) return;
@@ -3574,12 +3572,13 @@ function initSimulationUI(trades) {
   if (!btn) return;
 
   btn.onclick = () => {
-    // V3.1.2: Always fetch fresh inputs to avoid stale references or DOM swaps
+    // CRITICAL: Fetch live input values exactly when the user clicks 'Projection'.
+    // This ensures that even after tab switching or re-rendering, we look at the actual elements in the current DOM.
     const startBalInput = document.getElementById('sim-start-balance');
-    const tradeCountInput = document.getElementById('sim-trade-count-val');
-    
+    const tradeCountInput = document.getElementById('sim-trade-count');
+
     if (!startBalInput || !tradeCountInput) {
-      console.warn('[Simulation] Input elements not found');
+      console.warn("Monte Carlo inputs not found in DOM.");
       return;
     }
 
@@ -3590,9 +3589,7 @@ function initSimulationUI(trades) {
     }
 
     const startBalance = Number(startBalInput.value) || 10000;
-    // V3.1.2: Force integer parsing & log for verification
-    const tradeCount = parseInt(tradeCountInput.value, 10) || 50;
-    console.log(`[Simulation] Running with Trade Count: ${tradeCount}, History Size: ${closedTrades.length}`);
+    const tradeCount = Number(tradeCountInput.value) || 50;
 
     const result = runMonteCarlo(closedTrades, { startBalance, tradeCount, iterationCount: 1000 });
     if (result) {
@@ -3600,7 +3597,6 @@ function initSimulationUI(trades) {
     }
   };
 }
-
 
 function renderSimulationResult(result) {
   const { paths, stats } = result;
