@@ -44,6 +44,11 @@ function initMemoWidget() {
     if (!panel.classList.contains('memo-hide')) {
       if (input) input.focus();
       renderMemos();
+      // Ensure scroll to bottom on open (v2.1.8)
+      setTimeout(() => {
+        const container = document.getElementById('memo-messages');
+        if (container) container.scrollTop = container.scrollHeight;
+      }, 50);
     }
   });
 
@@ -406,6 +411,11 @@ function sendMemo() {
     }
   }
   renderMemos(true);
+  // Auto scroll to bottom after sending (v2.1.8)
+  setTimeout(() => {
+    const container = document.getElementById('memo-messages');
+    if (container) container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+  }, 100);
 }
 
 function groupMemosByDate(memos) {

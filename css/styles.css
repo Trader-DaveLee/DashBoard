@@ -1170,9 +1170,10 @@ body.modal-open { overflow: hidden; }
 }
 .guide-subtitle { color: var(--muted); font-size: 13px; font-weight: 600; }
 .guide-body {
-  padding: 24px 28px 28px;
+  padding: 30px;
+  max-height: 70vh;
   overflow-y: auto;
-  max-height: calc(min(86vh, 920px) - 96px);
+  -webkit-overflow-scrolling: touch;
 }
 .guide-section + .guide-section { margin-top: 24px; }
 .guide-section h4 {
@@ -1396,6 +1397,38 @@ body.modal-open { overflow: hidden; }
   opacity: 1; visibility: visible;
 }
 .memo-panel.memo-hide { transform: scale(0.8) translateY(40px); opacity: 0; pointer-events: none; visibility: hidden; }
+
+/* Scroll to Bottom Button */
+.btn-memo-scroll-bottom {
+  position: absolute;
+  bottom: 85px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+  transition: all 0.3s;
+  opacity: 0.6;
+}
+
+.btn-memo-scroll-bottom:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  background: var(--accent-hover);
+}
+
+.btn-memo-scroll-bottom svg {
+  width: 20px;
+  height: 20px;
+}
 
 .memo-header {
   padding: 12px 20px; background: linear-gradient(135deg, #a78bfa, #8b5cf6);

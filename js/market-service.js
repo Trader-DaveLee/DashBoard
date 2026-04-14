@@ -171,6 +171,10 @@ const MarketService = {
    */
   async fetchEconomicCalendar(forceRefresh = false) {
     try {
+      // V3.1.0: Priorities global state.db for synchronization
+      if (window.state && window.state.db && window.state.db.meta && window.state.db.meta.ecoEvents) {
+        return { success: true, data: window.state.db.meta.ecoEvents };
+      }
       const stored = localStorage.getItem('DASHBOARD_MANUAL_ECO_V3');
       const data = stored ? JSON.parse(stored) : [];
       return { success: true, data: data };

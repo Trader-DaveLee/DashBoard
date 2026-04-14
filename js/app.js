@@ -61,7 +61,7 @@ const ID_LIST = [
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',
   'ql-modal','ql-name','ql-url','ql-icon','ql-add','ql-items','ql-close','open-guide-btn','guide-modal','guide-close',
   'btn-login', 'user-info', 'user-photo', 'btn-logout', 'btn-theme-toggle',
-  'memo-fab','memo-panel','memo-close','memo-messages','memo-input','memo-send','memo-badge'
+  'memo-fab','memo-panel','memo-close','memo-messages','memo-input','memo-send','memo-badge','btn-memo-scroll-bottom'
 ];
 
 window.__desk = {
@@ -126,6 +126,7 @@ function bootstrap() {
   safeCall('updateUndoButton', () => updateUndoButton());
   safeCall('initAuth', () => initAuth());
   safeCall('initPriceTicker', () => initPriceTicker());
+  safeCall('initMemoEvents', () => initMemoEvents());
   
   // Post-boot hydration
   hydratePersistentState().then(() => {
@@ -314,8 +315,16 @@ function updateTickerUI(data) {
 let currentEcoPage = 0;
 const ecoEventsPerPage = 5;
 // V3.0.0: Manual Economic Indicator Storage
-const ECO_STORAGE_KEY = 'DASHBOARD_MANUAL_ECO_V3';
 let ALL_ECO_EVENTS = []; 
+
+function getManualEcoEvents() {
+  return state.db.meta.ecoEvents || [];
+}
+
+function saveManualEcoEvents(events) {
+  state.db.meta.ecoEvents = events;
+  saveDB(state.db);
+}
 
 const IMPACT_SCORE = { high: 3, med: 2, low: 1 };
 
@@ -334,7 +343,6 @@ async function fetchEconomicEvents(forceRefresh = false) {
   try {
     const { success, data } = await MarketService.fetchEconomicCalendar(forceRefresh);
     ALL_ECO_EVENTS = data || []; 
-
     // Filter Logic
     const countries = (state.ecoFilters && state.ecoFilters.countries) || ['US', 'EU', 'KR', 'CN', 'JP', 'GB', 'AU', 'CA', 'CH', 'ALL'];
     const impacts = (state.ecoFilters && state.ecoFilters.impacts) || ['high', 'med', 'low'];
@@ -460,7 +468,7 @@ function saveManualEconomicEvent() {
   }
 
   const dt = new Date(dtVal);
-  const newEvent = {
+  const item = {
     date: (dt.getMonth() + 1).toString().padStart(2, '0') + '/' + dt.getDate().toString().padStart(2, '0'),
     time: dt.getHours().toString().padStart(2, '0') + ':' + dt.getMinutes().toString().padStart(2, '0'),
     country: country === 'ALL' ? '🌐' : country,
@@ -3819,26 +3827,39 @@ function drawSimulationChart(containerId, result) {
     </svg>
   `;
 }
-
 function round(value) {
   return Math.round(value);
 }
 
 function initOverviewDateFilter() {
   if (!state.db.trades || !state.db.trades.length) return;
-  
-  // Sort by date to find the first trade
   const sorted = [...state.db.trades].sort((a, b) => new Date(a.date) - new Date(b.date));
   const firstTrade = sorted[0];
-  
   const fromInput = document.getElementById('overview-from');
   const toInput = document.getElementById('overview-to');
-  
-  if (fromInput && !fromInput.value) {
-    fromInput.value = getLocalDateKey(new Date(firstTrade.date));
+  if (fromInput && !fromInput.value) fromInput.value = getLocalDateKey(new Date(firstTrade.date));
+  if (toInput && !toInput.value) toInput.value = getLocalDateKey(new Date());
+}
+
+function initMemoEvents() {
+  const btnScroll = document.getElementById('btn-memo-scroll-bottom');
+  if (btnScroll) {
+    btnScroll.onclick = () => scrollMemoToBottom(true);
   }
-  if (toInput && !toInput.value) {
-    toInput.value = getLocalDateKey(new Date());
+}
+
+function scrollMemoToBottom(smooth = false) {
+  const container = document.getElementById('memo-messages');
+  if (!container) return;
+  
+  // 패널이 보이는 상태인지 확인 (v2.1.8)
+  const panel = document.getElementById('memo-panel');
+  if (panel && panel.classList.contains('memo-hide')) return;
+
+  if (smooth) {
+    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+  } else {
+    container.scrollTop = container.scrollHeight;
   }
 }
 

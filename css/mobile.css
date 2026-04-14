@@ -18,7 +18,7 @@
 
   .container {
     padding: 12px;
-    padding-top: calc(var(--header-height) + 8px);
+    padding-top: calc(var(--header-height) + 24px);
     width: 100%;
     margin: 0;
   }
@@ -378,5 +378,14 @@
   }
   .risk-value {
     font-size: 18px !important;
+  }
+
+  /* V1.7: Custom Mobile Refinements */
+  .eco-memo {
+    display: none !important;
+  }
+
+  .system-footer {
+    display: none !important;
   }
 }
