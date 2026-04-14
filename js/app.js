@@ -3589,13 +3589,25 @@ function initSimulationUI(trades) {
     }
 
     const startBalance = Number(startBalInput.value) || 10000;
-    const tradeCount = Number(tradeCountInput.value) || 50;
+    const tradeCount = Number(tradeCountInput.value) || 120;
 
     const result = runMonteCarlo(closedTrades, { startBalance, tradeCount, iterationCount: 1000 });
     if (result) {
       renderSimulationResult(result);
     }
   };
+
+  // V3.1.0: Add input limitation for trade count (Max 120)
+  const tradeCountInput = document.getElementById('sim-trade-count');
+  if (tradeCountInput) {
+    tradeCountInput.oninput = (e) => {
+      const val = parseInt(e.target.value);
+      if (val > 120) {
+        e.target.value = 120;
+        showToast('시뮬레이션 시행회수는 최대 120회까지 가능합니다.', 2500);
+      }
+    };
+  }
 }
 
 function renderSimulationResult(result) {
@@ -3606,30 +3618,30 @@ function renderSimulationResult(result) {
 
   const ruinProb = stats.probRuin;
 
-  // Design: Replaced badges with simple, clean descriptions as requested.
+  // Design: Replaced badges with simple, clean English labels as requested.
   statsContainer.innerHTML = `
     <div class="sim-stat-card">
-      <span class="sim-stat-label">파산 확률 (50% DD)</span>
+      <span class="sim-stat-label">50% Drawdown</span>
       <div class="sim-stat-value ${ruinProb > 10 ? 'negative' : 'positive'}">${ruinProb.toFixed(1)}%</div>
       <p class="sim-stat-desc">50% 자산 감소가 발생할 확률적 가능성</p>
     </div>
     <div class="sim-stat-card">
-      <span class="sim-stat-label">기대 최종 자산</span>
+      <span class="sim-stat-label">Expected Capital</span>
       <div class="sim-stat-value">${moneyAbsNatural(stats.avgFinal)}</div>
       <p class="sim-stat-desc">모든 시뮬레이션의 가중 평균 결과값</p>
     </div>
     <div class="sim-stat-card">
-      <span class="sim-stat-label">중앙값 (Median)</span>
+      <span class="sim-stat-label">Median</span>
       <div class="sim-stat-value">${moneyAbsNatural(stats.medianFinal)}</div>
       <p class="sim-stat-desc">가장 높은 빈도로 나타나는 미래 자산 규모</p>
     </div>
     <div class="sim-stat-card">
-      <span class="sim-stat-label">상위 10% (낙관)</span>
+      <span class="sim-stat-label">Optimistic</span>
       <div class="sim-stat-value positive">${moneyAbsNatural(stats.p90)}</div>
       <p class="sim-stat-desc">상위 10% 성과의 낙관적 성장 시나리오</p>
     </div>
     <div class="sim-stat-card">
-      <span class="sim-stat-label">하위 10% (보수)</span>
+      <span class="sim-stat-label">Conservative</span>
       <div class="sim-stat-value negative">${moneyAbsNatural(stats.p10)}</div>
       <p class="sim-stat-desc">하위 10% 방어망 기준 보수적 결과 예상</p>
     </div>
@@ -4014,6 +4026,23 @@ function scrollMemoToBottom(smooth = false) {
   } else {
     container.scrollTop = container.scrollHeight;
   }
+}
+
+/** 
+ * UI Utility: showToast
+ */
+function showToast(message, duration = 3000) {
+  let toast = document.querySelector('.toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.innerText = message;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, duration);
 }
 
 window.addEventListener('DOMContentLoaded', bootstrap);
