@@ -3781,49 +3781,101 @@ function drawSimulationChart(containerId, result) {
   if (!container) return;
 
   const { paths, stats } = result;
-  const width = 800, height = 320, pad = 50;
-  
-  // 가독성을 위해 1000개 중 50개만 샘플링하여 렌더링
+  const width = 820, height = 320;
+  const padL = 72, padR = 20, padT = 24, padB = 44;
+  const innerW = width - padL - padR;
+  const innerH = height - padT - padB;
+
+  // 샘플링: 1000개 중 50개
   const samplePaths = paths.filter((_, i) => i % 20 === 0);
-  
+  const xMax = paths[0].length - 1;
+
   const allY = paths.flatMap(p => p.map(pt => pt.y));
   const minY = Math.min(...allY);
   const maxY = Math.max(...allY);
   const diff = maxY - minY || 100;
-  
-  const yBottom = minY - diff * 0.1;
-  const yTop = maxY + diff * 0.1;
-  const xMax = paths[0].length - 1;
+  const yBottom = minY - diff * 0.08;
+  const yTop    = maxY + diff * 0.08;
 
-  const scaleX = x => pad + (x / xMax) * (width - pad * 2);
-  const scaleY = y => height - pad - ((y - yBottom) / (yTop - yBottom)) * (height - pad * 2);
+  const scaleX = x => padL + (x / xMax) * innerW;
+  const scaleY = y => padT + innerH - ((y - yBottom) / (yTop - yBottom)) * innerH;
 
-  // 중앙 경로는 강조
-  const sortedByFinal = [...paths].sort((a,b) => a[xMax].y - b[xMax].y);
-  const medianPath = sortedByFinal[Math.floor(paths.length/2)];
+  // 중앙 경로
+  const sortedByFinal = [...paths].sort((a, b) => a[xMax].y - b[xMax].y);
+  const medianPath = sortedByFinal[Math.floor(paths.length / 2)];
+  const p10Path    = sortedByFinal[Math.floor(paths.length * 0.10)];
+  const p90Path    = sortedByFinal[Math.floor(paths.length * 0.90)];
 
+  // 격자 개수
+  const xTicks = 5;
+  const yTicks = 5;
+
+  // X 격자선 & 레이블
+  let xGridLines = '';
+  for (let i = 0; i <= xTicks; i++) {
+    const xVal = Math.round((i / xTicks) * xMax);
+    const cx = scaleX(xVal);
+    xGridLines += `<line x1="${cx}" y1="${padT}" x2="${cx}" y2="${padT + innerH}" stroke="var(--border-main)" stroke-width="0.7" stroke-dasharray="3,4" opacity="0.6"/>`;
+    xGridLines += `<text x="${cx}" y="${padT + innerH + 16}" fill="var(--text-muted)" font-size="10" font-weight="700" text-anchor="middle">${xVal === 0 ? 'Start' : xVal}</text>`;
+  }
+
+  // Y 격자선 & 레이블
+  let yGridLines = '';
+  for (let i = 0; i <= yTicks; i++) {
+    const yVal = yBottom + ((yTop - yBottom) * i) / yTicks;
+    const cy = scaleY(yVal);
+    yGridLines += `<line x1="${padL}" y1="${cy}" x2="${padL + innerW}" y2="${cy}" stroke="var(--border-main)" stroke-width="0.7" stroke-dasharray="3,4" opacity="0.6"/>`;
+    yGridLines += `<text x="${padL - 8}" y="${cy + 4}" fill="var(--text-muted)" font-size="10" font-weight="700" text-anchor="end">${moneyAbsNatural(yVal)}</text>`;
+  }
+
+  // 시작 잔고 수평선
+  const startY = scaleY(paths[0][0].y);
+  const startLine = `<line x1="${padL}" y1="${startY}" x2="${padL + innerW}" y2="${startY}" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="6,4" opacity="0.45"/>`;
+
+  // sample paths
   const pathSvgs = samplePaths.map(p => {
     const d = p.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
-    return `<path d="${d}" class="sim-path-line" stroke="var(--accent)"></path>`;
+    return `<path d="${d}" class="sim-path-line" stroke="var(--accent)"/>`;
   });
 
-  const medianD = medianPath.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
-  const medianLine = `<path d="${medianD}" class="sim-median-line"></path>`;
+  // p10 / p90 점선
+  const p10D   = p10Path.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
+  const p90D   = p90Path.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
+  const medD   = medianPath.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(pt.x)} ${scaleY(pt.y)}`).join(' ');
+
+  // 축 테두리
+  const axes = `
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + innerH}" stroke="var(--text-muted)" stroke-width="1.5" opacity="0.5"/>
+    <line x1="${padL}" y1="${padT + innerH}" x2="${padL + innerW}" y2="${padT + innerH}" stroke="var(--text-muted)" stroke-width="1.5" opacity="0.5"/>
+  `;
+
+  // 범례
+  const legendY = padT + 4;
+  const legendX = padL + innerW - 10;
+  const legend = `
+    <line x1="${legendX - 80}" y1="${legendY}" x2="${legendX - 62}" y2="${legendY}" stroke="var(--accent)" stroke-width="2.5"/>
+    <text x="${legendX - 58}" y="${legendY + 4}" fill="var(--text-muted)" font-size="9" font-weight="800">Median</text>
+    <line x1="${legendX - 30}" y1="${legendY}" x2="${legendX - 14}" y2="${legendY}" stroke="var(--green)" stroke-width="1.6" stroke-dasharray="4,3" opacity="0.8"/>
+    <text x="${legendX - 10}" y="${legendY + 4}" fill="var(--text-muted)" font-size="9" font-weight="800">P90</text>
+  `;
+
+  // 축 레이블
+  const axisLabel = `
+    <text x="${padL + innerW / 2}" y="${height - 4}" fill="var(--text-muted)" font-size="10" font-weight="800" text-anchor="middle">Trades</text>
+  `;
 
   container.innerHTML = `
-    <svg viewBox="0 0 ${width} ${height}" style="width:100%; height:100%;">
-      <!-- Grid -->
-      <line x1="${pad}" y1="${height-pad}" x2="${width-pad}" y2="${height-pad}" stroke="var(--border-main)" />
-      <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height-pad}" stroke="var(--border-main)" />
-      
-      <!-- Paths -->
+    <svg viewBox="0 0 ${width} ${height}" style="width:100%; height:100%; display:block;">
+      ${xGridLines}
+      ${yGridLines}
+      ${startLine}
+      ${axes}
       ${pathSvgs.join('')}
-      ${medianLine}
-
-      <!-- Labels -->
-      <text x="${pad}" y="${height-10}" fill="var(--text-muted)" font-size="10" font-weight="800">Start</text>
-      <text x="${width-pad}" y="${height-10}" fill="var(--text-muted)" font-size="10" font-weight="800" text-anchor="end">${xMax} Trades</text>
-      <text x="${pad-10}" y="${scaleY(medianPath[0].y)}" fill="var(--text-muted)" font-size="10" font-weight="800" text-anchor="end">${moneyAbsNatural(medianPath[0].y)}</text>
+      <path d="${p10D}" class="sim-p10-line"/>
+      <path d="${p90D}" class="sim-p90-line"/>
+      <path d="${medD}" class="sim-median-line"/>
+      ${legend}
+      ${axisLabel}
     </svg>
   `;
 }
@@ -3843,18 +3895,46 @@ function initOverviewDateFilter() {
 
 function initMemoEvents() {
   const btnScroll = document.getElementById('btn-memo-scroll-bottom');
+  const container = document.getElementById('memo-messages');
+
   if (btnScroll) {
     btnScroll.onclick = () => scrollMemoToBottom(true);
+  }
+
+  if (container && btnScroll) {
+    let hideTimer = null;
+
+    const showBtn = () => {
+      // 거의 하단에 있으면 버튼 숨김
+      const distFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      if (distFromBottom > 60) {
+        btnScroll.classList.add('visible');
+      } else {
+        btnScroll.classList.remove('visible');
+        return;
+      }
+      // 스크롤 멈추면 1.5초 뒤 숨김
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        btnScroll.classList.remove('visible');
+      }, 1500);
+    };
+
+    container.addEventListener('scroll', showBtn, { passive: true });
+    container.addEventListener('touchmove', showBtn, { passive: true });
   }
 }
 
 function scrollMemoToBottom(smooth = false) {
   const container = document.getElementById('memo-messages');
   if (!container) return;
-  
-  // 패널이 보이는 상태인지 확인 (v2.1.8)
-  const panel = document.getElementById('memo-panel');
-  if (panel && panel.classList.contains('memo-hide')) return;
+
+  // 모바일에서는 memo-panel이 항상 visible이므로 패널 체크 제거 (v2.1.9)
+  const isMobile = window.innerWidth <= 768;
+  if (!isMobile) {
+    const panel = document.getElementById('memo-panel');
+    if (panel && panel.classList.contains('memo-hide')) return;
+  }
 
   if (smooth) {
     container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });

@@ -244,6 +244,18 @@
     padding: 16px !important;
   }
 
+  /* Mobile scroll-to-bottom button: panel is relative on mobile, use fixed */
+  .btn-memo-scroll-bottom {
+    position: fixed !important;
+    bottom: calc(var(--tabbar-height) + 80px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) translateY(8px) !important;
+  }
+
+  .btn-memo-scroll-bottom.visible {
+    transform: translateX(-50%) translateY(0) !important;
+  }
+
   /* 7. FAB & Trade Detail Modal (v1.3) */
 
 
