@@ -73,6 +73,7 @@
   --green-soft: rgba(16, 185, 129, 0.1);
   --red-soft: rgba(239, 68, 68, 0.1);
   --yellow-soft: rgba(245, 158, 11, 0.1);
+  --bg-card-inner: #1f293b;
 }
 
 * { box-sizing: border-box; }
@@ -2150,3 +2151,98 @@ body.modal-open { overflow: hidden; }
 .impact-high { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
 .impact-med { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
 .impact-low { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+/* System Footer */
+.system-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-main);
+  padding: 8px 0;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 0 20px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+}
+
+.footer-favicon {
+  width: 20px;
+  height: 20px;
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-footer {
+  background: var(--bg-nav);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-footer:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.btn-draft {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent-hover);
+}
+
+.btn-draft:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+
+/* Economic Simple Button */
+.btn-eco-simple {
+  background: transparent;
+  border: 1px solid var(--border-main);
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  transition: all 0.2s;
+}
+
+.btn-eco-simple:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* Adjust page bottom padding for footer */
+body {
+  padding-bottom: 60px;
+}
+

@@ -31,14 +31,6 @@
       </div>
       <div class="topbar-side">
         <nav id="nav"></nav>
-        <div class="backup-actions">
-          <button id="force-save-draft" type="button" class="btn-draft">💾 임시저장</button>
-          <span class="divider">|</span>
-          <button id="export-json" type="button">백업 저장</button>
-          <button id="import-json-btn" type="button">데이터 복원</button>
-          <button id="open-guide-btn" type="button">사용 가이드</button>
-          <input id="import-json" type="file" accept="application/json" hidden />
-        </div>
         <div class="auth-box">
           <button id="btn-login" type="button" class="btn-login">Google 로그인</button>
           <div id="user-info" class="user-info hidden">
@@ -131,11 +123,9 @@
         <div class="section-head">
           <div style="display: flex; align-items: center; gap: 10px;">
             <h3>Major Economic Events</h3>
-            <button type="button" id="btn-eco-settings" class="icon-btn-sm" title="경제 지표 필터 설정" style="background:none; border:none; cursor:pointer; font-size:16px; opacity:0.6; transition:0.2s;">⚙️</button>
           </div>
-          <button type="button" id="btn-add-eco-event" class="btn btn-primary btn-sm" style="display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px;">
-             <span style="font-size: 16px;">+</span>
-             <span>Add Indicator</span>
+          <button type="button" id="btn-add-eco-event" class="btn btn-eco-simple">
+             <span>+ Add Indicator</span>
           </button>
         </div>
         <div id="economic-indicator-list" class="economic-list-grid">
@@ -222,37 +212,7 @@
         </div>
       </article>
 
-      <div class="grid grid-2">
-        <article class="card chart-card">
-          <div class="section-head">
-            <div>
-              <h3>셋업 성과</h3>
-              <p>Entry setup 평균 R</p>
-            </div>
-          </div>
-          <div id="setup-chart" class="chart-box"></div>
-        </article>
-        <div class="stack">
-          <article class="card compact-section">
-            <div class="section-head">
-              <div>
-                <h3>주요 실수</h3>
-                <p>빈도 및 누적 손실</p>
-              </div>
-            </div>
-            <div id="mistake-list" class="stack"></div>
-          </article>
-          <article class="card compact-section">
-            <div class="section-head">
-              <div>
-                <h3>Desk Notes</h3>
-                <p>자동 분석 인사이트</p>
-              </div>
-            </div>
-            <div id="research-notes" class="stack"></div>
-          </article>
-        </div>
-      </div>
+      <!-- Removed Setup Performance, Mistakes, and Desk Notes as requested -->
     </section>
 
     <section id="view-journal" class="view">
@@ -1325,6 +1285,21 @@
   </div>
 
   <script type="module" src="./js/mobile.js?v=3.1.0"></script>
+  <footer class="system-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' fill='%230f172a'/%3E%3Cpolyline points='18 9 12 15 8 11 4 15' stroke='white'/%3E%3Cpolyline points='14 9 18 9 18 13' stroke='white'/%3E%3C/svg%3E" alt="Favicon" class="footer-favicon" />
+      </div>
+      <div class="footer-actions">
+        <button id="force-save-draft" type="button" class="btn-footer">💾 임시저장</button>
+        <button id="export-json" type="button" class="btn-footer">백업 저장</button>
+        <button id="import-json-btn" type="button" class="btn-footer">데이터 복원</button>
+        <button id="open-guide-btn" type="button" class="btn-footer">사용 가이드</button>
+        <input id="import-json" type="file" accept="application/json" hidden />
+      </div>
+    </div>
+  </footer>
+
 </body>
 
 </html>

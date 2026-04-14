@@ -128,7 +128,9 @@ function bootstrap() {
   safeCall('initPriceTicker', () => initPriceTicker());
   
   // Post-boot hydration
-  hydratePersistentState().catch(error => console.error('[post-bootstrap hydration]', error));
+  hydratePersistentState().then(() => {
+    initOverviewDateFilter();
+  }).catch(error => console.error('[post-bootstrap hydration]', error));
 
   if (bootErrors.length === 0) refreshJournalStatus('정상|시스템 대기 중');
 }
@@ -2507,6 +2509,13 @@ function renderOverview() {
     renderOverviewPortfolio();
     renderAdvancedMetrics(stats);
     initSimulationUI(trades);
+    
+    // Auto-run simulation if enough trades exist
+    const closed = trades.filter(t => t.status === 'CLOSED');
+    if (closed.length >= 5) {
+      const simBtn = document.getElementById('btn-run-sim');
+      if (simBtn) simBtn.click();
+    }
   } catch (error) {
     console.error('[renderOverview Error]', error);
     setHtml('metrics', emptyState('데이터 렌더링 중 오류가 발생했습니다. 브라우저 저장소를 확인해 주세요.'));
@@ -3813,6 +3822,24 @@ function drawSimulationChart(containerId, result) {
 
 function round(value) {
   return Math.round(value);
+}
+
+function initOverviewDateFilter() {
+  if (!state.db.trades || !state.db.trades.length) return;
+  
+  // Sort by date to find the first trade
+  const sorted = [...state.db.trades].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const firstTrade = sorted[0];
+  
+  const fromInput = document.getElementById('overview-from');
+  const toInput = document.getElementById('overview-to');
+  
+  if (fromInput && !fromInput.value) {
+    fromInput.value = getLocalDateKey(new Date(firstTrade.date));
+  }
+  if (toInput && !toInput.value) {
+    toInput.value = getLocalDateKey(new Date());
+  }
 }
 
 window.addEventListener('DOMContentLoaded', bootstrap);
