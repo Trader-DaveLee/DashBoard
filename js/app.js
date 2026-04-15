@@ -134,6 +134,19 @@ function bootstrap() {
   }).catch(error => console.error('[post-bootstrap hydration]', error));
 
   if (bootErrors.length === 0) refreshJournalStatus('정상|시스템 대기 중');
+
+  // PWA Service Worker Registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(registration => {
+          console.log('SW registered: ', registration);
+        })
+        .catch(registrationError => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    });
+  }
 }
 
 /** 
@@ -4027,6 +4040,19 @@ function scrollMemoToBottom(smooth = false) {
     container.scrollTop = container.scrollHeight;
   }
 }
+
+// 모바일 키보드 포커스 시 스크롤 대응 추가
+window.addEventListener('resize', () => {
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    const activeElement = document.activeElement;
+    if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+      setTimeout(() => {
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  }
+});
 
 /** 
  * UI Utility: showToast

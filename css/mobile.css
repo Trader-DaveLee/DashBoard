@@ -201,7 +201,7 @@
     top: 0;
     left: 0;
     right: 0;
-    bottom: var(--tabbar-height);
+    height: calc(100dvh - var(--tabbar-height)); /* 키보드 간섭 해결을 위한 dvh 적용 */
     background: var(--bg-main);
     z-index: 1500;
   }
