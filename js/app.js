@@ -397,7 +397,7 @@ async function fetchEconomicEvents(forceRefresh = false) {
                   <div class="eco-impact-badge impact-${ev.impact}" style="font-size:8px; padding:2px 5px; flex-shrink:0;">${ev.impact.toUpperCase()}</div>
                 </div>
                 <div class="eco-label-text">${ev.label}</div>
-                ${ev.memo ? `<p class="eco-memo" style="margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; opacity:0.6; font-size:11px;">${ev.memo}</p>` : ''}
+                ${ev.memo ? `<p class="eco-memo" style="margin-top:4px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; opacity:0.6; font-size:11px;">${ev.memo}</p>` : ''}
               </div>
             </div>
             <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
