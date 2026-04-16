@@ -253,7 +253,8 @@ function initMemoWidget() {
       if (e.touches.length === 1) {
         tStartX = e.touches[0].clientX;
         tStartY = e.touches[0].clientY;
-        tElem = e.target.closest('.memo-bubble-container');
+        // Only target the bubble itself, not the whole container
+        tElem = e.target.closest('.memo-bubble'); 
         if (tElem) tElem.style.transition = 'none';
       }
     }, { passive: true });
@@ -277,8 +278,7 @@ function initMemoWidget() {
       const dX = e.changedTouches[0].clientX - tStartX;
       const dY = e.changedTouches[0].clientY - tStartY;
       if (Math.abs(dX) > Math.abs(dY) && Math.abs(dX) > 30) {
-        const bubble = tElem.querySelector('.memo-bubble');
-        const id = bubble?.dataset?.id;
+        const id = tElem.dataset.id;
         if (id) {
           if (dX < -30) handleAction(id, 'reply');
           else if (dX > 30) handleAction(id, 'delete');

@@ -1697,16 +1697,17 @@ body.modal-open { overflow: hidden; }
   color: #7c3aed; text-decoration: underline; font-weight: 700;
   overflow-wrap: break-word; word-break: break-all;
 }
-.memo-bubble a:hover { color: #6d28d9; }
-.memo-bubble b { font-weight: 900; color: var(--text-main); }
-.memo-bubble u { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(139, 92, 246, 0.4); }
+.memo-bubble b { font-weight: 900; color: var(--text-main); font-size: inherit; }
+.memo-bubble u { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(139, 92, 246, 0.4); font-size: inherit; }
+.memo-bubble a { color: #7c3aed; text-decoration: underline; font-weight: 700; font-size: inherit; }
 
 .memo-bubble .content {
-  line-height: 1.4;
+  line-height: 1.35;
   font-size: var(--memo-font-size);
 }
-.memo-bubble .content p { margin: 0 0 4px 0; }
+.memo-bubble .content p { margin: 0 0 2px 0; }
 .memo-bubble .content p:last-child { margin: 0; }
+.memo-bubble .content * { font-size: inherit !important; }
 
 /* Hashtag & Ticker */
 .hashtag {
@@ -1740,26 +1741,32 @@ body.modal-open { overflow: hidden; }
 /* memo actions on hover overlay the date */
 .memo-actions {
   position: absolute;
-  bottom: -4px;
+  top: 0; /* Align to the top of the meta area instead of bottom to stay closer to bubble */
   display: flex; gap: 4px; opacity: 0; visibility: hidden; transition: 0.2s;
-  background: var(--bg-main); /* overlap background */
-  padding: 2px;
-  border-radius: 8px;
-  z-index: 10;
+  background: var(--bg-panel);
+  padding: 3px;
+  border-radius: 10px;
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  border: 1px solid var(--border-main);
+  transform: translateY(5px);
 }
 .root-container .memo-actions {
-  left: 0; /* Align left edge of meta, expand RIGHT over the bubble to prevent off-screen clipping */
-  flex-direction: row;
+  left: auto;
+  right: 0;
 }
-.reply-container .memo-actions {
-  right: 0; /* Align right edge of meta, expand LEFT over the bubble */
-  flex-direction: row-reverse;
+.memo-bubble-container:hover .memo-actions { 
+  opacity: 1; 
+  visibility: visible; 
+  transform: translateY(0);
 }
-.memo-bubble-container:hover .memo-actions { opacity: 1; visibility: visible; }
 .memo-bubble-container:hover .memo-meta .date { opacity: 0; }
 
 .memo-bubble-container {
-  display: flex; align-items: flex-end; gap: 4px; position: relative; margin-bottom: 0px;
+  display: flex; align-items: flex-end; gap: 6px; position: relative; margin-bottom: 0px; 
+  max-width: 100%;
+  overflow-x: clip; 
+  touch-action: pan-y; /* Prevent swipe from triggering horizontal browser scroll */
 }
 .root-container { flex-direction: row-reverse; }
 .reply-container { flex-direction: row; }
