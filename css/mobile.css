@@ -7,7 +7,7 @@
   /* 1. Global Layout Resets */
   :root {
     --header-height: 92px; /* Adjusted for 2-tier topbar (60px main + 32px ticker) */
-    --tabbar-height: 60px;
+    --tabbar-height: 52px;
     --tabbar-bottom: 20px;
   }
 
@@ -102,6 +102,10 @@
     z-index: 2000;
     padding: 0 8px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  body.keyboard-active .mobile-tab-bar {
+    display: none !important;
   }
 
   .tab-item {
@@ -234,6 +238,10 @@
     height: calc(100dvh - var(--tabbar-height) - var(--tabbar-bottom) - 8px); /* 키보드 및 플로팅 바 간섭 해결 */
     background: var(--bg-main);
     z-index: 1500;
+  }
+
+  body.keyboard-active #view-memo {
+    height: 100dvh !important; /* 키보드가 켜지면 탭바가 숨겨지므로 패널을 확장 */
   }
 
   #view-memo.active {

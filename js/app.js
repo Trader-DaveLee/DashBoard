@@ -4047,6 +4047,8 @@ window.addEventListener('resize', () => {
   if (isMobile) {
     const activeElement = document.activeElement;
     if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+      // memo-input은 전체화면 flex(dvh)로 해결되므로 강제 스크롤에서 제외. (헤더 밀려남 방지)
+      if (activeElement.id === 'memo-input') return;
       setTimeout(() => {
         activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 300);

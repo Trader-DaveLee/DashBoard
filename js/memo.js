@@ -138,15 +138,18 @@ function initMemoWidget() {
 
   // Send Actions
   if (sendBtn) {
-    const handleSendInteraction = (e) => {
+    sendBtn.addEventListener('pointerdown', (e) => {
       if (window.innerWidth <= 768) {
-        e.preventDefault(); // 모바일에서 포커스 잃고 키보드 내려가는 현상 방지
+        e.preventDefault(); // 다중 이벤트 충돌 방지 및 포커스 유지
+        setTimeout(() => sendMemo(), 10);
       }
-    };
-    sendBtn.addEventListener('mousedown', handleSendInteraction);
-    sendBtn.addEventListener('touchstart', handleSendInteraction, {passive: false});
+    });
     
-    sendBtn.addEventListener('click', () => sendMemo());
+    sendBtn.addEventListener('click', (e) => {
+      if (window.innerWidth > 768) {
+        sendMemo();
+      }
+    });
   }
 
   // Export Actions
@@ -185,6 +188,10 @@ function initMemoWidget() {
   }
 
   if (input) {
+    // 키보드 활성화 시 하단 탭바 숨기기를 위한 클래스 토글
+    input.addEventListener('focus', () => document.body.classList.add('keyboard-active'));
+    input.addEventListener('blur', () => document.body.classList.remove('keyboard-active'));
+
     input.addEventListener('keydown', (e) => {
       if (e.isComposing || e.keyCode === 229) return;
       if ((e.metaKey || e.ctrlKey)) {
