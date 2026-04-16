@@ -362,15 +362,8 @@ async function fetchEconomicEvents(forceRefresh = false) {
   try {
     const { success, data } = await MarketService.fetchEconomicCalendar(forceRefresh);
     ALL_ECO_EVENTS = data || []; 
-    // Filter Logic
-    const countries = (state.ecoFilters && state.ecoFilters.countries) || ['US', 'EU', 'KR', 'CN', 'JP', 'GB', 'AU', 'CA', 'CH', 'ALL'];
-    const impacts = (state.ecoFilters && state.ecoFilters.impacts) || ['high', 'med', 'low'];
-
-    let filtered = ALL_ECO_EVENTS.filter(ev => {
-      const countryMatch = countries.includes('ALL') || countries.includes(ev.country);
-      const impactMatch = impacts.includes(ev.impact);
-      return countryMatch && impactMatch;
-    });
+    // V3.1.6: Filters removed as per user request (show all countries/impacts)
+    let filtered = [...ALL_ECO_EVENTS]; 
 
     // Sort: Upcoming events first (or by timestamp)
     filtered.sort((a, b) => {
@@ -444,11 +437,6 @@ function bindV18Events() {
   const btnEcoPrev = document.getElementById('btn-eco-prev');
   const btnEcoNext = document.getElementById('btn-eco-next');
   
-  const btnEcoSettings = document.getElementById('btn-eco-settings');
-  const ecoFilterModal = document.getElementById('eco-filter-modal');
-  const ecoFilterClose = document.getElementById('eco-filter-close');
-  const ecoFilterApply = document.getElementById('btn-apply-eco-filters');
-
   if (btnSettings) btnSettings.onclick = (e) => { e.preventDefault(); openTickerSettings(); };
   if (btnClose) btnClose.onclick = () => { if(modal) modal.classList.remove('show'); };
   if (btnSave) btnSave.onclick = () => saveTickerSettings();
@@ -465,14 +453,9 @@ function bindV18Events() {
     if (currentEcoPage < totalPages - 1) { currentEcoPage++; fetchEconomicEvents(); }
   };
 
-  if (btnEcoSettings) btnEcoSettings.onclick = () => openEcoFilters();
-  if (ecoFilterClose) ecoFilterClose.onclick = () => { if(ecoFilterModal) ecoFilterModal.classList.remove('show'); };
-  if (ecoFilterApply) ecoFilterApply.onclick = () => applyEcoFilters();
-
   window.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.remove('show');
       if (e.target === ecoEntryModal) ecoEntryModal.classList.remove('show');
-      if (e.target === ecoFilterModal) ecoFilterModal.classList.remove('show');
   });
 }
 
@@ -525,7 +508,7 @@ function saveManualEconomicEvent() {
   document.getElementById('input-eco-title').value = '';
   document.getElementById('input-eco-memo').value = '';
   
-  fetchEconomicEvents();
+  fetchEconomicEvents(true); // Force refresh ALL_ECO_EVENTS
 }
 
 function deleteManualEconomicEvent(id) {
@@ -542,46 +525,6 @@ function deleteManualEconomicEvent(id) {
   }
   
   fetchEconomicEvents();
-}
-
-function openEcoFilters() {
-    const modal = document.getElementById('eco-filter-modal');
-    if (!modal) return;
-
-    // Sync checkboxes with state
-    const countries = state.ecoFilters.countries;
-    const impacts = state.ecoFilters.impacts;
-
-    document.querySelectorAll('#eco-country-filters input').forEach(cb => {
-        cb.checked = countries.includes(cb.value);
-    });
-    document.querySelectorAll('#eco-impact-filters input').forEach(cb => {
-        cb.checked = impacts.includes(cb.value);
-    });
-
-    modal.classList.add('show');
-}
-
-function applyEcoFilters() {
-    const countries = Array.from(document.querySelectorAll('#eco-country-filters input:checked')).map(i => i.value);
-    const impacts = Array.from(document.querySelectorAll('#eco-impact-filters input:checked')).map(i => i.value);
-    
-    if (countries.length === 0 && impacts.length === 0) {
-        alert('최소 하나 이상의 국가나 중요도를 선택해야 합니다.');
-        return;
-    }
-    
-    state.ecoFilters.countries = countries;
-    state.ecoFilters.impacts = impacts;
-    
-    // Save to localStorage
-    localStorage.setItem('eco_filters', JSON.stringify(state.ecoFilters));
-    
-    currentEcoPage = 0;
-    fetchEconomicEvents();
-    
-    const modal = document.getElementById('eco-filter-modal');
-    if (modal) modal.classList.remove('show');
 }
 
 function openTickerSettings() {

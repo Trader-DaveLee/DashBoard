@@ -14,7 +14,6 @@
   <link rel="stylesheet" href="./css/styles.css" />
   <link rel="stylesheet" href="./css/mobile.css" />
   <style>
-    /* Economic Indicator List Responsive Styles */
     .eco-item-v3 {
       background: rgba(37, 99, 235, 0.03);
       border: 1px solid var(--border-subtle);
@@ -60,6 +59,8 @@
       flex-wrap: wrap;
     }
     .eco-label {
+      display: inline-block;
+      vertical-align: middle;
       font-weight: 700;
       font-size: 14px;
       color: var(--text-main);
@@ -67,6 +68,7 @@
       overflow-wrap: anywhere;
       min-width: 0;
       max-width: 100%;
+      line-height: 1.4;
     }
     .eco-memo {
       font-size: 12px;
@@ -94,11 +96,16 @@
     .time-selector-group {
       display: flex;
       gap: 8px;
-      align-items: center;
+      align-items: stretch;
+    }
+    .time-selector-group input, .time-selector-group select {
+      height: 48px !important;
+      padding: 0 12px !important;
+      box-sizing: border-box;
+      text-align: center;
     }
     .time-selector-group select {
-      padding: 10px 8px !important;
-      text-align: center;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -1329,42 +1336,6 @@
     </div>
   </div>
 
-  <!-- V1.9.9 Economic Filter Modal (Wide) -->
-  <div id="eco-filter-modal" class="modal-overlay guide-overlay">
-    <div class="guide-card" style="width: min(800px, 94vw);">
-      <div class="guide-head">
-        <div>
-          <h3 class="modal-title" style="font-size: 24px;">Economic Calendar Filters</h3>
-          <p class="guide-subtitle">매매에 참고할 국가 및 지표 중요도를 설정합니다.</p>
-        </div>
-        <button id="btn-apply-eco-filters" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px; border-radius: 10px;">Save</button>
-      </div>
-      <div class="guide-body">
-        <div class="guide-dual-asym" style="gap: 28px;">
-          <div class="guide-section">
-            <h4 class="filter-group-title">대상 국가 (Countries)</h4>
-            <div class="filter-options-grid" id="eco-country-filters" style="grid-template-columns: repeat(2, 1fr);">
-              <label class="custom-check"><input type="checkbox" value="US"><span>🇺🇸 United States</span></label>
-              <label class="custom-check"><input type="checkbox" value="KR"><span>🇰🇷 South Korea</span></label>
-              <label class="custom-check"><input type="checkbox" value="EU"><span>🇪🇺 European Union</span></label>
-              <label class="custom-check"><input type="checkbox" value="CN"><span>🇨🇳 China</span></label>
-              <label class="custom-check"><input type="checkbox" value="JP"><span>🇯🇵 Japan</span></label>
-              <label class="custom-check"><input type="checkbox" value="GB"><span>🇬🇧 United Kingdom</span></label>
-            </div>
-          </div>
-
-          <div class="guide-section">
-            <h4 class="filter-group-title">지표 중요도 (Impact)</h4>
-            <div id="eco-impact-filters" style="display: flex; flex-direction: column; gap: 12px;">
-              <label class="custom-check"><input type="checkbox" value="high"><span>🔥 High Impact (Market Mover)</span></label>
-              <label class="custom-check"><input type="checkbox" value="med"><span>⚡ Medium Impact</span></label>
-              <label class="custom-check"><input type="checkbox" value="low"><span>💧 Low Impact</span></label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- V3.0.0 Economic Manual Entry Modal -->
   <div id="eco-entry-modal" class="modal-overlay guide-overlay">
@@ -1380,7 +1351,6 @@
         <div class="form-group" style="margin-bottom: 20px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
             <label style="font-weight:700; color:var(--text-muted); margin:0;">날짜 및 시간 (24H)</label>
-            <span style="font-size:11px; color:var(--accent); opacity:0.8;">오전/오후 선택 없는 24시간제</span>
           </div>
           <div class="time-selector-group">
             <input type="date" id="input-eco-date" class="ticker-search-input" style="flex: 2;">
