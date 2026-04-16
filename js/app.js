@@ -399,7 +399,7 @@ async function fetchEconomicEvents(forceRefresh = false) {
               <div class="eco-main" style="min-width: 0; flex: 1;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
                   <span style="font-size: 14px; flex-shrink: 0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
-                  <span class="eco-label" style="font-weight:700; font-size: 14px; min-width: 0; flex: 1; word-break: keep-all; overflow-wrap: anywhere;">${ev.label}</span>
+                  <span class="eco-label" style="font-weight:700; font-size: 14px; min-width: 0; max-width: min(320px, 100%); word-break: keep-all; overflow-wrap: anywhere; flex: 0 1 auto;">${ev.label}</span>
                   <div class="eco-impact-badge impact-${ev.impact}" style="font-size:9px; padding:2px 6px; flex-shrink: 0;">${ev.impact.toUpperCase()}</div>
                 </div>
                 ${ev.memo ? `<p class="eco-memo" style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; word-break: break-word;">${ev.memo.replace(/\n/g, '<br>')}</p>` : ''}

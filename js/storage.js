@@ -147,6 +147,7 @@ export const DEFAULT_DB = {
     setupTemplates: DEFAULT_SETUP_TEMPLATES,
     contextPrompts: DEFAULT_CONTEXT_PROMPTS,
     thesisPrompts: DEFAULT_LOGIC_PROMPTS,
+    ecoEvents: [],
     lastSavedAt: ''
   },
   trades: [],
@@ -479,6 +480,7 @@ function normalizeMeta(meta = {}) {
     setupTemplates: normalizeSetupTemplates(meta.setupTemplates),
     contextPrompts: normalizePromptGroup(meta.contextPrompts, DEFAULT_CONTEXT_PROMPTS),
     thesisPrompts: normalizePromptGroup(meta.thesisPrompts, DEFAULT_LOGIC_PROMPTS),
+    ecoEvents: Array.isArray(meta.ecoEvents) ? meta.ecoEvents : [],
     lastSavedAt: toValidIso(meta.lastSavedAt || '')
   };
 }
