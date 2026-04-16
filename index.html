@@ -69,10 +69,10 @@
       margin: 0;
       word-break: break-word;
     }
-    /* PC: limit label width so it wraps at ~50 chars */
+    /* PC: label fills available space in card, wraps only when truly too long */
     .eco-label-text {
       display: block;
-      max-width: 440px;
+      max-width: 100%;
       word-break: break-all;
       overflow-wrap: anywhere;
       font-weight: 700;
