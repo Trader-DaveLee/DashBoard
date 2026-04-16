@@ -1741,35 +1741,42 @@ body.modal-open { overflow: hidden; }
   white-space: nowrap;
 }
 
-/* memo actions: simple independent buttons, no background box */
+/* memo actions: simple independent buttons, overlaying the date on hover */
 .memo-actions {
   position: absolute;
-  left: -36px; /* place left of bubble */
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  opacity: 1; /* always visible */
-  visibility: visible;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex; 
+  flex-direction: row; 
+  gap: 4px; 
+  opacity: 0; 
+  visibility: hidden; 
+  transition: opacity 0.2s, visibility 0.2s;
   background: transparent;
   padding: 0;
   border: none;
-  transform: none;
+  z-index: 10;
 }
-.root-container .memo-actions,
-.reply-container .memo-actions {
-  /* same for both sides */
+
+/* Position based on container type */
+.root-container .memo-actions { left: 0; }
+.reply-container .memo-actions { right: 0; }
+
+.memo-bubble-container:hover .memo-actions { 
+  opacity: 1; 
+  visibility: visible; 
 }
-.memo-bubble-container:hover .memo-actions {
-  /* no hover effect needed */
+.memo-bubble-container:hover .memo-meta .date { 
+  opacity: 0; 
 }
+
 
 
 .memo-bubble-container {
-  display: flex;
-  align-items: flex-start; /* keep bubble and actions aligned */
-  gap: 6px;
-  position: relative;
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  position: relative; 
   margin-bottom: 2px;
   max-width: 100%;
   overflow-x: clip;
@@ -1778,24 +1785,25 @@ body.modal-open { overflow: hidden; }
 
 .root-container { flex-direction: row-reverse; }
 .reply-container { flex-direction: row; }
-.root-container .memo-bubble { align-self: center; }
-.reply-container .memo-bubble { align-self: center; }
+.root-container .memo-bubble { align-self: flex-end; }
+.reply-container .memo-bubble { align-self: flex-start; }
+
 
 .memo-action-btn {
-  width: 32px; height: 32px; border-radius: 10px; background: #ffffff;
-  border: 1px solid #e2e8f0; color: #64748b; cursor: pointer;
+  width: 26px; height: 26px; border-radius: 8px; background: var(--bg-panel);
+  border: 1px solid var(--border-subtle); color: var(--text-muted); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: 0.2s;
 }
 .memo-action-btn:hover { 
-  color: #7c3aed; 
-  background: #f5f3ff;
-  border-color: #ddd6fe;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.12);
+  color: var(--accent); 
+  border-color: var(--accent); 
+  transform: translateY(-2px); 
+  background: var(--bg-main);
 }
-.memo-action-btn svg { width: 16px; height: 16px; }
+.memo-action-btn svg { width: 14px; height: 14px; }
+
 
 /* Threading Styles */
 .memo-thread { margin-bottom: 4px; display: flex; flex-direction: column; }
