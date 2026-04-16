@@ -367,7 +367,9 @@ async function fetchEconomicEvents(forceRefresh = false) {
     const impacts = (state.ecoFilters && state.ecoFilters.impacts) || ['high', 'med', 'low'];
 
     let filtered = ALL_ECO_EVENTS.filter(ev => {
-      return countries.includes(ev.country) && impacts.includes(ev.impact);
+      const countryMatch = countries.includes('ALL') || countries.includes(ev.country);
+      const impactMatch = impacts.includes(ev.impact);
+      return countryMatch && impactMatch;
     });
 
     // Sort: Upcoming events first (or by timestamp)
@@ -389,20 +391,20 @@ async function fetchEconomicEvents(forceRefresh = false) {
       container.innerHTML = '<div class="empty-placeholder" style="grid-column:1/-1; padding:30px;">등록된 지표가 없습니다. "+" 버튼으로 추가하세요.</div>';
     } else {
       container.innerHTML = paged.map(ev => `
-        <div class="eco-item-v3" style="margin-bottom: 12px; padding: 16px; background: rgba(var(--accent-rgb), 0.03); border-radius: 16px; border: 1px solid var(--border-subtle);">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <div style="display: flex; gap: 12px; align-items: flex-start;">
-              <div class="eco-time-info" style="min-width: 60px;">
+        <div class="eco-item-v3">
+          <div class="eco-row">
+            <div class="eco-left">
+              <div class="eco-time-info">
                 <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}</span>
                 <span class="eco-time" style="font-weight:700;">${ev.time}</span>
               </div>
-              <div class="eco-main" style="min-width: 0; flex: 1;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+              <div class="eco-main">
+                <div class="eco-title-row">
                   <span style="font-size: 14px; flex-shrink: 0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
-                  <span class="eco-label" style="font-weight:700; font-size: 14px; min-width: 0; max-width: min(320px, 100%); word-break: keep-all; overflow-wrap: anywhere; flex: 0 1 auto;">${ev.label}</span>
+                  <span class="eco-label">${ev.label}</span>
                   <div class="eco-impact-badge impact-${ev.impact}" style="font-size:9px; padding:2px 6px; flex-shrink: 0;">${ev.impact.toUpperCase()}</div>
                 </div>
-                ${ev.memo ? `<p class="eco-memo" style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; word-break: break-word;">${ev.memo.replace(/\n/g, '<br>')}</p>` : ''}
+                ${ev.memo ? `<p class="eco-memo">${ev.memo.replace(/\n/g, '<br>')}</p>` : ''}
               </div>
             </div>
             <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
@@ -475,22 +477,30 @@ function bindV18Events() {
 }
 
 function saveManualEconomicEvent() {
-  const dtVal = document.getElementById('input-eco-datetime').value;
+  const dateVal = document.getElementById('input-eco-date').value;
+  const hourVal = document.getElementById('input-eco-hour').value;
+  const minuteVal = document.getElementById('input-eco-minute').value;
   const country = document.getElementById('input-eco-country').value;
   const title = document.getElementById('input-eco-title').value;
   const memo = document.getElementById('input-eco-memo').value;
   const impact = document.getElementById('input-eco-impact').value;
 
-  if (!dtVal || !title) {
-    alert('날짜와 지표 명칭을 입력해주세요.');
+  if (!dateVal || !hourVal || !minuteVal || !title) {
+    alert('날짜, 시간 및 지표 명칭을 모두 입력해주세요.');
     return;
   }
 
-  const dt = new Date(dtVal);
+  // Combine components into a valid Date object
+  const dt = new Date(`${dateVal}T${hourVal}:${minuteVal}:00`);
+  if (isNaN(dt.getTime())) {
+    alert('유효하지 않은 날짜 또는 시간입니다.');
+    return;
+  }
+
   const item = {
     date: (dt.getMonth() + 1).toString().padStart(2, '0') + '/' + dt.getDate().toString().padStart(2, '0'),
-    time: dt.getHours().toString().padStart(2, '0') + ':' + dt.getMinutes().toString().padStart(2, '0'),
-    country: country === 'ALL' ? '🌐' : country,
+    time: hourVal + ':' + minuteVal,
+    country: country, // Keep the code (like 'JP', 'US', 'ALL')
     label: title,
     memo: memo,
     impact: impact,
