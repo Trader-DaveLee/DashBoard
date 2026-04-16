@@ -277,18 +277,26 @@ function initMemoWidget() {
       if (!tElem || !tStartX) return;
       const dX = e.changedTouches[0].clientX - tStartX;
       const dY = e.changedTouches[0].clientY - tStartY;
-      if (Math.abs(dX) > Math.abs(dY) && Math.abs(dX) > 30) {
-        const id = tElem.dataset.id;
-        if (id) {
-          if (dX < -30) setReplyMode(id);
-          else if (dX > 30) deleteMemo(id);
-        }
-      }
-      tElem.style.transition = 'transform 0.3s ease';
+      const isHorizontalSwipe = Math.abs(dX) > Math.abs(dY) && Math.abs(dX) > 30;
+      const actionId = tElem.dataset.id;
+      const actionDir = (dX < -30) ? 'reply' : (dX > 30) ? 'delete' : null;
+
+      // 1. First: animate bubble back to original position smoothly
+      tElem.style.transition = 'transform 0.25s ease';
       tElem.style.transform = 'none';
       tElem.classList.remove('swipe-reply-active', 'swipe-delete-active');
+      
+      // 2. Clear state immediately
       tElem = null;
       tStartX = 0; tStartY = 0;
+
+      // 3. After animation completes, trigger action
+      if (isHorizontalSwipe && actionId && actionDir) {
+        setTimeout(() => {
+          if (actionDir === 'reply') setReplyMode(actionId);
+          else if (actionDir === 'delete') deleteMemo(actionId);
+        }, 260);
+      }
     });
 
     messagesContainer.addEventListener('click', (e) => {
