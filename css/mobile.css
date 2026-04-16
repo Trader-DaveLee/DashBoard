@@ -447,6 +447,7 @@
   
   .memo-bubble-container {
     margin-bottom: 0px !important;
+  gap: 5px !important; /* 시계와 말풍선 간격을 좁힘 */
   }
   .memo-thread {
     margin-bottom: 2px !important;

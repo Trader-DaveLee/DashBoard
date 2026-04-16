@@ -1786,7 +1786,7 @@ body.modal-open { overflow: hidden; }
 .memo-bubble-container {
   display: flex; 
   align-items: flex-end; /* Align everything to the bottom of the bubble's height */
-  gap: 10px; /* Increase gap to prevent accidental overlap */
+  gap: 5px; /* 시계와 말풍선 간격을 좁힘 (기존 10px -> 5px) */
   position: relative; 
   margin-bottom: 2px;
   max-width: 100%;
