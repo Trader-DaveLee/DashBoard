@@ -1682,10 +1682,12 @@ body.modal-open { overflow: hidden; }
   border: 1px solid var(--border-subtle);
 }
 [data-theme='dark'] .memo-bubble { background: #1e293b; border-color: rgba(255,255,255,0.05); }
+.memo-bubble {
+  max-width: 70%;   /* shrink bubble width to keep within screen */
+  word-break: break-word;
+}
 .memo-bubble.reply {
-  margin-left: 30px; 
-  background: var(--bg-nav); border-left: 3px solid #8b5cf6;
-  max-width: 80%;
+  max-width: 70%;
 }
 [data-theme='dark'] .memo-bubble.reply { background: #0f172a; }
 
@@ -1739,38 +1741,41 @@ body.modal-open { overflow: hidden; }
   white-space: nowrap;
 }
 
-/* memo actions on hover overlay the date */
+/* memo actions: simple independent buttons, no background box */
 .memo-actions {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.9);
-  display: flex; gap: 6px; opacity: 0; visibility: hidden; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  padding: 5px;
-  border-radius: 14px;
-  z-index: 100;
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15), 0 2px 6px rgba(0,0,0,0.05);
-  border: 1.5px solid #ddd6fe;
+  left: -36px; /* place left of bubble */
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 1; /* always visible */
+  visibility: visible;
+  background: transparent;
+  padding: 0;
+  border: none;
+  transform: none;
 }
-.root-container .memo-actions {
-  /* Common centered logic */
+.root-container .memo-actions,
+.reply-container .memo-actions {
+  /* same for both sides */
 }
-.memo-bubble-container:hover .memo-actions { 
-  opacity: 1; 
-  visibility: visible; 
-  transform: translate(-50%, -50%) scale(1);
+.memo-bubble-container:hover .memo-actions {
+  /* no hover effect needed */
 }
-.memo-bubble-container:hover .memo-meta .date { opacity: 0; }
+
 
 .memo-bubble-container {
-  display: flex; align-items: center; /* Center everything vertically */
-  gap: 8px; position: relative; margin-bottom: 2px;
+  display: flex;
+  align-items: flex-start; /* keep bubble and actions aligned */
+  gap: 6px;
+  position: relative;
+  margin-bottom: 2px;
   max-width: 100%;
-  overflow-x: clip; 
+  overflow-x: clip;
   touch-action: pan-y;
 }
+
 .root-container { flex-direction: row-reverse; }
 .reply-container { flex-direction: row; }
 .root-container .memo-bubble { align-self: center; }
