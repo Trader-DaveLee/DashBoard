@@ -391,26 +391,32 @@ async function fetchEconomicEvents(forceRefresh = false) {
                 <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}</span>
                 <span class="eco-time" style="font-weight:700;">${ev.time}</span>
               </div>
-              <div class="eco-main">
+              <div class="eco-main" data-id="${ev.timestamp}" style="cursor:pointer; overflow:hidden;">
                 <div class="eco-title-row">
                   <span style="font-size: 14px; flex-shrink: 0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
                   <span class="eco-label">${ev.label}</span>
                   <div class="eco-impact-badge impact-${ev.impact}" style="font-size:9px; padding:2px 6px; flex-shrink: 0;">${ev.impact.toUpperCase()}</div>
                 </div>
-                ${ev.memo ? `<p class="eco-memo">${ev.memo.replace(/\n/g, '<br>')}</p>` : ''}
+                ${ev.memo ? `<p class="eco-memo" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; opacity:0.8;">${ev.memo}</p>` : ''}
               </div>
             </div>
             <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
-              style="background:none; border:none; cursor:pointer; color:var(--red); opacity:0.3; transition:0.2s; padding: 4px;">
+              style="background:none; border:none; cursor:pointer; color:var(--red); opacity:0.3; transition:0.2s; padding: 4px; flex-shrink: 0;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           </div>
         </div>
       `).join('');
 
-      // Bind delete events
+      // Bind interaction events
+      container.querySelectorAll('.eco-main').forEach(el => {
+        el.onclick = () => openEcoDetail(el.dataset.id);
+      });
       container.querySelectorAll('.btn-eco-del').forEach(btn => {
-        btn.onclick = () => deleteManualEconomicEvent(btn.dataset.id);
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          deleteManualEconomicEvent(btn.dataset.id);
+        };
       });
     }
 
@@ -441,9 +447,16 @@ function bindV18Events() {
   if (btnClose) btnClose.onclick = () => { if(modal) modal.classList.remove('show'); };
   if (btnSave) btnSave.onclick = () => saveTickerSettings();
   
+  const ecoDetailModal = document.getElementById('eco-detail-modal');
+  const ecoDetailClose = document.getElementById('btn-close-eco-detail');
+  const ecoDetailCloseBottom = document.getElementById('btn-close-eco-detail-bottom');
+
   if (btnAddEco) btnAddEco.onclick = () => ecoEntryModal.classList.add('show');
   if (ecoEntryClose) ecoEntryClose.onclick = () => ecoEntryModal.classList.remove('show');
   if (ecoEntrySave) ecoEntrySave.onclick = () => saveManualEconomicEvent();
+
+  if (ecoDetailClose) ecoDetailClose.onclick = () => ecoDetailModal.classList.remove('show');
+  if (ecoDetailCloseBottom) ecoDetailCloseBottom.onclick = () => ecoDetailModal.classList.remove('show');
 
   if (btnEcoPrev) btnEcoPrev.onclick = () => {
     if (currentEcoPage > 0) { currentEcoPage--; fetchEconomicEvents(); }
@@ -456,6 +469,7 @@ function bindV18Events() {
   window.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.remove('show');
       if (e.target === ecoEntryModal) ecoEntryModal.classList.remove('show');
+      if (e.target === ecoDetailModal) ecoDetailModal.classList.remove('show');
   });
 }
 
@@ -525,6 +539,26 @@ function deleteManualEconomicEvent(id) {
   }
   
   fetchEconomicEvents();
+}
+
+function openEcoDetail(id) {
+  const ev = (ALL_ECO_EVENTS || []).find(e => e.timestamp.toString() === id.toString());
+  if (!ev) return;
+
+  const modal = document.getElementById('eco-detail-modal');
+  if (!modal) return;
+
+  document.getElementById('detail-eco-title').innerText = ev.label;
+  document.getElementById('detail-eco-time').innerText = `${ev.date} ${ev.time}`;
+  document.getElementById('detail-eco-country').innerText = ev.country === 'ALL' ? '🌐' : ev.country;
+
+  const impactBadge = document.getElementById('detail-eco-impact');
+  impactBadge.innerText = (ev.impact || 'MED').toUpperCase();
+  impactBadge.className = `eco-impact-badge impact-${ev.impact || 'med'}`;
+
+  document.getElementById('detail-eco-memo').innerText = ev.memo || '등록된 메모나 전략 정보가 없습니다.';
+
+  modal.classList.add('show');
 }
 
 function openTickerSettings() {
