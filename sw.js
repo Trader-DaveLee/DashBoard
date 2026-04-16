@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trading-dashboard-v1';
+const CACHE_NAME = 'trading-dashboard-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -19,14 +19,12 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // Network-First Strategy for real-time app
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+    fetch(event.request).catch(() => {
+      // Offline fallback
+      return caches.match(event.request);
+    })
   );
 });
 

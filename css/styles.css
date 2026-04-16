@@ -3,6 +3,7 @@
   --radius: 24px;
   --radius-sm: 12px;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --memo-font-size: 14px;
   
   /* Light Theme (Default) */
   --bg-page: #f4f7fb;
@@ -1700,6 +1701,13 @@ body.modal-open { overflow: hidden; }
 .memo-bubble b { font-weight: 900; color: var(--text-main); }
 .memo-bubble u { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(139, 92, 246, 0.4); }
 
+.memo-bubble .content {
+  line-height: 1.5;
+  font-size: var(--memo-font-size);
+}
+.memo-bubble .content p { margin: 0 0 8px 0; }
+.memo-bubble .content p:last-child { margin: 0; }
+
 /* Hashtag & Ticker */
 .hashtag {
   color: #7c3aed; background: #f5f3ff; border: 1px solid #ddd6fe;
@@ -1713,13 +1721,44 @@ body.modal-open { overflow: hidden; }
   padding: 0 2px;
 }
 
-.memo-bubble .date {
-  display: block; font-size: 10px; color: #94a3b8; font-weight: 600;
-  margin-top: 6px; text-align: right;
+/* time outside */
+.memo-meta {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-width: 45px;
+  height: 20px;
+}
+.memo-meta .date {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 1;
+  transition: opacity 0.2s;
+  white-space: nowrap;
 }
 
+/* memo actions on hover overlay the date */
+.memo-actions {
+  position: absolute;
+  bottom: -4px;
+  display: flex; gap: 4px; opacity: 0; visibility: hidden; transition: 0.2s;
+  background: var(--bg-main); /* overlap background */
+  padding: 2px;
+  border-radius: 8px;
+}
+.root-container .memo-actions {
+  right: 0;
+  flex-direction: row-reverse;
+}
+.reply-container .memo-actions {
+  left: 0;
+  flex-direction: row;
+}
+.memo-bubble-container:hover .memo-actions { opacity: 1; visibility: visible; }
+.memo-bubble-container:hover .memo-meta .date { opacity: 0; }
+
 .memo-bubble-container {
-  display: flex; align-items: flex-end; gap: 8px; position: relative; margin-bottom: 2px;
+  display: flex; align-items: flex-end; gap: 4px; position: relative; margin-bottom: 2px;
 }
 .root-container { flex-direction: row-reverse; }
 .reply-container { flex-direction: row; }
