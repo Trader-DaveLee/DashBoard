@@ -58,11 +58,12 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 6px;
-      flex-wrap: wrap;
+      flex-wrap: wrap; /* allow wrapping of label */
       min-width: 0;
     }
     .eco-label-wrap {
-      flex: 1;
+      display: block;
+      width: 100%;
       min-width: 0;
     }
     .eco-label {
@@ -70,8 +71,9 @@
       font-weight: 700;
       font-size: 14px;
       color: var(--text-main);
-      word-break: break-all;
+      word-break: break-word;
       overflow-wrap: anywhere;
+      max-width: 100%;
       line-height: 1.4;
       margin: 0;
     }
