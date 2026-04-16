@@ -1728,10 +1728,10 @@ body.modal-open { overflow: hidden; }
 .memo-meta {
   position: relative;
   display: flex;
-  align-items: center; /* Center vertically with the bubble */
+  align-items: flex-end; /* Align date/actions to bottom */
   min-width: 45px;
-  height: auto; /* Height should be dynamic to wrap content */
-  align-self: center; /* Vertical alignment in the parent container */
+  height: auto;
+  align-self: flex-end; /* Vertical alignment at the bottom of the bubble row */
 }
 .memo-meta .date {
   font-size: 11px;
@@ -1744,8 +1744,7 @@ body.modal-open { overflow: hidden; }
 /* memo actions: simple independent buttons, overlaying the date on hover */
 .memo-actions {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 0;
   display: flex; 
   flex-direction: row; 
   gap: 4px; 
@@ -1758,9 +1757,15 @@ body.modal-open { overflow: hidden; }
   z-index: 10;
 }
 
-/* Position based on container type */
-.root-container .memo-actions { left: 0; }
-.reply-container .memo-actions { right: 0; }
+/* To avoid overlap, actions expand AWAY from the bubble */
+.root-container .memo-actions { 
+  right: 0; /* Align to right edge (near bubble), expand LEFT */
+  flex-direction: row-reverse;
+}
+.reply-container .memo-actions { 
+  left: 0; /* Align to left edge (near bubble), expand RIGHT */
+  flex-direction: row;
+}
 
 .memo-bubble-container:hover .memo-actions { 
   opacity: 1; 
@@ -1774,8 +1779,8 @@ body.modal-open { overflow: hidden; }
 
 .memo-bubble-container {
   display: flex; 
-  align-items: center; 
-  gap: 6px; 
+  align-items: flex-end; /* Align everything to the bottom of the bubble's height */
+  gap: 10px; /* Increase gap to prevent accidental overlap */
   position: relative; 
   margin-bottom: 2px;
   max-width: 100%;
@@ -1786,7 +1791,8 @@ body.modal-open { overflow: hidden; }
 .root-container { flex-direction: row-reverse; }
 .reply-container { flex-direction: row; }
 .root-container .memo-bubble { align-self: flex-end; }
-.reply-container .memo-bubble { align-self: flex-start; }
+.reply-container .memo-bubble { align-self: flex-end; }
+
 
 
 .memo-action-btn {
