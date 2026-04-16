@@ -32,6 +32,8 @@ export const state = {
   suspendUndo: false,
   libraryPage: 1,
   libraryPageSize: 25,
+};
+
 export const views = ['overview', 'journal', 'library', 'playbook', 'memo'];
 window.state = state; // Global exposure for MarketService
 export const els = {};
