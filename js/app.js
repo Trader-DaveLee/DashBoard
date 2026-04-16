@@ -391,13 +391,15 @@ async function fetchEconomicEvents(forceRefresh = false) {
                 <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}</span>
                 <span class="eco-time" style="font-weight:700;">${ev.time}</span>
               </div>
-              <div class="eco-main" data-id="${ev.timestamp}" style="cursor:pointer; overflow:hidden;">
-                <div class="eco-title-row">
-                  <span style="font-size: 14px; flex-shrink: 0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
-                  <span class="eco-label">${ev.label}</span>
-                  <div class="eco-impact-badge impact-${ev.impact}" style="font-size:9px; padding:2px 6px; flex-shrink: 0;">${ev.impact.toUpperCase()}</div>
+              <div class="eco-main" data-id="${ev.timestamp}" style="overflow:hidden; min-width:0;">
+                <div class="eco-title-row" style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap; min-width:0;">
+                  <span style="font-size: 13px; font-weight:800; opacity:0.7; flex-shrink: 0; font-family:var(--font-mono);">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
+                  <div class="eco-label-wrap">
+                    <span class="eco-label">${ev.label}</span>
+                  </div>
+                  <div class="eco-impact-badge impact-${ev.impact}" style="font-size:8px; padding:2px 4px; flex-shrink: 0;">${ev.impact.toUpperCase()}</div>
                 </div>
-                ${ev.memo ? `<p class="eco-memo" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; opacity:0.8;">${ev.memo}</p>` : ''}
+                ${ev.memo ? `<p class="eco-memo" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; opacity:0.6; font-size:11px; margin-top:2px;">${ev.memo}</p>` : ''}
               </div>
             </div>
             <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
@@ -542,6 +544,9 @@ function deleteManualEconomicEvent(id) {
 }
 
 function openEcoDetail(id) {
+  // V3.2.1: Mobile Only Check
+  if (window.innerWidth > 600) return;
+
   const ev = (ALL_ECO_EVENTS || []).find(e => e.timestamp.toString() === id.toString());
   if (!ev) return;
 
