@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trading-dashboard-v2';
+const CACHE_NAME = 'trading-dashboard-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Force new service worker to take over immediately
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -29,6 +30,7 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('activate', event => {
+  event.waitUntil(clients.claim());
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {

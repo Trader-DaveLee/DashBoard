@@ -438,4 +438,20 @@
   .system-footer {
     display: none !important;
   }
+
+  /* 모바일 채팅 뷰 UI 오버라이드 */
+  .memo-action-btn[data-action="reply"],
+  .memo-action-btn[data-action="delete"] {
+    display: none !important;
+  }
+  
+  .memo-bubble-container {
+    margin-bottom: 0px !important;
+  }
+  .memo-thread {
+    margin-bottom: 2px !important;
+  }
+  .memo-bubble .content p {
+    margin: 0 0 2px 0 !important;
+  }
 }
