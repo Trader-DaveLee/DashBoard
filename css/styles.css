@@ -1726,9 +1726,10 @@ body.modal-open { overflow: hidden; }
 .memo-meta {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: center; /* Center vertically with the bubble */
   min-width: 45px;
-  height: 20px;
+  height: auto; /* Height should be dynamic to wrap content */
+  align-self: center; /* Vertical alignment in the parent container */
 }
 .memo-meta .date {
   font-size: 11px;
@@ -1741,47 +1742,55 @@ body.modal-open { overflow: hidden; }
 /* memo actions on hover overlay the date */
 .memo-actions {
   position: absolute;
-  top: 0; /* Align to the top of the meta area instead of bottom to stay closer to bubble */
-  display: flex; gap: 4px; opacity: 0; visibility: hidden; transition: 0.2s;
-  background: var(--bg-panel);
-  padding: 3px;
-  border-radius: 10px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  display: flex; gap: 6px; opacity: 0; visibility: hidden; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 5px;
+  border-radius: 14px;
   z-index: 100;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-  border: 1px solid var(--border-main);
-  transform: translateY(5px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15), 0 2px 6px rgba(0,0,0,0.05);
+  border: 1.5px solid #ddd6fe;
 }
 .root-container .memo-actions {
-  left: auto;
-  right: 0;
+  /* Common centered logic */
 }
 .memo-bubble-container:hover .memo-actions { 
   opacity: 1; 
   visibility: visible; 
-  transform: translateY(0);
+  transform: translate(-50%, -50%) scale(1);
 }
 .memo-bubble-container:hover .memo-meta .date { opacity: 0; }
 
 .memo-bubble-container {
-  display: flex; align-items: flex-end; gap: 6px; position: relative; margin-bottom: 0px; 
+  display: flex; align-items: center; /* Center everything vertically */
+  gap: 8px; position: relative; margin-bottom: 2px;
   max-width: 100%;
   overflow-x: clip; 
-  touch-action: pan-y; /* Prevent swipe from triggering horizontal browser scroll */
+  touch-action: pan-y;
 }
 .root-container { flex-direction: row-reverse; }
 .reply-container { flex-direction: row; }
-.root-container .memo-bubble { align-self: flex-end; }
-.reply-container .memo-bubble { align-self: flex-start; }
+.root-container .memo-bubble { align-self: center; }
+.reply-container .memo-bubble { align-self: center; }
 
 .memo-action-btn {
-  width: 28px; height: 28px; border-radius: 8px; background: var(--bg-panel);
-  border: 1px solid var(--border-main); color: var(--text-muted); cursor: pointer;
+  width: 32px; height: 32px; border-radius: 10px; background: #ffffff;
+  border: 1px solid #e2e8f0; color: #64748b; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  transition: 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
-.memo-action-btn:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-2px); }
-.memo-action-btn svg { width: 14px; height: 14px; }
+.memo-action-btn:hover { 
+  color: #7c3aed; 
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.12);
+}
+.memo-action-btn svg { width: 16px; height: 16px; }
 
 /* Threading Styles */
 .memo-thread { margin-bottom: 4px; display: flex; flex-direction: column; }
