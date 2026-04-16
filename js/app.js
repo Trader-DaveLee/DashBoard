@@ -455,7 +455,6 @@ function bindV18Events() {
   if (ecoEntryClose) ecoEntryClose.onclick = () => ecoEntryModal.classList.remove('show');
   if (ecoEntrySave) ecoEntrySave.onclick = () => saveManualEconomicEvent();
 
-  if (ecoDetailClose) ecoDetailClose.onclick = () => ecoDetailModal.classList.remove('show');
   if (ecoDetailCloseBottom) ecoDetailCloseBottom.onclick = () => ecoDetailModal.classList.remove('show');
 
   if (btnEcoPrev) btnEcoPrev.onclick = () => {
