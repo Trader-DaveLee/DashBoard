@@ -1386,19 +1386,18 @@
             <input type="date" id="input-eco-date" class="ticker-search-input" style="flex: 2;">
             <select id="input-eco-hour" class="ticker-search-input" style="flex: 1;">
               <option value="">시</option>
-              <script>
-                for(let i=0; i<24; i++) {
-                  document.write(`<option value="${i.toString().padStart(2,'0')}">${i.toString().padStart(2,'0')}시</option>`);
-                }
-              </script>
+              <option value="00">00시</option><option value="01">01시</option><option value="02">02시</option><option value="03">03시</option>
+              <option value="04">04시</option><option value="05">05시</option><option value="06">06시</option><option value="07">07시</option>
+              <option value="08">08시</option><option value="09">09시</option><option value="10">10시</option><option value="11">11시</option>
+              <option value="12">12시</option><option value="13">13시</option><option value="14">14시</option><option value="15">15시</option>
+              <option value="16">16시</option><option value="17">17시</option><option value="18">18시</option><option value="19">19시</option>
+              <option value="20">20시</option><option value="21">21시</option><option value="22">22시</option><option value="23">23시</option>
             </select>
             <select id="input-eco-minute" class="ticker-search-input" style="flex: 1;">
               <option value="">분</option>
-              <script>
-                for(let i=0; i<60; i+=5) {
-                  document.write(`<option value="${i.toString().padStart(2,'0')}">${i.toString().padStart(2,'0')}분</option>`);
-                }
-              </script>
+              <option value="00">00분</option><option value="05">05분</option><option value="10">10분</option><option value="15">15분</option>
+              <option value="20">20분</option><option value="25">25분</option><option value="30">30분</option><option value="35">35분</option>
+              <option value="40">40분</option><option value="45">45분</option><option value="50">50분</option><option value="55">55분</option>
             </select>
           </div>
         </div>
