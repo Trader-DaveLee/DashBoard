@@ -1702,10 +1702,10 @@ body.modal-open { overflow: hidden; }
 .memo-bubble u { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(139, 92, 246, 0.4); }
 
 .memo-bubble .content {
-  line-height: 1.5;
+  line-height: 1.4;
   font-size: var(--memo-font-size);
 }
-.memo-bubble .content p { margin: 0 0 8px 0; }
+.memo-bubble .content p { margin: 0 0 4px 0; }
 .memo-bubble .content p:last-child { margin: 0; }
 
 /* Hashtag & Ticker */
@@ -1758,7 +1758,7 @@ body.modal-open { overflow: hidden; }
 .memo-bubble-container:hover .memo-meta .date { opacity: 0; }
 
 .memo-bubble-container {
-  display: flex; align-items: flex-end; gap: 4px; position: relative; margin-bottom: 2px;
+  display: flex; align-items: flex-end; gap: 4px; position: relative; margin-bottom: 0px;
 }
 .root-container { flex-direction: row-reverse; }
 .reply-container { flex-direction: row; }
@@ -1782,7 +1782,7 @@ body.modal-open { overflow: hidden; }
 .memo-action-btn svg { width: 14px; height: 14px; }
 
 /* Threading Styles */
-.memo-thread { margin-bottom: 12px; display: flex; flex-direction: column; }
+.memo-thread { margin-bottom: 4px; display: flex; flex-direction: column; }
 .memo-bubble.reply {
   margin-left: 30px; 
   background: #f1f5f9; border-left: 3px solid #8b5cf6;
