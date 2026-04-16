@@ -32,9 +32,8 @@ export const state = {
   suspendUndo: false,
   libraryPage: 1,
   libraryPageSize: 25,
-};
-
 export const views = ['overview', 'journal', 'library', 'playbook', 'memo'];
+window.state = state; // Global exposure for MarketService
 export const els = {};
 let draftTimer = null;
 
@@ -327,6 +326,7 @@ function updateTickerUI(data) {
  */
 let currentEcoPage = 0;
 const ecoEventsPerPage = 5;
+const ECO_STORAGE_KEY = 'DASHBOARD_MANUAL_ECO_V3';
 // V3.0.0: Manual Economic Indicator Storage
 let ALL_ECO_EVENTS = []; 
 
@@ -491,10 +491,13 @@ function saveManualEconomicEvent() {
     timestamp: dt.getTime()
   };
 
-  const stored = localStorage.getItem(ECO_STORAGE_KEY);
-  const events = stored ? JSON.parse(stored) : [];
-  events.push(newEvent);
-  localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(events));
+  // V3.1.0 Sync Logic: Update state.db and save
+  if (!state.db.meta.ecoEvents) state.db.meta.ecoEvents = [];
+  state.db.meta.ecoEvents.push(item);
+  saveDB(state.db);
+
+  // Sync with localStorage for MarketService fallback
+  localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(state.db.meta.ecoEvents));
 
   const modal = document.getElementById('eco-entry-modal');
   if (modal) modal.classList.remove('show');
@@ -508,12 +511,13 @@ function saveManualEconomicEvent() {
 
 function deleteManualEconomicEvent(id) {
   if (!confirm('해당 지표를 삭제하시겠습니까?')) return;
-  const stored = localStorage.getItem(ECO_STORAGE_KEY);
-  if (!stored) return;
   
-  let events = JSON.parse(stored);
-  events = events.filter(ev => ev.timestamp.toString() !== id.toString());
-  localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(events));
+  // Sync Logic: Update state.db and save
+  if (state.db.meta.ecoEvents) {
+    state.db.meta.ecoEvents = state.db.meta.ecoEvents.filter(ev => ev.timestamp.toString() !== id.toString());
+    saveDB(state.db);
+    localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(state.db.meta.ecoEvents));
+  }
   
   fetchEconomicEvents();
 }
@@ -922,6 +926,7 @@ function initMeta() {
   state.db.meta.mistakePresets = state.db.meta.mistakePresets || ['fomo', 'early exit'];
   state.db.meta.balanceHistory = Array.isArray(state.db.meta.balanceHistory) ? state.db.meta.balanceHistory : [];
   state.db.meta.checklists = Array.isArray(state.db.meta.checklists) ? state.db.meta.checklists : [];
+  state.db.meta.ecoEvents = Array.isArray(state.db.meta.ecoEvents) ? state.db.meta.ecoEvents : [];
   renderDropdowns();
   renderQuickChips();
   renderAccountBalance();
