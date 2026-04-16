@@ -1422,25 +1422,34 @@
     </div>
   </div>
 
-  <!-- V3.2.0 Economic Detail Modal (Popup) -->
+  <!-- V3.3.0 Economic Detail Modal (Popup) -->
   <div id="eco-detail-modal" class="modal-overlay guide-overlay">
-    <div class="guide-card" style="width: min(500px, 94vw);">
+    <div class="guide-card" style="width: min(520px, 94vw);">
       <div class="guide-head">
-        <div>
-          <h3 id="detail-eco-title" class="modal-title" style="font-size: 20px; line-height: 1.4; word-break: break-all;">지표 상세 요약</h3>
-          <p id="detail-eco-time" class="guide-subtitle">2026.04.17 00:00</p>
+        <div style="flex:1; min-width:0;">
+          <h3 id="detail-eco-title" class="modal-title" style="font-size: 18px; line-height: 1.4; word-break: break-all;">지표 상세</h3>
+          <p id="detail-eco-time" class="guide-subtitle" style="margin-top:4px;">2026.04.17 00:00</p>
         </div>
-        <button id="btn-close-eco-detail" class="gear-btn" style="border-radius: 50%; width: 40px; height: 40px; padding:0;">×</button>
+        <button id="btn-close-eco-detail" class="gear-btn" style="border-radius: 50%; width: 40px; height: 40px; padding:0; flex-shrink:0;">×</button>
       </div>
       <div class="guide-body">
-        <div style="margin-bottom: 20px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-            <span id="detail-eco-country" style="font-size: 16px;">🌐</span>
-            <span id="detail-eco-impact" class="eco-impact-badge" style="font-size:10px;">HIGH</span>
-          </div>
-          <p id="detail-eco-memo" style="font-size:14px; color:var(--text-main); line-height:1.6; white-space:pre-wrap; background:rgba(0,0,0,0.03); padding:16px; border-radius:12px; margin:0; word-break: break-all;">지표 상세 내용이 이곳에 표시됩니다.</p>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+          <span id="detail-eco-country" style="font-size: 16px;">🌐</span>
+          <span id="detail-eco-impact" class="eco-impact-badge" style="font-size:10px;">HIGH</span>
         </div>
-        <button id="btn-close-eco-detail-bottom" class="btn btn-primary" style="width:100%; padding:14px; border-radius:12px;">닫기 (Close)</button>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">📝 메모 / 발표 후 기록</label>
+          <textarea id="detail-eco-memo" rows="6"
+            style="width:100%; box-sizing:border-box; font-size:13px; color:var(--text-main); line-height:1.6; background:var(--bg-input); border:1px solid var(--border-main); padding:14px; border-radius:12px; resize:vertical; font-family:inherit; word-break:break-word;"
+            placeholder="지표 발표 후 내용을 여기에 기록하세요..."></textarea>
+        </div>
+
+        <div id="detail-eco-save-row" style="display:none; margin-bottom:12px;">
+          <button id="btn-save-eco-detail" class="btn btn-primary" style="width:100%; padding:13px; border-radius:12px; font-size:14px;">💾 저장 (Save)</button>
+        </div>
+
+        <button id="btn-close-eco-detail-bottom" class="btn" style="width:100%; padding:12px; border-radius:12px; background:var(--bg-input); border:1px solid var(--border-main); font-weight:700; color:var(--text-muted);">닫기</button>
       </div>
     </div>
   </div>

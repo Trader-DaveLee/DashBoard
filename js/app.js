@@ -542,14 +542,13 @@ function deleteManualEconomicEvent(id) {
 }
 
 function openEcoDetail(id) {
-  // V3.2.1: Mobile Only Check
-  if (window.innerWidth > 600) return;
-
   const ev = (ALL_ECO_EVENTS || []).find(e => e.timestamp.toString() === id.toString());
   if (!ev) return;
 
   const modal = document.getElementById('eco-detail-modal');
   if (!modal) return;
+
+  const isMobile = window.innerWidth <= 600;
 
   document.getElementById('detail-eco-title').innerText = ev.label;
   document.getElementById('detail-eco-time').innerText = `${ev.date} ${ev.time}`;
@@ -559,9 +558,41 @@ function openEcoDetail(id) {
   impactBadge.innerText = (ev.impact || 'MED').toUpperCase();
   impactBadge.className = `eco-impact-badge impact-${ev.impact || 'med'}`;
 
-  document.getElementById('detail-eco-memo').innerText = ev.memo || '등록된 메모나 전략 정보가 없습니다.';
+  const textarea = document.getElementById('detail-eco-memo');
+  textarea.value = ev.memo || '';
+  textarea.readOnly = isMobile;  // read-only on mobile, editable on PC
+  textarea.style.opacity = isMobile ? '0.75' : '1';
+  textarea.style.cursor = isMobile ? 'default' : 'text';
+
+  // Show save button only on PC
+  const saveRow = document.getElementById('detail-eco-save-row');
+  if (saveRow) saveRow.style.display = isMobile ? 'none' : 'block';
+
+  // Bind save button
+  const saveBtn = document.getElementById('btn-save-eco-detail');
+  if (saveBtn) {
+    saveBtn.onclick = () => saveEcoDetailMemo(ev.timestamp);
+  }
 
   modal.classList.add('show');
+}
+
+function saveEcoDetailMemo(timestamp) {
+  const textarea = document.getElementById('detail-eco-memo');
+  if (!textarea) return;
+
+  const newMemo = textarea.value.trim();
+  const events = state.db.meta.ecoEvents || [];
+  const idx = events.findIndex(e => e.timestamp.toString() === timestamp.toString());
+  if (idx === -1) return;
+
+  events[idx].memo = newMemo;
+  state.db.meta.ecoEvents = events;
+  saveDB(state.db);
+  fetchEconomicEvents();
+
+  const modal = document.getElementById('eco-detail-modal');
+  if (modal) modal.classList.remove('show');
 }
 
 function openTickerSettings() {
