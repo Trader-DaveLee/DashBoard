@@ -547,8 +547,6 @@ function openEcoDetail(id) {
   const modal = document.getElementById('eco-detail-modal');
   if (!modal) return;
 
-  const isMobile = window.innerWidth <= 600;
-
   document.getElementById('detail-eco-title').innerText = ev.label;
   document.getElementById('detail-eco-time').innerText = `${ev.date} ${ev.time}`;
   document.getElementById('detail-eco-country').innerText = ev.country === 'ALL' ? '🌐' : ev.country;
@@ -559,13 +557,13 @@ function openEcoDetail(id) {
 
   const textarea = document.getElementById('detail-eco-memo');
   textarea.value = ev.memo || '';
-  textarea.readOnly = isMobile;  // read-only on mobile, editable on PC
-  textarea.style.opacity = isMobile ? '0.75' : '1';
-  textarea.style.cursor = isMobile ? 'default' : 'text';
+  textarea.readOnly = false; // editable on all devices
+  textarea.style.opacity = '1';
+  textarea.style.cursor = 'text';
 
-  // Show save button only on PC
+  // Always show save button
   const saveRow = document.getElementById('detail-eco-save-row');
-  if (saveRow) saveRow.style.display = isMobile ? 'none' : 'block';
+  if (saveRow) saveRow.style.display = 'block';
 
   // Bind save button
   const saveBtn = document.getElementById('btn-save-eco-detail');
@@ -587,7 +585,14 @@ function saveEcoDetailMemo(timestamp) {
 
   events[idx].memo = newMemo;
   state.db.meta.ecoEvents = events;
+
+  // 1. Local persist
   saveDB(state.db);
+
+  // 2. Firebase sync (real-time across devices)
+  if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
+  // 3. Re-render list
   fetchEconomicEvents();
 
   const modal = document.getElementById('eco-detail-modal');
