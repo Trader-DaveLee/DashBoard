@@ -138,6 +138,14 @@ function initMemoWidget() {
 
   // Send Actions
   if (sendBtn) {
+    const handleSendInteraction = (e) => {
+      if (window.innerWidth <= 768) {
+        e.preventDefault(); // 모바일에서 포커스 잃고 키보드 내려가는 현상 방지
+      }
+    };
+    sendBtn.addEventListener('mousedown', handleSendInteraction);
+    sendBtn.addEventListener('touchstart', handleSendInteraction, {passive: false});
+    
     sendBtn.addEventListener('click', () => sendMemo());
   }
 
@@ -184,6 +192,10 @@ function initMemoWidget() {
         else if (e.key === 'u') { e.preventDefault(); document.execCommand('underline'); }
       }
       if (e.key === 'Enter' && !e.shiftKey) {
+        if (window.innerWidth <= 768) {
+          // 모바일에서는 엔터 치면 전송 대신 줄 바꿈 동작 수행
+          return;
+        }
         e.preventDefault();
         sendMemo();
       }
@@ -282,7 +294,10 @@ function resetInputState() {
   if (statusBar) statusBar.style.display = 'none';
   if (input) {
     input.innerHTML = '';
-    setTimeout(() => input.focus(), 10);
+    // 모바일(<=768)에서는 키보드가 내려가고 창 크기가 변하는 출렁임 버그를 막기 위해 포커스 재할당 로직 생략
+    if (window.innerWidth > 768) {
+      setTimeout(() => input.focus(), 10);
+    }
   }
 }
 

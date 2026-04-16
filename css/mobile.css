@@ -7,11 +7,12 @@
   /* 1. Global Layout Resets */
   :root {
     --header-height: 92px; /* Adjusted for 2-tier topbar (60px main + 32px ticker) */
-    --tabbar-height: 65px;
+    --tabbar-height: 60px;
+    --tabbar-bottom: 20px;
   }
 
   body {
-    padding-bottom: var(--tabbar-height);
+    padding-bottom: calc(var(--tabbar-height) + var(--tabbar-bottom) + 16px);
     font-size: 14px;
     overflow-x: hidden;
   }
@@ -33,6 +34,15 @@
     left: 0;
     right: 0;
     z-index: 1000;
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+  }
+  
+  [data-theme='dark'] .topbar {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
   }
 
   .topbar-main {
@@ -77,27 +87,28 @@
   /* 3. Mobile Bottom Tab Bar */
   .mobile-tab-bar {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: var(--tabbar-bottom);
+    left: 16px;
+    right: 16px;
     height: var(--tabbar-height);
     background: var(--bg-nav);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border-main);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--border-subtle);
+    border-radius: 30px;
     display: flex !important;
     justify-content: space-around;
     align-items: center;
     z-index: 2000;
-    padding: 0 10px;
-    padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    padding: 0 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   }
 
   .tab-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     color: var(--text-muted);
     font-size: 10px;
@@ -105,17 +116,36 @@
     background: none;
     border: none;
     flex: 1;
-    padding: 8px 0;
-    transition: 0.2s;
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .tab-item svg {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .tab-item.active {
     color: var(--accent);
   }
 
-  .tab-item svg {
-    width: 22px;
-    height: 22px;
+  .tab-item.active svg {
+    transform: translateY(-2px);
+  }
+
+  .tab-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
   }
 
   /* 4. Overview Optimization */
@@ -201,7 +231,7 @@
     top: 0;
     left: 0;
     right: 0;
-    height: calc(100dvh - var(--tabbar-height)); /* 키보드 간섭 해결을 위한 dvh 적용 */
+    height: calc(100dvh - var(--tabbar-height) - var(--tabbar-bottom) - 8px); /* 키보드 및 플로팅 바 간섭 해결 */
     background: var(--bg-main);
     z-index: 1500;
   }
