@@ -391,8 +391,8 @@ async function fetchEconomicEvents(forceRefresh = false) {
                 <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}</span>
                 <span class="eco-time" style="font-weight:700;">${ev.time}</span>
               </div>
-              <div class="eco-main" data-id="${ev.timestamp}" style="overflow:hidden; min-width:0;">
-                <div class="eco-title-row" style="display:flex; align-items:center; gap:8px; flex-wrap:nowrap; min-width:0;">
+              <div class="eco-main" data-id="${ev.timestamp}" style="min-width:0;">
+                <div class="eco-title-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0;">
                   <span style="font-size: 13px; font-weight:800; opacity:0.7; flex-shrink: 0; font-family:var(--font-mono);">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
                   <div class="eco-label-wrap">
                     <span class="eco-label">${ev.label}</span>
