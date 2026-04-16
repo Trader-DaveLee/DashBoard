@@ -69,6 +69,17 @@
       margin: 0;
       word-break: break-word;
     }
+    /* PC: limit label width so it wraps at ~25 chars */
+    .eco-label-text {
+      display: block;
+      max-width: 220px;
+      word-break: break-all;
+      overflow-wrap: anywhere;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-main);
+    }
     @media (max-width: 600px) {
       .eco-left {
         flex-direction: column;
@@ -81,6 +92,10 @@
         min-width: unset;
       }
       .eco-label {
+        font-size: 13px;
+      }
+      .eco-label-text {
+        max-width: 100%; /* full width on mobile */
         font-size: 13px;
       }
       .eco-main {

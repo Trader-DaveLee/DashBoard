@@ -396,7 +396,7 @@ async function fetchEconomicEvents(forceRefresh = false) {
                   <span style="font-size:13px; flex-shrink:0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
                   <div class="eco-impact-badge impact-${ev.impact}" style="font-size:8px; padding:2px 5px; flex-shrink:0;">${ev.impact.toUpperCase()}</div>
                 </div>
-                <div style="word-break:break-all; overflow-wrap:anywhere; font-weight:700; font-size:14px; line-height:1.5; color:var(--text-main); max-width:100%;">${ev.label}</div>
+                <div class="eco-label-text">${ev.label}</div>
                 ${ev.memo ? `<p class="eco-memo" style="margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; opacity:0.6; font-size:11px;">${ev.memo}</p>` : ''}
               </div>
             </div>
