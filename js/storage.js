@@ -919,6 +919,22 @@ export function listenMemos(user, onUpdate) {
     console.error("[Firebase Listen Memos Error]", error);
   });
 }
+
+/**
+ * ⚡ Firebase Real-time Listener for Meta (Config)
+ */
+export function listenMeta(user, onUpdate) {
+  if (!user) return null;
+  const metaRef = doc(db, 'users', user.uid, 'config', 'main');
+  
+  return onSnapshot(metaRef, (docSnap) => {
+    if (docSnap.exists()) {
+      onUpdate(normalizeMeta(docSnap.data()));
+    }
+  }, (error) => {
+    console.error("[Firebase Listen Meta Error]", error);
+  });
+}
 /**
  * 🖼️ Image Optimizer
  * Compresses Base64 image using Canvas API to save storage space.

@@ -7,7 +7,7 @@ import {
   loadDraft, saveDraft, clearDraft, hydrateDBFromIndexedDB, hydrateDraftFromIndexedDB,
   syncWithFirebase, saveTradeToFirebase, deleteTradeFromFirebase,
   saveMetaToFirebase, saveMemoToFirebase, deleteMemoFromFirebase, compressImage,
-  listenMemos
+  listenMemos, listenMeta
 } from './storage.js';
 import { loginWithGoogle, logout, watchAuthState } from './firebase-auth.js';
 import { runMonteCarlo } from './simulation.js';
@@ -32,6 +32,10 @@ export const state = {
   suspendUndo: false,
   libraryPage: 1,
   libraryPageSize: 25,
+  ecoFilters: {
+    countries: ['US', 'EU', 'KR', 'CN', 'JP', 'GB', 'AU', 'CA', 'CH', 'ALL'],
+    impacts: ['high', 'med', 'low']
+  }
 };
 
 export const views = ['overview', 'journal', 'library', 'playbook', 'memo'];
@@ -392,13 +396,13 @@ async function fetchEconomicEvents(forceRefresh = false) {
                 <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}</span>
                 <span class="eco-time" style="font-weight:700;">${ev.time}</span>
               </div>
-              <div class="eco-main">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                  <span style="font-size: 14px;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
-                  <span class="eco-label" style="font-weight:700; font-size: 14px;">${ev.label}</span>
-                  <div class="eco-impact-badge impact-${ev.impact}" style="font-size:9px; padding:2px 6px;">${ev.impact.toUpperCase()}</div>
+              <div class="eco-main" style="min-width: 0; flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                  <span style="font-size: 14px; flex-shrink: 0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
+                  <span class="eco-label" style="font-weight:700; font-size: 14px; min-width: 0; flex: 1; word-break: keep-all; overflow-wrap: anywhere;">${ev.label}</span>
+                  <div class="eco-impact-badge impact-${ev.impact}" style="font-size:9px; padding:2px 6px; flex-shrink: 0;">${ev.impact.toUpperCase()}</div>
                 </div>
-                ${ev.memo ? `<p class="eco-memo" style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">${ev.memo.replace(/\n/g, '<br>')}</p>` : ''}
+                ${ev.memo ? `<p class="eco-memo" style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; word-break: break-word;">${ev.memo.replace(/\n/g, '<br>')}</p>` : ''}
               </div>
             </div>
             <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
@@ -501,6 +505,9 @@ function saveManualEconomicEvent() {
   // Sync with localStorage for MarketService fallback
   localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(state.db.meta.ecoEvents));
 
+  // V3.1.2 Sync Logic: Push to Firebase if user is logged in
+  if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
   const modal = document.getElementById('eco-entry-modal');
   if (modal) modal.classList.remove('show');
   
@@ -519,6 +526,9 @@ function deleteManualEconomicEvent(id) {
     state.db.meta.ecoEvents = state.db.meta.ecoEvents.filter(ev => ev.timestamp.toString() !== id.toString());
     saveDB(state.db);
     localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(state.db.meta.ecoEvents));
+
+    // V3.1.2 Sync Logic: Push to Firebase if user is logged in
+    if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
   }
   
   fetchEconomicEvents();
@@ -529,11 +539,14 @@ function openEcoFilters() {
     if (!modal) return;
 
     // Sync checkboxes with state
+    const countries = state.ecoFilters.countries;
+    const impacts = state.ecoFilters.impacts;
+
     document.querySelectorAll('#eco-country-filters input').forEach(cb => {
-        cb.checked = ecoFilters.countries.includes(cb.value);
+        cb.checked = countries.includes(cb.value);
     });
     document.querySelectorAll('#eco-impact-filters input').forEach(cb => {
-        cb.checked = ecoFilters.impacts.includes(cb.value);
+        cb.checked = impacts.includes(cb.value);
     });
 
     modal.classList.add('show');
@@ -548,11 +561,11 @@ function applyEcoFilters() {
         return;
     }
     
-    ecoFilters.countries = countries;
-    ecoFilters.impacts = impacts;
+    state.ecoFilters.countries = countries;
+    state.ecoFilters.impacts = impacts;
     
     // Save to localStorage
-    localStorage.setItem('eco_filters', JSON.stringify(ecoFilters));
+    localStorage.setItem('eco_filters', JSON.stringify(state.ecoFilters));
     
     currentEcoPage = 0;
     fetchEconomicEvents();
@@ -929,6 +942,13 @@ function initMeta() {
   state.db.meta.balanceHistory = Array.isArray(state.db.meta.balanceHistory) ? state.db.meta.balanceHistory : [];
   state.db.meta.checklists = Array.isArray(state.db.meta.checklists) ? state.db.meta.checklists : [];
   state.db.meta.ecoEvents = Array.isArray(state.db.meta.ecoEvents) ? state.db.meta.ecoEvents : [];
+
+  // Initialize Eco Filters
+  const savedFilters = localStorage.getItem('eco_filters');
+  if (savedFilters) {
+    try { state.ecoFilters = JSON.parse(savedFilters); } catch(e) {}
+  }
+
   renderDropdowns();
   renderQuickChips();
   renderAccountBalance();
@@ -1054,6 +1074,7 @@ function openQuickLinkManager() {
 }
 
 let memoUnsubscribe = null;
+let metaUnsubscribe = null;
 
 function initAuth() {
   watchAuthState(async (user) => {
@@ -1061,6 +1082,10 @@ function initAuth() {
     if (memoUnsubscribe) {
       memoUnsubscribe();
       memoUnsubscribe = null;
+    }
+    if (metaUnsubscribe) {
+      metaUnsubscribe();
+      metaUnsubscribe = null;
     }
 
     if (user) {
@@ -1087,6 +1112,16 @@ function initAuth() {
       memoUnsubscribe = listenMemos(user, (memos) => {
         state.db.memos = memos;
         if (typeof window.renderMemos === 'function') window.renderMemos(false);
+      });
+
+      // Start Real-time Sync for Meta (Economic Indicators, etc.)
+      metaUnsubscribe = listenMeta(user, (newMeta) => {
+        // V3.1.2: Seamlessly update meta and refresh relevant UI
+        state.db.meta = newMeta;
+        if (state.view === 'overview') {
+            fetchEconomicEvents();
+            renderOverviewPortfolio(); 
+        }
       });
     } else {
       els['btn-login'].classList.remove('hidden');
