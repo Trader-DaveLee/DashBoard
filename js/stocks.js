@@ -1,8 +1,8 @@
-import { state, saveDB, els } from './app.js';
+import { saveDB } from './storage.js';
 
 /**
  * Stocks View Manager (Redesigned Grid & Detail View)
- * V0.2.0: Card Grid, Pagination, Detail Modal with Chart/Financials/Memo
+ * V0.2.1: Fix Circular Dependency (removed app.js import)
  */
 class StocksManager {
   constructor() {
@@ -18,6 +18,9 @@ class StocksManager {
    * Initialize Stocks View
    */
   init() {
+    const state = window.state;
+    if (!state) return;
+
     // Ensure data structure exists
     if (!state.db.meta.stocks) {
       state.db.meta.stocks = [
@@ -72,7 +75,7 @@ class StocksManager {
   }
 
   getStocks() {
-    return state.db.meta.stocks || [];
+    return window.state.db.meta.stocks || [];
   }
 
   /**
@@ -208,15 +211,15 @@ class StocksManager {
       });
     }
 
-    saveDB(state.db);
+    saveDB(window.state.db);
     this.hideModal('stocks-edit-modal');
     this.render();
   }
 
   deleteStock(id) {
     if (!confirm('이 종목을 삭제하시겠습니까?')) return;
-    state.db.meta.stocks = this.getStocks().filter(s => s.id !== id);
-    saveDB(state.db);
+    window.state.db.meta.stocks = this.getStocks().filter(s => s.id !== id);
+    saveDB(window.state.db);
     this.render();
   }
 
@@ -233,7 +236,7 @@ class StocksManager {
     stocks[idx] = stocks[targetIdx];
     stocks[targetIdx] = temp;
     
-    saveDB(state.db);
+    saveDB(window.state.db);
     this.render();
   }
 
@@ -320,7 +323,7 @@ class StocksManager {
       if (stock) {
         stock.memo = value;
         stock.updatedAt = new Date().toISOString();
-        saveDB(state.db);
+        saveDB(window.state.db);
         if (statusLabel) statusLabel.innerText = '자동 저장됨';
       }
     }, 800);
