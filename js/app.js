@@ -11,6 +11,7 @@ import {
 } from './storage.js';
 import { loginWithGoogle, logout, watchAuthState } from './firebase-auth.js';
 import { runMonteCarlo } from './simulation.js';
+import { stocksManager } from './stocks.js';
 
 export const state = {
   db: loadDB(),
@@ -38,7 +39,7 @@ export const state = {
   }
 };
 
-export const views = ['overview', 'journal', 'library', 'playbook', 'memo'];
+export const views = ['overview', 'journal', 'library', 'playbook', 'stocks', 'memo'];
 window.state = state; // Global exposure for MarketService
 export const els = {};
 let draftTimer = null;
@@ -61,7 +62,7 @@ const ID_LIST = [
   'risk-projected-pnl','risk-projected-r',
   'overview-risk-report','sim-start-balance','sim-trade-count','btn-run-sim','simulation-chart','simulation-stats',
   'view-library','q','f-from','f-to','f-status','f-side','f-setup','f-tag','f-mistake','f-grade','sort','clear-filters','library-result-count','library-pagination','review-position','review-breadcrumb','prev-trade','next-trade','filter-same-setup','filter-same-ticker','clear-quick-filter','trade-table','detail','detail-insights',
-  'view-playbook','playbook-gallery',
+  'view-playbook','playbook-gallery','view-stocks','tradingview-widget-container',
   'app-modal','modal-title','modal-desc','modal-input','modal-btn-cancel','modal-btn-confirm',
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',
   'ql-modal','ql-name','ql-url','ql-icon','ql-add','ql-items','ql-close','open-guide-btn','guide-modal','guide-close',
@@ -754,6 +755,7 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', target);
   localStorage.setItem('theme', target);
   updateThemeIcon(target);
+  if (stocksManager) stocksManager.updateTheme();
 }
 
 function updateThemeIcon(theme) {
@@ -1550,7 +1552,7 @@ function renderNav() {
   const isMobile = window.innerWidth <= 768;
   const filteredViews = views.filter(v => {
     if (isMobile) return ['overview', 'memo'].includes(v);
-    return ['overview', 'journal', 'library', 'playbook'].includes(v);
+    return ['overview', 'journal', 'library', 'playbook', 'stocks'].includes(v);
   });
 
   els['nav'].innerHTML = filteredViews.map(view => `
@@ -1590,6 +1592,7 @@ export function renderViews() {
   }
   if (state.view === 'playbook') safeCall('renderPlaybook(view)', () => renderPlaybook());
   if (state.view === 'overview') safeCall('renderOverview(view)', () => renderOverview());
+  if (state.view === 'stocks') safeCall('stocksManager.init()', () => stocksManager.init());
 }
 
 function render() {
