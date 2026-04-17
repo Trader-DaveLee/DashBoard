@@ -992,24 +992,33 @@
     </section>
 
     <section id="view-stocks" class="view">
+      <h2 class="view-title">Stock Analysis</h2>
+      
       <div class="stocks-toolbar">
         <div class="toolbar-left">
-          <h3>Stocks Analysis</h3>
-          <p id="stocks-page-info" class="muted-caption">Page 1</p>
+          <p id="stocks-page-info" class="muted-caption">Total 0 stocks | Page 1</p>
         </div>
-        <div class="toolbar-center">
-          <div class="pagination-controls">
-            <button type="button" id="stocks-prev-btn" class="btn-icon-sm">←</button>
-            <span id="stocks-page-display" style="font-weight: 800; font-size: 13px; min-width: 40px; text-align: center;">1</span>
-            <button type="button" id="stocks-next-btn" class="btn-icon-sm">→</button>
-          </div>
-        </div>
-        <div class="toolbar-right">
+        <div class="toolbar-right" style="display: flex; gap: 12px; align-items: center;">
+          <select id="stocks-sort-select" class="ticker-search-input" style="width: 140px; height: 36px; padding: 0 12px; font-size: 13px;">
+            <option value="newest">최근 등록순</option>
+            <option value="oldest">오래된순</option>
+            <option value="abc">ABC순</option>
+            <option value="manual">사용자지정</option>
+          </select>
           <button type="button" id="add-stock-btn" class="tool-btn primary-btn btn-sm">종목 추가 +</button>
         </div>
       </div>
+
       <div id="stocks-grid" class="stocks-grid">
-        <!-- Stock cards will be rendered here -->
+        <!-- Stock cards rendered here -->
+      </div>
+
+      <div class="stocks-footer">
+        <div class="pagination-controls">
+          <button type="button" id="stocks-prev-btn" class="btn-icon-md">←</button>
+          <span id="stocks-page-display" style="font-weight: 800; font-size: 14px; min-width: 50px; text-align: center; color: var(--text-main);">1</span>
+          <button type="button" id="stocks-next-btn" class="btn-icon-md">→</button>
+        </div>
       </div>
     </section>
 
@@ -1482,7 +1491,29 @@
       <div class="field-grid cols-1">
         <label>
           <span>심볼 입력 (예: NASDAQ:AAPL)</span>
-          <input type="text" id="stocks-symbol-input" placeholder="MARKET:SYMBOL" />
+          <input type="text" id="stocks-symbol-input" placeholder="MARKET:SYMBOL" list="ticker-suggestions" />
+          <datalist id="ticker-suggestions">
+            <option value="NASDAQ:AAPL">Apple</option>
+            <option value="NASDAQ:TSLA">Tesla</option>
+            <option value="NASDAQ:NVDA">NVIDIA</option>
+            <option value="NASDAQ:MSFT">Microsoft</option>
+            <option value="NASDAQ:GOOGL">Alphabet</option>
+            <option value="NASDAQ:AMZN">Amazon</option>
+            <option value="NASDAQ:META">Meta</option>
+            <option value="NASDAQ:NFLX">Netflix</option>
+            <option value="NASDAQ:AMD">AMD</option>
+            <option value="NYSE:BABA">Alibaba</option>
+            <option value="BINANCE:BTCUSDT">Bitcoin / USDT</option>
+            <option value="BINANCE:ETHUSDT">Ethereum / USDT</option>
+            <option value="BINANCE:SOLUSDT">Solana / USDT</option>
+            <option value="KRX:005930">삼성전자</option>
+            <option value="KRX:000660">SK하이닉스</option>
+            <option value="KRX:035420">NAVER</option>
+            <option value="KRX:035720">카카오</option>
+            <option value="KRX:005380">현대차</option>
+            <option value="FRED:SP500">S&P 500</option>
+            <option value="OANDA:XAUUSD">Gold / USD</option>
+          </datalist>
         </label>
       </div>
       <div class="modal-actions" style="margin-top: 24px;">

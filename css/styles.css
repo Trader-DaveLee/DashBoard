@@ -2741,16 +2741,25 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 32px;
-  background: var(--bg-panel);
-  border-radius: 24px;
   margin-bottom: 32px;
-  border: 1px solid var(--border-main);
-  box-shadow: var(--shadow-subtle);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
 }
 
-.toolbar-left h3 { margin: 0; font-size: 22px; font-weight: 900; color: var(--text-main); letter-spacing: -0.5px; }
-.pagination-controls { display: flex; align-items: center; gap: 12px; background: var(--bg-nav); padding: 4px; border-radius: 12px; }
+.stocks-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+  margin-top: 40px;
+  border-top: 1px dashed var(--border-main);
+}
+
+.toolbar-left p { margin: 4px 0 0 0; }
+.pagination-controls { display: flex; align-items: center; gap: 16px; background: var(--bg-nav); padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-main); }
 
 .stocks-grid {
   display: grid;

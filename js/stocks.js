@@ -2,7 +2,7 @@ import { saveDB } from './storage.js';
 
 /**
  * Stocks View Manager (Redesigned Grid & Detail View)
- * V0.2.1: Fix Circular Dependency (removed app.js import)
+ * V0.3.0: Dynamic Sorting, Advanced TV Widget, Datalist Suggestions
  */
 class StocksManager {
   constructor() {
@@ -12,6 +12,8 @@ class StocksManager {
     this.activeWidgets = [];
     this.editingId = null;
     this.activeDetailId = null;
+    this.sortMode = 'newest'; // Default: Newest first
+    this.initialized = false;
   }
 
   /**
@@ -29,7 +31,9 @@ class StocksManager {
       saveDB(state.db);
     }
 
+    if (this.initialized) return;
     this.bindEvents();
+    this.initialized = true;
     this.render();
   }
 
@@ -40,6 +44,15 @@ class StocksManager {
     // Add Stock Button
     const addBtn = document.getElementById('add-stock-btn');
     if (addBtn) addBtn.onclick = () => this.showEditModal();
+
+    // Sort Select
+    const sortSelect = document.getElementById('stocks-sort-select');
+    if (sortSelect) {
+      sortSelect.onchange = (e) => {
+        this.sortMode = e.target.value;
+        this.render();
+      };
+    }
 
     // Pagination Buttons
     const prevBtn = document.getElementById('stocks-prev-btn');
@@ -74,8 +87,21 @@ class StocksManager {
     }
   }
 
-  getStocks() {
-    return window.state.db.meta.stocks || [];
+  getSortedStocks() {
+    const stocks = [...(window.state.db.meta.stocks || [])];
+    
+    switch (this.sortMode) {
+      case 'newest':
+        return stocks.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      case 'oldest':
+        return stocks.sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt));
+      case 'abc':
+        return stocks.sort((a, b) => a.symbol.localeCompare(b.symbol));
+      case 'manual':
+      default:
+        // Assume the array order itself is the manual order
+        return stocks;
+    }
   }
 
   /**
@@ -85,7 +111,7 @@ class StocksManager {
     const grid = document.getElementById('stocks-grid');
     if (!grid) return;
 
-    const stocks = this.getStocks();
+    const stocks = this.getSortedStocks();
     const totalPages = Math.ceil(stocks.length / this.pageSize) || 1;
     if (this.currentPage > totalPages) this.currentPage = totalPages;
 
@@ -93,7 +119,7 @@ class StocksManager {
     const pageDisplay = document.getElementById('stocks-page-display');
     if (pageDisplay) pageDisplay.innerText = this.currentPage;
     const pageInfo = document.getElementById('stocks-page-info');
-    if (pageInfo) pageInfo.innerText = `Total ${stocks.length} | Page ${this.currentPage}/${totalPages}`;
+    if (pageInfo) pageInfo.innerText = `Total ${stocks.length} stocks | Page ${this.currentPage}/${totalPages}`;
 
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
@@ -115,11 +141,17 @@ class StocksManager {
   }
 
   createCardHTML(stock, globalIdx) {
+    // Show manual sort buttons ONLY in manual mode
+    const showManualControls = this.sortMode === 'manual';
+    const sortButtons = showManualControls ? `
+      <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.moveStock('${stock.id}', -1)">↑</button>
+      <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.moveStock('${stock.id}', 1)">↓</button>
+    ` : '';
+
     return `
       <div class="stock-card" onclick="stocksManager.showDetail('${stock.id}')">
         <div class="stock-card-header">
-          <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.moveStock('${stock.id}', -1)">↑</button>
-          <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.moveStock('${stock.id}', 1)">↓</button>
+          ${sortButtons}
           <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.showEditModal('${stock.id}')">✎</button>
           <button type="button" class="btn-icon-sm danger-text" onclick="event.stopPropagation(); stocksManager.deleteStock('${stock.id}')">✕</button>
         </div>
@@ -138,7 +170,7 @@ class StocksManager {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = ''; // Clear loading text
+    container.innerHTML = '';
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js';
@@ -159,7 +191,7 @@ class StocksManager {
   }
 
   changePage(dir) {
-    const stocks = this.getStocks();
+    const stocks = window.state.db.meta.stocks || [];
     const totalPages = Math.ceil(stocks.length / this.pageSize) || 1;
     const next = this.currentPage + dir;
     if (next < 1 || next > totalPages) return;
@@ -175,7 +207,7 @@ class StocksManager {
     const input = document.getElementById('stocks-symbol-input');
     
     if (id) {
-      const stock = this.getStocks().find(s => s.id === id);
+      const stock = (window.state.db.meta.stocks || []).find(s => s.id === id);
       input.value = stock ? stock.symbol : '';
       title.innerText = '종목 수정';
     } else {
@@ -192,10 +224,7 @@ class StocksManager {
     let symbol = input.value.trim().toUpperCase();
     if (!symbol) return;
     
-    // Auto format: If no market specified, default to NASDAQ or similar (optional)
-    // Here we just use what user typed.
-
-    const stocks = this.getStocks();
+    const stocks = window.state.db.meta.stocks || [];
     if (this.editingId) {
       const stock = stocks.find(s => s.id === this.editingId);
       if (stock) {
@@ -218,13 +247,17 @@ class StocksManager {
 
   deleteStock(id) {
     if (!confirm('이 종목을 삭제하시겠습니까?')) return;
-    window.state.db.meta.stocks = this.getStocks().filter(s => s.id !== id);
+    window.state.db.meta.stocks = (window.state.db.meta.stocks || []).filter(s => s.id !== id);
     saveDB(window.state.db);
     this.render();
   }
 
   moveStock(id, dir) {
-    const stocks = this.getStocks();
+    if (this.sortMode !== 'manual') {
+      alert('순서를 수동으로 변경하려면 정렬을 [사용자지정]으로 설정하세요.');
+      return;
+    }
+    const stocks = window.state.db.meta.stocks || [];
     const idx = stocks.findIndex(s => s.id === id);
     if (idx === -1) return;
 
@@ -242,7 +275,7 @@ class StocksManager {
 
   // --- Detail View (Analysis) ---
   showDetail(id) {
-    const stock = this.getStocks().find(s => s.id === id);
+    const stock = (window.state.db.meta.stocks || []).find(s => s.id === id);
     if (!stock) return;
 
     this.activeDetailId = id;
@@ -255,7 +288,6 @@ class StocksManager {
     
     modal.classList.add('show');
     
-    // Use setTimeout to ensure DOM is ready for TradingView injection
     setTimeout(() => {
       this.embedDetailWidgets(stock.symbol);
       if (typeof window.autoResize === 'function') {
@@ -266,35 +298,29 @@ class StocksManager {
 
   embedDetailWidgets(symbol) {
     const theme = document.documentElement.getAttribute('data-theme') || 'light';
-    const chartContainer = document.getElementById('detail-chart-container');
+    const chartContainerId = 'detail-chart-container';
     const financialsContainer = document.getElementById('detail-financials-container');
     
-    chartContainer.innerHTML = '<div style="padding: 24px; color: var(--text-muted);">Loading Chart...</div>';
-    financialsContainer.innerHTML = '<div style="padding: 24px; color: var(--text-muted);">Loading Financials...</div>';
-
-    // 1. Mini Chart Widget
-    const scriptChart = document.createElement('script');
-    scriptChart.type = 'text/javascript';
-    scriptChart.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
-    scriptChart.async = true;
-    scriptChart.innerHTML = JSON.stringify({
-      "symbol": symbol,
-      "width": "100%",
-      "height": "100%",
-      "locale": "ko",
-      "dateRange": "12M",
-      "colorTheme": theme,
-      "trendLineColor": "rgba(41, 98, 255, 1)",
-      "underLineColor": "rgba(41, 98, 255, 0.3)",
-      "underLineBottomColor": "rgba(41, 98, 255, 0)",
-      "isTransparent": false,
-      "autosize": true,
-      "largeChartUrl": ""
-    });
-    chartContainer.innerHTML = '';
-    chartContainer.appendChild(scriptChart);
+    // 1. Advanced Real-Time Chart Widget
+    if (window.TradingView) {
+      new window.TradingView.widget({
+        "width": "100%",
+        "height": "100%",
+        "symbol": symbol,
+        "interval": "D", // Daily timeframe
+        "timezone": "Etc/UTC",
+        "theme": theme,
+        "style": "1",
+        "locale": "ko",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "allow_symbol_change": true,
+        "container_id": chartContainerId
+      });
+    }
 
     // 2. Financials Widget
+    financialsContainer.innerHTML = '<div style="padding: 24px; color: var(--text-muted);">Loading Financials...</div>';
     const scriptFin = document.createElement('script');
     scriptFin.type = 'text/javascript';
     scriptFin.src = 'https://s3.tradingview.com/external-embedding/embed-widget-financials.js';
@@ -319,7 +345,7 @@ class StocksManager {
     if (statusLabel) statusLabel.innerText = '저장 중...';
 
     this.saveTimeout = setTimeout(() => {
-      const stock = this.getStocks().find(s => s.id === this.activeDetailId);
+      const stock = (window.state.db.meta.stocks || []).find(s => s.id === this.activeDetailId);
       if (stock) {
         stock.memo = value;
         stock.updatedAt = new Date().toISOString();
@@ -341,13 +367,11 @@ class StocksManager {
    * Update theme and re-render
    */
   updateTheme() {
-    // If detail modal is open, re-render its widgets
     const detailModal = document.getElementById('stocks-detail-modal');
     if (detailModal && detailModal.classList.contains('show') && this.activeDetailId) {
-      const stock = this.getStocks().find(s => s.id === this.activeDetailId);
+      const stock = (window.state.db.meta.stocks || []).find(s => s.id === this.activeDetailId);
       if (stock) this.embedDetailWidgets(stock.symbol);
     }
-    // Re-render main grid
     this.render();
   }
 }
