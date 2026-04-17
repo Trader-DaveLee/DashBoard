@@ -1,4 +1,4 @@
-import { saveDB } from './storage.js';
+import { saveDB, saveMetaToFirebase } from './storage.js';
 
 /**
  * Stocks View Manager (Redesigned Grid & Detail View)
@@ -17,6 +17,21 @@ class StocksManager {
   }
 
   /**
+   * Sync with Local and Firebase
+   */
+  syncData() {
+    const state = window.state;
+    if (!state) return;
+    
+    saveDB(state.db);
+    if (state.user) {
+      saveMetaToFirebase(state.user, state.db.meta).catch(err => {
+        console.error('[StocksManager Sync Error]', err);
+      });
+    }
+  }
+
+  /**
    * Initialize Stocks View
    */
   init() {
@@ -28,7 +43,7 @@ class StocksManager {
       state.db.meta.stocks = [
         { id: crypto.randomUUID(), symbol: 'NASDAQ:AAPL', memo: '기본 샘플 종목입니다.', updatedAt: new Date().toISOString() }
       ];
-      saveDB(state.db);
+      this.syncData();
     }
 
     if (this.initialized) return;
@@ -240,7 +255,7 @@ class StocksManager {
       });
     }
 
-    saveDB(window.state.db);
+    this.syncData();
     this.hideModal('stocks-edit-modal');
     this.render();
   }
@@ -248,7 +263,7 @@ class StocksManager {
   deleteStock(id) {
     if (!confirm('이 종목을 삭제하시겠습니까?')) return;
     window.state.db.meta.stocks = (window.state.db.meta.stocks || []).filter(s => s.id !== id);
-    saveDB(window.state.db);
+    this.syncData();
     this.render();
   }
 
@@ -269,7 +284,7 @@ class StocksManager {
     stocks[idx] = stocks[targetIdx];
     stocks[targetIdx] = temp;
     
-    saveDB(window.state.db);
+    this.syncData();
     this.render();
   }
 
@@ -349,7 +364,7 @@ class StocksManager {
       if (stock) {
         stock.memo = value;
         stock.updatedAt = new Date().toISOString();
-        saveDB(window.state.db);
+        this.syncData();
         if (statusLabel) statusLabel.innerText = '자동 저장됨';
       }
     }, 800);

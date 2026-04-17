@@ -1015,9 +1015,13 @@
 
       <div class="stocks-footer">
         <div class="pagination-controls">
-          <button type="button" id="stocks-prev-btn" class="btn-icon-md">←</button>
-          <span id="stocks-page-display" style="font-weight: 800; font-size: 14px; min-width: 50px; text-align: center; color: var(--text-main);">1</span>
-          <button type="button" id="stocks-next-btn" class="btn-icon-md">→</button>
+          <button type="button" id="stocks-prev-btn" class="btn-icon-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <span id="stocks-page-display" style="font-weight: 800; font-size: 15px; min-width: 40px; text-align: center; color: var(--text-main);">1</span>
+          <button type="button" id="stocks-next-btn" class="btn-icon-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
         </div>
       </div>
     </section>
@@ -1533,8 +1537,8 @@
       <div class="stock-detail-body" style="flex: 1; display: flex; gap: 24px; min-height: 0;">
         <!-- Left: Analysis Widgets -->
         <div class="detail-analysis-column" style="flex: 7; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px;">
-          <div id="detail-chart-container" style="height: 350px; flex-shrink: 0; background: var(--bg-input); border-radius: 12px; overflow: hidden;"></div>
-          <div id="detail-financials-container" style="flex: 1; background: var(--bg-input); border-radius: 12px; overflow: hidden; min-height: 400px;"></div>
+          <div id="detail-chart-container" style="height: 400px; flex-shrink: 0; background: var(--bg-input); border-radius: 12px; overflow: hidden;"></div>
+          <div id="detail-financials-container" style="flex: 1; background: var(--bg-input); border-radius: 12px; overflow: hidden; min-height: 800px;"></div>
         </div>
         <!-- Right: Memo -->
         <div class="detail-memo-column" style="flex: 3; display: flex; flex-direction: column;">
