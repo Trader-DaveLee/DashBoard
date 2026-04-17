@@ -156,18 +156,11 @@ class StocksManager {
   }
 
   createCardHTML(stock, globalIdx) {
-    // Show manual sort buttons ONLY in manual mode
-    const showManualControls = this.sortMode === 'manual';
-    const sortButtons = showManualControls ? `
-      <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.moveStock('${stock.id}', -1)">↑</button>
-      <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.moveStock('${stock.id}', 1)">↓</button>
-    ` : '';
-
     return `
       <div class="stock-card" onclick="stocksManager.showDetail('${stock.id}')">
         <div class="stock-card-header">
-          ${sortButtons}
-          <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.showEditModal('${stock.id}')">✎</button>
+          <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.moveStock('${stock.id}', -1)">↑</button>
+          <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); stocksManager.moveStock('${stock.id}', 1)">↓</button>
           <button type="button" class="btn-icon-sm danger-text" onclick="event.stopPropagation(); stocksManager.deleteStock('${stock.id}')">✕</button>
         </div>
         <div id="tv-card-${stock.id}" class="tv-widget-wrapper">
@@ -268,10 +261,13 @@ class StocksManager {
   }
 
   moveStock(id, dir) {
+    // Automatically switch to manual mode if not already
     if (this.sortMode !== 'manual') {
-      alert('순서를 수동으로 변경하려면 정렬을 [사용자지정]으로 설정하세요.');
-      return;
+      this.sortMode = 'manual';
+      const sortSelect = document.getElementById('stocks-sort-select');
+      if (sortSelect) sortSelect.value = 'manual';
     }
+
     const stocks = window.state.db.meta.stocks || [];
     const idx = stocks.findIndex(s => s.id === id);
     if (idx === -1) return;

@@ -2731,13 +2731,12 @@ body {
 /* ==========================================================================
    📈 Stocks View (Redesigned Grid)
    ========================================================================== */
-#view-stocks {
-  padding: 0 8px;
-  height: auto;
-  min-height: auto;
-  margin: 0;
-  background: transparent;
-  animation: viewFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+#view-stocks .view-title {
+  font-size: 38px;
+  font-weight: 950;
+  letter-spacing: -1.5px;
+  margin-bottom: 8px;
+  color: var(--text-main);
 }
 
 .stocks-toolbar {
@@ -2823,13 +2822,60 @@ body {
 }
 
 .stock-card:hover { 
-  transform: translateY(-10px) scale(1.01); 
+  transform: translateY(-10px) scale(1.005); 
   box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.12);
   border-color: var(--accent); 
 }
 
 [data-theme='dark'] .stock-card:hover {
   box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5);
+}
+
+.stock-card-header {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 6px;
+  z-index: 20;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stock-card:hover .stock-card-header { opacity: 1; transform: translateY(0); }
+
+.stock-card-header .btn-icon-sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+[data-theme='dark'] .stock-card-header .btn-icon-sm {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stock-card-header .btn-icon-sm:hover {
+  background: var(--accent);
+  color: white;
+  transform: scale(1.1);
+  border-color: var(--accent);
+}
+
+.stock-card-header .btn-icon-sm.danger-text:hover {
+  background: var(--danger);
+  border-color: var(--danger);
 }
 
 /* Detail Modal Split View Custom */
