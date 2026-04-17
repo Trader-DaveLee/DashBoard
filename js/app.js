@@ -61,8 +61,8 @@ const ID_LIST = [
   'risk-risk-dollar','risk-qty','risk-margin','risk-slider','risk-notional','risk-stop-distance','risk-fees','risk-realized','risk-unrealized','risk-residual','risk-actual-risk','risk-risk-usage','risk-weighted-lev','risk-avg-entry','risk-bep','risk-remaining-risk',
   'risk-projected-pnl','risk-projected-r',
   'overview-risk-report','sim-start-balance','sim-trade-count','btn-run-sim','simulation-chart','simulation-stats',
-  'view-library','q','f-from','f-to','f-status','f-side','f-setup','f-tag','f-mistake','f-grade','sort','clear-filters','library-result-count','library-pagination','review-position','review-breadcrumb','prev-trade','next-trade','filter-same-setup','filter-same-ticker','clear-quick-filter','trade-table','detail','detail-insights',
-  'view-playbook','playbook-gallery','view-stocks','tradingview-widget-container',
+  'view-playbook','playbook-gallery','view-stocks','stocks-grid','stocks-page-display','stocks-page-info',
+  'stocks-edit-modal','stocks-symbol-input','stocks-detail-modal','stocks-detail-memo','stocks-save-status',
   'app-modal','modal-title','modal-desc','modal-input','modal-btn-cancel','modal-btn-confirm',
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',
   'ql-modal','ql-name','ql-url','ql-icon','ql-add','ql-items','ql-close','open-guide-btn','guide-modal','guide-close',
@@ -1592,7 +1592,10 @@ export function renderViews() {
   }
   if (state.view === 'playbook') safeCall('renderPlaybook(view)', () => renderPlaybook());
   if (state.view === 'overview') safeCall('renderOverview(view)', () => renderOverview());
-  if (state.view === 'stocks') safeCall('stocksManager.init()', () => stocksManager.init());
+  if (state.view === 'stocks') {
+    safeCall('stocksManager.init()', () => stocksManager.init());
+    safeCall('stocksManager.render()', () => stocksManager.render());
+  }
 }
 
 function render() {

@@ -992,8 +992,24 @@
     </section>
 
     <section id="view-stocks" class="view">
-      <div class="stocks-container">
-        <div id="tradingview-widget-container" class="tv-widget-container"></div>
+      <div class="stocks-toolbar">
+        <div class="toolbar-left">
+          <h3>Stocks Analysis</h3>
+          <p id="stocks-page-info" class="muted-caption">Page 1</p>
+        </div>
+        <div class="toolbar-center">
+          <div class="pagination-controls">
+            <button type="button" id="stocks-prev-btn" class="btn-icon-sm">←</button>
+            <span id="stocks-page-display" style="font-weight: 800; font-size: 13px; min-width: 40px; text-align: center;">1</span>
+            <button type="button" id="stocks-next-btn" class="btn-icon-sm">→</button>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <button type="button" id="add-stock-btn" class="tool-btn primary-btn btn-sm">종목 추가 +</button>
+        </div>
+      </div>
+      <div id="stocks-grid" class="stocks-grid">
+        <!-- Stock cards will be rendered here -->
       </div>
     </section>
 
@@ -1455,6 +1471,48 @@
         </div>
 
         <button id="btn-close-eco-detail-bottom" class="btn" style="width:100%; padding:12px; border-radius:12px; background:var(--bg-input); border:1px solid var(--border-main); font-weight:700; color:var(--text-muted);">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Edit Modal -->
+  <div id="stocks-edit-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 400px;">
+      <div class="modal-title" id="stocks-modal-title">종목 추가</div>
+      <div class="field-grid cols-1">
+        <label>
+          <span>심볼 입력 (예: NASDAQ:AAPL)</span>
+          <input type="text" id="stocks-symbol-input" placeholder="MARKET:SYMBOL" />
+        </label>
+      </div>
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button id="stocks-edit-cancel" class="modal-btn modal-cancel">취소</button>
+        <button id="stocks-edit-confirm" class="modal-btn modal-confirm">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Detail Modal -->
+  <div id="stocks-detail-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 1200px; max-width: 95vw; height: 85vh; display: flex; flex-direction: column;">
+      <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
+        <h2 id="stocks-detail-title" class="modal-title">SYMBOL</h2>
+        <button id="stocks-detail-close" class="tool-btn primary-btn btn-sm">닫기</button>
+      </div>
+      <div class="stock-detail-body" style="flex: 1; display: flex; gap: 24px; min-height: 0;">
+        <!-- Left: Analysis Widgets -->
+        <div class="detail-analysis-column" style="flex: 7; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px;">
+          <div id="detail-chart-container" style="height: 350px; flex-shrink: 0; background: var(--bg-input); border-radius: 12px; overflow: hidden;"></div>
+          <div id="detail-financials-container" style="flex: 1; background: var(--bg-input); border-radius: 12px; overflow: hidden; min-height: 400px;"></div>
+        </div>
+        <!-- Right: Memo -->
+        <div class="detail-memo-column" style="flex: 3; display: flex; flex-direction: column;">
+          <label style="flex: 1; display: flex; flex-direction: column;">
+            <span style="display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 12px; font-weight: 800;">나의 메모</span>
+            <textarea id="stocks-detail-memo" class="auto-resize" style="flex: 1; resize: none; border-radius: 16px; padding: 20px; font-size: 14px; font-weight: 500;" placeholder="분석 내용이나 계획을 자유롭게 기록하세요..."></textarea>
+          </label>
+          <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700;" id="stocks-save-status">자동 저장됨</div>
+        </div>
       </div>
     </div>
   </div>
