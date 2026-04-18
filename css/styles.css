@@ -2930,6 +2930,15 @@ body {
   opacity: 0.6;
   pointer-events: none;
 }
+#detail-chart-container {
+  height: 450px;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+#detail-financials-container {
+  flex: 1;
+  min-height: 800px;
+}
 .tool-btn.active-command {
   background: var(--accent);
   color: #fff !important;
