@@ -477,24 +477,19 @@
   }
   .is-mobile #detail-chart-container {
     height: 35vh !important;
-    min-height: 250px;
-    margin-bottom: 12px;
+    min-height: 300px;
+    margin-bottom: 0 !important; /* 분석 컬럼의 gap 사용 */
   }
-  .is-mobile #detail-financials-container {
-    height: 25vh !important;
-    min-height: 200px;
-    margin-bottom: 12px;
-  }
-  .stocks-detail-scroll-area {
+  .is-mobile .stocks-detail-scroll-area {
     display: flex !important;
     flex-direction: column !important;
-    gap: 16px !important; /* 차트-재무 간격과 일치 */
+    gap: 16px !important; /* 재무-메모 간격 (차트-재무 간격과 일치) */
     padding-bottom: 40px !important;
     overflow-y: auto !important;
     height: 100% !important;
   }
-  .detail-analysis-column,
-  .detail-memo-column {
+  .is-mobile .detail-analysis-column,
+  .is-mobile .detail-memo-column {
     flex: none !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -504,22 +499,22 @@
     height: auto !important;
     overflow: visible !important;
   }
-  .detail-analysis-column {
-    gap: 16px !important;
+  .is-mobile .detail-analysis-column {
+    gap: 16px !important; /* 차트-재무 사이 간격 */
   }
-  .detail-memo-column {
+  .is-mobile .detail-memo-column {
     min-height: auto !important;
-    padding-bottom: 60px;
+    padding-bottom: 30px;
   }
-  .rich-memo-editor {
+  .is-mobile .rich-memo-editor {
     min-height: 50vh !important;
     flex: 1 !important;
     height: auto !important;
     max-height: none !important;
     overflow-y: auto !important;
   }
-  #detail-financials-container {
-    height: 650px !important; /* 이전 버전과 유사한 가독성을 위해 높이 확대 */
+  .is-mobile #detail-financials-container {
+    height: 650px !important; /* 이전 버전과 동일한 시원한 크기 유지 */
     min-height: auto !important;
     margin-bottom: 0 !important;
     overflow: visible !important;
