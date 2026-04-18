@@ -149,13 +149,32 @@ class StocksManager {
 
     grid.innerHTML = pageItems.map((s, idx) => this.createCardHTML(s, start + idx)).join('');
     
-    // Initialize Widgets for each card
-    setTimeout(() => {
-      pageItems.forEach(s => this.embedSymbolWidget(s.symbol, `tv-card-${s.id}`));
-    }, 100);
+    // Initialize Widgets for each card (Desktop only for performance)
+    const isMobile = window.innerWidth <= 768;
+    if (!isMobile) {
+      setTimeout(() => {
+        pageItems.forEach(s => this.embedSymbolWidget(s.symbol, `tv-card-${s.id}`));
+      }, 100);
+    }
   }
 
   createCardHTML(stock, globalIdx) {
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      return `
+        <div class="stock-card" onclick="stocksManager.showDetail('${stock.id}')">
+          <div class="stock-card-header">
+            <button type="button" class="btn-icon-sm danger-text" onclick="event.stopPropagation(); stocksManager.deleteStock('${stock.id}')">✕</button>
+          </div>
+          <div style="padding: 0 4px 8px;">
+            <div style="font-size: 18px; font-weight: 900; color: var(--text-main);">${stock.symbol}</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">클릭하여 상세 분석/메모 확인</div>
+          </div>
+        </div>
+      `;
+    }
+
     return `
       <div class="stock-card" onclick="stocksManager.showDetail('${stock.id}')">
         <div class="stock-card-header">
@@ -300,6 +319,9 @@ class StocksManager {
     modal.classList.add('show');
     
     setTimeout(() => {
+      const scrollArea = modal.querySelector('.stocks-detail-scroll-area');
+      if (scrollArea) scrollArea.scrollTop = 0;
+      
       this.embedDetailWidgets(stock.symbol);
       if (typeof window.autoResize === 'function') {
         window.autoResize(memo);
@@ -311,12 +333,13 @@ class StocksManager {
     const theme = document.documentElement.getAttribute('data-theme') || 'light';
     const chartContainerId = 'detail-chart-container';
     const financialsContainer = document.getElementById('detail-financials-container');
+    const isMobile = window.innerWidth <= 768;
     
     // 1. Advanced Real-Time Chart Widget
     if (window.TradingView) {
       new window.TradingView.widget({
         "width": "100%",
-        "height": "100%",
+        "height": isMobile ? "100%" : "100%", // Controlled by CSS on mobile
         "symbol": symbol,
         "interval": "D", // Daily timeframe
         "timezone": "Etc/UTC",
@@ -340,9 +363,9 @@ class StocksManager {
       "colorTheme": theme,
       "isTransparent": false,
       "largeChartUrl": "",
-      "displayMode": "regular",
+      "displayMode": isMobile ? "compact" : "regular",
       "width": "100%",
-      "height": "100%",
+      "height": "100%", // Responsive to container
       "symbol": symbol,
       "locale": "ko"
     });

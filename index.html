@@ -1041,6 +1041,14 @@
       </svg>
     </button>
 
+    <button class="tab-item" data-tab="stocks" aria-label="종목">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"></line>
+        <line x1="12" y1="20" x2="12" y2="4"></line>
+        <line x1="6" y1="20" x2="6" y2="14"></line>
+      </svg>
+    </button>
+
     <button class="tab-item" data-tab="memo" aria-label="메모">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
         stroke-linejoin="round">
@@ -1534,7 +1542,7 @@
         <h2 id="stocks-detail-title" class="modal-title">SYMBOL</h2>
         <button id="stocks-detail-close" class="tool-btn primary-btn btn-sm">닫기</button>
       </div>
-      <div class="stock-detail-body" style="flex: 1; display: flex; gap: 24px; min-height: 0;">
+      <div class="stock-detail-body stocks-detail-scroll-area" style="flex: 1; display: flex; gap: 24px; min-height: 0;">
         <!-- Left: Analysis Widgets -->
         <div class="detail-analysis-column" style="flex: 7; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px;">
           <div id="detail-chart-container" style="height: 400px; flex-shrink: 0; background: var(--bg-input); border-radius: 12px; overflow: hidden;"></div>

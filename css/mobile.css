@@ -439,6 +439,58 @@
     display: none !important;
   }
 
+  /* 8. Stocks View Optimization */
+  #view-stocks.active {
+    display: block !important;
+  }
+  .is-mobile .stocks-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .is-mobile .stock-card {
+    padding: 16px !important;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .is-mobile .tv-widget-wrapper {
+    display: none !important;
+  }
+
+  /* 9. Stocks Detail Modal (Mobile Fullscreen) */
+  .is-mobile #stocks-detail-modal .modal-card {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    padding: 20px !important;
+    display: flex;
+    flex-direction: column;
+    top: 0 !important;
+    transform: none !important;
+  }
+  .is-mobile #stocks-detail-modal .modal-actions {
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  .is-mobile #detail-chart-container {
+    height: 35vh !important;
+    min-height: 250px;
+    margin-bottom: 12px;
+  }
+  .is-mobile #detail-financials-container {
+    height: 25vh !important;
+    min-height: 200px;
+    margin-bottom: 12px;
+  }
+  .is-mobile .stocks-detail-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
   /* 모바일 채팅 뷰 UI 오버라이드 */
   .memo-action-btn[data-action="reply"],
   .memo-action-btn[data-action="delete"] {
