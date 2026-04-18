@@ -372,6 +372,16 @@ class StocksManager {
 
     // 2. Financials Widget
     financialsContainer.innerHTML = '<div style="padding: 24px; color: var(--text-muted);">Loading Financials...</div>';
+    
+    // Force height via JS to overcome CSS specificity/caching issues
+    if (isMobile) {
+      financialsContainer.style.setProperty('height', '650px', 'important');
+      financialsContainer.style.setProperty('min-height', '650px', 'important');
+    } else {
+      financialsContainer.style.setProperty('height', 'auto', 'important');
+      financialsContainer.style.setProperty('min-height', '800px', 'important');
+    }
+
     const scriptFin = document.createElement('script');
     scriptFin.type = 'text/javascript';
     scriptFin.src = 'https://s3.tradingview.com/external-embedding/embed-widget-financials.js';
