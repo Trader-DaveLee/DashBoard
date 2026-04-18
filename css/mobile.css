@@ -477,7 +477,7 @@
   }
   .is-mobile #detail-chart-container {
     height: 35vh !important;
-    min-height: 300px;
+    min-height: 500px;
     margin-bottom: 0 !important; /* 분석 컬럼의 gap 사용 */
   }
   .is-mobile .stocks-detail-scroll-area {
@@ -514,7 +514,7 @@
     overflow-y: auto !important;
   }
   .is-mobile #detail-financials-container {
-    height: 300px !important; /* 이전 버전과 동일한 시원한 크기 유지 */
+    height: 500px !important; /* 이전 버전과 동일한 시원한 크기 유지 */
     min-height: auto !important;
     margin-bottom: 0 !important;
     overflow: visible !important;

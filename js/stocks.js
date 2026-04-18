@@ -375,8 +375,8 @@ class StocksManager {
     
     // Force height via JS to overcome CSS specificity/caching issues
     if (isMobile) {
-      financialsContainer.style.setProperty('height', '300px', 'important');
-      financialsContainer.style.setProperty('min-height', '300px', 'important');
+      financialsContainer.style.setProperty('height', '500px', 'important');
+      financialsContainer.style.setProperty('min-height', '500px', 'important');
     } else {
       financialsContainer.style.setProperty('height', 'auto', 'important');
       financialsContainer.style.setProperty('min-height', '800px', 'important');
