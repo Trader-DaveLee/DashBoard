@@ -488,7 +488,7 @@
   .stocks-detail-scroll-area {
     display: flex !important;
     flex-direction: column !important;
-    gap: 32px !important;
+    gap: 12px !important; /* 간격 축소 */
     padding-bottom: 40px !important;
     overflow-y: auto !important;
     height: 100% !important;
@@ -501,24 +501,24 @@
     padding-right: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    height: auto !important; /* 내용에 따라 확장 */
+    height: auto !important;
     overflow: visible !important;
   }
   .detail-memo-column {
-    min-height: 80vh !important; /* 한 페이지 정도의 최소 높이 확보 */
-    padding-bottom: 100px;
+    min-height: auto !important; /* 부모 컨테이너의 강제 높이 제거 */
+    padding-bottom: 60px;
   }
   .rich-memo-editor {
-    min-height: 300px !important;
+    min-height: 50vh !important; /* 에디터 자체에 최소 높이 부여 (한 페이지의 절반~적당한 수준) */
     flex: 1 !important;
     height: auto !important;
-    max-height: none !important; /* 겹침 방지 */
+    max-height: none !important;
     overflow-y: auto !important;
   }
   #detail-financials-container {
     height: auto !important;
-    min-height: 600px;
-    margin-bottom: 24px;
+    min-height: 400px; /* 너무 과하지 않게 조정 */
+    margin-bottom: 8px;
     overflow: visible !important;
   }
 
