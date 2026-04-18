@@ -514,7 +514,7 @@
     overflow-y: auto !important;
   }
   .is-mobile #detail-financials-container {
-    height: 450px !important; /* 이전 버전과 동일한 시원한 크기 유지 */
+    height: 300px !important; /* 이전 버전과 동일한 시원한 크기 유지 */
     min-height: auto !important;
     margin-bottom: 0 !important;
     overflow: visible !important;
