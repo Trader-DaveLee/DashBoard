@@ -2888,7 +2888,35 @@ body {
 
 
 /* Detail Modal Split View Custom */
-.stock-detail-body h4 { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px; }
+
+/* Stocks View Detail Modal Styles */
+.stock-detail-body {
+  display: flex;
+  gap: 24px;
+  min-height: 0;
+  flex: 1;
+}
+.detail-analysis-column {
+  flex: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.detail-memo-column {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+}
+.stock-detail-body h4 { 
+  font-size: 11px; 
+  font-weight: 800; 
+  color: var(--text-muted); 
+  text-transform: uppercase; 
+  margin-bottom: 12px; 
+  letter-spacing: 1px; 
+}
 
 @media (max-width: 1200px) {
   .stocks-grid { grid-template-columns: 1fr; }

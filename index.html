@@ -1542,14 +1542,14 @@
         <h2 id="stocks-detail-title" class="modal-title">SYMBOL</h2>
         <button id="stocks-detail-close" class="tool-btn primary-btn btn-sm">닫기</button>
       </div>
-      <div class="stock-detail-body stocks-detail-scroll-area" style="flex: 1; display: flex; gap: 24px; min-height: 0;">
+      <div class="stock-detail-body stocks-detail-scroll-area">
         <!-- Left: Analysis Widgets -->
-        <div class="detail-analysis-column" style="flex: 7; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 8px;">
+        <div class="detail-analysis-column">
           <div id="detail-chart-container" style="height: 400px; flex-shrink: 0; background: var(--bg-input); border-radius: 12px; overflow: hidden;"></div>
-          <div id="detail-financials-container" style="flex: 1; background: var(--bg-input); border-radius: 12px; overflow: hidden; min-height: 800px;"></div>
+          <div id="detail-financials-container" style="background: var(--bg-input); border-radius: 12px; overflow: hidden; min-height: 800px;"></div>
         </div>
         <!-- Right: Memo -->
-        <div class="detail-memo-column" style="flex: 3; display: flex; flex-direction: column;">
+        <div class="detail-memo-column">
           <label style="flex: 1; display: flex; flex-direction: column;">
             <span style="display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 12px; font-weight: 800;">나의 메모</span>
             <textarea id="stocks-detail-memo" class="auto-resize" style="flex: 1; resize: none; border-radius: 16px; padding: 20px; font-size: 14px; font-weight: 500;" placeholder="분석 내용이나 계획을 자유롭게 기록하세요..."></textarea>

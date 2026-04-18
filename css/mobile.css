@@ -485,22 +485,23 @@
     min-height: 200px;
     margin-bottom: 12px;
   }
-  .is-mobile .stocks-detail-scroll-area {
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 4px;
-    flex-direction: column !important; /* 수직 배치 강제 */
-    gap: 24px !important;
+  .stocks-detail-scroll-area {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 32px !important;
+    padding-bottom: 80px !important; /* 하단 여백 확보 */
+    overflow-y: auto !important;
   }
-  .is-mobile .detail-analysis-column,
-  .is-mobile .detail-memo-column {
+  .detail-analysis-column,
+  .detail-memo-column {
     flex: none !important;
     width: 100% !important;
     max-width: 100% !important;
     padding-right: 0 !important;
-    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
-  .is-mobile #detail-financials-container {
+  #detail-financials-container {
     height: auto !important;
     min-height: 600px;
     margin-bottom: 24px;
