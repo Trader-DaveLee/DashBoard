@@ -2908,6 +2908,31 @@ body {
   flex: 3;
   display: flex;
   flex-direction: column;
+  min-height: 300px;
+}
+.rich-memo-editor {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 20px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-main);
+  border-radius: 16px;
+  overflow-y: auto;
+}
+.rich-memo-editor:focus {
+  border-color: var(--accent);
+  background: var(--bg-panel);
+}
+.rich-memo-editor:empty:before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.tool-btn.active-command {
+  background: var(--accent);
+  color: #fff !important;
 }
 .stock-detail-body h4 { 
   font-size: 11px; 

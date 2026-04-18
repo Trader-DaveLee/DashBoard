@@ -1550,10 +1550,17 @@
         </div>
         <!-- Right: Memo -->
         <div class="detail-memo-column">
-          <label style="flex: 1; display: flex; flex-direction: column;">
-            <span style="display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 12px; font-weight: 800;">나의 메모</span>
-            <textarea id="stocks-detail-memo" class="auto-resize" style="flex: 1; resize: none; border-radius: 16px; padding: 20px; font-size: 14px; font-weight: 500;" placeholder="분석 내용이나 계획을 자유롭게 기록하세요..."></textarea>
-          </label>
+          <div class="premium-label-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="premium-label-line"></div>
+              <label style="margin: 0; font-size: 14px; color: var(--text-main); font-weight: 800;">나의 메모</label>
+            </div>
+            <div class="memo-toolbar" style="display: flex; gap: 4px;">
+              <button type="button" class="tool-btn btn-sm" data-command="bold" style="width: 32px; height: 32px; padding: 0; font-weight: 900;">B</button>
+              <button type="button" class="tool-btn btn-sm" data-command="underline" style="width: 32px; height: 32px; padding: 0; text-decoration: underline; font-weight: 900;">U</button>
+            </div>
+          </div>
+          <div id="stocks-detail-memo" contenteditable="true" class="rich-memo-editor" style="flex: 1; border-radius: 16px; padding: 20px; font-size: 14px; font-weight: 500; background: var(--bg-input); border: 1px solid var(--border-main); overflow-y: auto; outline: none; min-height: 200px;" data-placeholder="분석 내용이나 계획을 자유롭게 기록하세요..."></div>
           <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700;" id="stocks-save-status">자동 저장됨</div>
         </div>
       </div>

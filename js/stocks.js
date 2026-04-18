@@ -85,13 +85,32 @@ class StocksManager {
     const closeDetail = document.getElementById('stocks-detail-close');
     if (closeDetail) closeDetail.onclick = () => this.hideModal('stocks-detail-modal');
 
-    // Memo Auto-Save
+    // Memo Auto-Save & Rich Formatting
     const memoArea = document.getElementById('stocks-detail-memo');
     if (memoArea) {
       memoArea.oninput = () => {
-        this.autoSaveMemo(memoArea.value);
+        this.autoSaveMemo(memoArea.innerHTML);
+      };
+      // Prevent HTML formatting on paste
+      memoArea.onpaste = (e) => {
+        e.preventDefault();
+        const text = e.clipboardData.getData('text/plain');
+        document.execCommand('insertText', false, text);
       };
     }
+
+    // Toolbar Commands
+    document.querySelectorAll('.memo-toolbar .tool-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        const cmd = btn.dataset.command;
+        if (cmd) {
+          document.execCommand(cmd, false, null);
+          memoArea.focus();
+          this.autoSaveMemo(memoArea.innerHTML);
+        }
+      };
+    });
     
     // Handle Enter key on symbol input
     const symbolInput = document.getElementById('stocks-symbol-input');
@@ -314,7 +333,7 @@ class StocksManager {
     const memo = document.getElementById('stocks-detail-memo');
     
     title.innerText = stock.symbol;
-    memo.value = stock.memo || '';
+    memo.innerHTML = stock.memo || '';
     
     modal.classList.add('show');
     
@@ -323,9 +342,7 @@ class StocksManager {
       if (scrollArea) scrollArea.scrollTop = 0;
       
       this.embedDetailWidgets(stock.symbol);
-      if (typeof window.autoResize === 'function') {
-        window.autoResize(memo);
-      }
+      // Contenteditable doesn't need autoResize, but we keep the logic consistent if needed
     }, 50);
   }
 

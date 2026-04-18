@@ -489,8 +489,9 @@
     display: flex !important;
     flex-direction: column !important;
     gap: 32px !important;
-    padding-bottom: 80px !important; /* 하단 여백 확보 */
+    padding-bottom: 40px !important;
     overflow-y: auto !important;
+    height: 100% !important;
   }
   .detail-analysis-column,
   .detail-memo-column {
@@ -500,11 +501,25 @@
     padding-right: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    height: auto !important; /* 내용에 따라 확장 */
+    overflow: visible !important;
+  }
+  .detail-memo-column {
+    min-height: 80vh !important; /* 한 페이지 정도의 최소 높이 확보 */
+    padding-bottom: 100px;
+  }
+  .rich-memo-editor {
+    min-height: 300px !important;
+    flex: 1 !important;
+    height: auto !important;
+    max-height: none !important; /* 겹침 방지 */
+    overflow-y: auto !important;
   }
   #detail-financials-container {
     height: auto !important;
     min-height: 600px;
     margin-bottom: 24px;
+    overflow: visible !important;
   }
 
   /* 모바일 채팅 뷰 UI 오버라이드 */
