@@ -519,7 +519,7 @@
     overflow-y: auto !important;
   }
   #detail-financials-container {
-    height: 380px !important; /* 높이를 대폭 줄여 내용물에 밀착 */
+    height: 650px !important; /* 이전 버전과 유사한 가독성을 위해 높이 확대 */
     min-height: auto !important;
     margin-bottom: 0 !important;
     overflow: visible !important;
