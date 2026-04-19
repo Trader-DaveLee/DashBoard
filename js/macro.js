@@ -36,12 +36,45 @@ export const macroManager = {
       saveBtn.onclick = () => this.saveBriefing();
     }
 
-    // Auto-save briefing on input (optional, but requested by user before)
-    const input = document.getElementById('macro-briefing-input');
-    if (input) {
-      input.oninput = () => {
-        // We could add a debounce here if needed
+    // Rich Text Toolbar Commands
+    const toolbar = document.getElementById('macro-editor-toolbar');
+    const editor = document.getElementById('macro-briefing-input');
+
+    if (toolbar && editor) {
+      toolbar.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          const cmd = btn.dataset.command;
+          const val = btn.dataset.value || null;
+          if (cmd) {
+            document.execCommand(cmd, false, val);
+            editor.focus();
+            this.updateCharCount();
+          }
+        };
+      });
+
+      // Character Count update
+      editor.oninput = () => {
+        this.updateCharCount();
       };
+
+      // Clean Paste logic
+      editor.onpaste = (e) => {
+        e.preventDefault();
+        const text = e.clipboardData.getData('text/plain');
+        document.execCommand('insertText', false, text);
+        this.updateCharCount();
+      };
+    }
+  },
+
+  updateCharCount() {
+    const editor = document.getElementById('macro-briefing-input');
+    const countEl = document.getElementById('macro-char-count');
+    if (editor && countEl) {
+      const text = editor.innerText || '';
+      countEl.innerText = `${text.trim().length} characters`;
     }
   },
 
@@ -173,26 +206,27 @@ export const macroManager = {
 
   renderBriefing() {
     const display = document.getElementById('selected-date-display');
-    const input = document.getElementById('macro-briefing-input');
-    if (!display || !input) return;
+    const editor = document.getElementById('macro-briefing-input');
+    if (!display || !editor) return;
 
     const date = new Date(this.selectedDate);
     const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' };
     display.innerText = date.toLocaleDateString('ko-KR', options);
 
     const content = this.briefings[this.selectedDate] || '';
-    input.value = content;
-    
-    // Auto-focus on focus if needed
-    // input.focus();
+    editor.innerHTML = content;
+    this.updateCharCount();
   },
 
   saveBriefing() {
-    const input = document.getElementById('macro-briefing-input');
-    if (!input) return;
+    const editor = document.getElementById('macro-briefing-input');
+    if (!editor) return;
 
-    const content = input.value.trim();
-    if (content) {
+    const content = editor.innerHTML.trim();
+    // Check if it's practically empty (could have <br> etc)
+    const plainText = editor.innerText.trim();
+
+    if (plainText || content !== '') {
       this.briefings[this.selectedDate] = content;
     } else {
       delete this.briefings[this.selectedDate];
