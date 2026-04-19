@@ -1026,6 +1026,77 @@
       </div>
     </section>
 
+    <section id="view-macro" class="view">
+      <div class="macro-header" style="margin-bottom: 24px;">
+        <h2 class="view-title">Macro Analysis</h2>
+        <p class="view-subtitle">글로벌 마켓 주도 섹터 및 전략 브리핑</p>
+      </div>
+
+      <div class="macro-container">
+        <!-- Section 1: Chart -->
+        <article class="card macro-card chart-full" style="margin-bottom: 24px;">
+          <div class="section-head">
+            <div>
+              <h3>📈 Global Market Chart</h3>
+              <p>주요 지수 및 섹터 실시간 차트</p>
+            </div>
+          </div>
+          <div id="macro-chart-container" style="height: 600px; background: var(--bg-input); border-radius: 12px; overflow: hidden;">
+            <!-- TradingView Widget rendered here -->
+          </div>
+        </article>
+
+        <div class="macro-main-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <!-- Section 2: Sector Matrix -->
+          <article class="card macro-card">
+            <div class="section-head">
+              <div>
+                <h3>📊 Leading Sector RS Matrix</h3>
+                <p>S&P 500 (SPY) 대비 섹터별 상대 강도</p>
+              </div>
+              <button type="button" id="btn-refresh-sector" class="tool-btn btn-sm accent-outline-btn">새로고침</button>
+            </div>
+            <div class="premium-table-wrapper" style="margin-top: 10px;">
+              <table class="sector-rs-table" style="width: 100%; border-collapse: separate; border-spacing: 0 8px;" id="macro-sector-table">
+                <thead>
+                  <tr style="text-align: left; font-size: 12px; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">
+                    <th style="padding: 12px;">Sector</th>
+                    <th style="padding: 12px; text-align: center;">1W RS(%)</th>
+                    <th style="padding: 12px; text-align: center;">1M RS(%)</th>
+                    <th style="padding: 12px; text-align: center;">Trend(50)</th>
+                  </tr>
+                </thead>
+                <tbody id="macro-sector-body">
+                  <!-- Rendered dynamically -->
+                  <tr><td colspan="4" style="text-align:center; padding: 40px; opacity:0.5;">로딩 중...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <!-- Section 3: Daily Briefing -->
+          <article class="card macro-card">
+            <div class="section-head">
+              <div>
+                <h3>📝 Daily Market Briefing</h3>
+                <p>오늘의 시장 복기 및 시나리오 기록</p>
+              </div>
+            </div>
+            <div class="briefing-form" style="margin-top: 10px;">
+              <textarea id="macro-briefing-input" class="auto-resize" placeholder="오늘의 주도 테마, 특징주, 아이디어를 기록하세요..." style="min-height: 120px; width: 100%; margin-bottom: 12px;"></textarea>
+              <div style="display: flex; justify-content: flex-end;">
+                <button type="button" id="macro-briefing-save" class="tool-btn primary-btn">브리핑 등록</button>
+              </div>
+            </div>
+            <div id="macro-briefing-list" class="briefing-timeline" style="margin-top: 32px; display: flex; flex-direction: column; gap: 16px;">
+              <!-- Briefings rendered here -->
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+
     <!-- Mobile View: Chat/Memo (FullScreen) -->
     <section id="view-memo" class="view">
       <!-- Logic in mobile.js will move the memo panel here -->
@@ -1568,6 +1639,7 @@
   </div>
 
   <script type="module" src="./js/mobile.js?v=3.1.0"></script>
+
   <script src="https://s3.tradingview.com/tv.js"></script>
   <footer class="system-footer">
     <div class="footer-content">

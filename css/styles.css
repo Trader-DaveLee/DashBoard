@@ -2960,3 +2960,96 @@ body {
   .stocks-toolbar { flex-direction: column; gap: 20px; padding: 20px; align-items: stretch; text-align: center; }
   .toolbar-center { display: flex; justify-content: center; }
 }
+/* ==========================================================================
+   🌐 Macro Tab Styles
+   ========================================================================== */
+.view-title { font-size: 28px; font-weight: 900; letter-spacing: -1px; color: var(--text-main); margin: 0; }
+.view-subtitle { font-size: 14px; color: var(--text-muted); font-weight: 700; margin-top: 4px; }
+
+.macro-container { margin-top: 32px; }
+
+.macro-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* Leading Sector RS Table */
+.sector-rs-table th {
+  background: transparent;
+  padding: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sector-rs-table td {
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.sector-rs-table tr:hover {
+  background: var(--bg-nav) !important;
+}
+
+#macro-sector-body tr {
+  transition: all 0.2s ease;
+  border-radius: 12px;
+}
+
+/* Daily Briefing Timeline */
+.briefing-timeline {
+  max-height: 800px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.briefing-card {
+  position: relative;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow-subtle);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.briefing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--accent);
+}
+
+.briefing-card .tool-btn.danger-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.briefing-card:hover .tool-btn.danger-btn {
+  opacity: 1;
+}
+
+.briefing-content {
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.7;
+}
+
+/* Scrollbar for briefing timeline */
+.briefing-timeline::-webkit-scrollbar {
+  width: 4px;
+}
+
+.briefing-timeline::-webkit-scrollbar-thumb {
+  background: var(--border-main);
+  border-radius: 2px;
+}
+
+/* Responsiveness for PC (Tablet sized PC screens) */
+@media (max-width: 1200px) {
+  .macro-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
