@@ -335,9 +335,13 @@ input:focus, select:focus, textarea:focus {
 .list-manage-row > span, .list-manage-row > strong { flex: 1; word-break: break-all; padding-right: 12px; }
 .row-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
+/* ✨ Unified Tab Header Design */
+.tab-main-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 34px; flex-wrap: wrap; }
+.tab-title-group { display: flex; flex-direction: column; gap: 4px; }
+.tab-main-title { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -1.2px; color: var(--text-main); }
+.tab-main-subtitle { margin: 0; color: var(--text-muted); font-size: 14px; font-weight: 700; opacity: 0.8; }
+
 .section-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
-.overview-hero h3.overview-title { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -1.2px; color: var(--text-main); }
-.overview-hero p.overview-subtitle { margin: 6px 0 0; color: var(--text-muted); font-size: 14px; font-weight: 700;}
 .section-head h3 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: var(--text-main); }
 .section-head p { margin: 6px 0 0; color: var(--text-muted); font-size: 13px; font-weight: 600;}
 .inner-divider { border-bottom: 1px solid var(--border-main); padding-bottom: 16px; }

@@ -41,7 +41,7 @@ export const state = {
   }
 };
 
-export const views = ['overview', 'journal', 'library', 'playbook', 'stocks', 'macro', 'memo'];
+export const views = ['overview', 'macro', 'stocks', 'journal', 'library', 'playbook', 'memo'];
 window.state = state; // Global exposure for MarketService
 export const els = {};
 let draftTimer = null;
