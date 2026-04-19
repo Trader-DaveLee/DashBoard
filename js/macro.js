@@ -210,7 +210,7 @@ export const macroManager = {
     if (!display || !editor) return;
 
     const date = new Date(this.selectedDate);
-    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' };
+    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
     display.innerText = date.toLocaleDateString('ko-KR', options);
 
     const content = this.briefings[this.selectedDate] || '';
