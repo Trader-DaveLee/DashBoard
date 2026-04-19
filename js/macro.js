@@ -1,38 +1,55 @@
 import { saveDB, saveMetaToFirebase } from './storage.js';
 
+/**
+ * Macro Analysis Manager (v2.0)
+ * Features: TV Heatmap, Strategic Calendar, Date-based Briefing
+ */
 export const macroManager = {
   initialized: false,
-  charts: {},
+  currentMonth: new Date(),
+  selectedDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+  briefings: {}, // Loaded from state.db.meta.macroBriefings
 
   init() {
-    const state = window.state;
-    const els = window.els;
     if (this.initialized) return;
+    
+    // Sync state data
+    const state = window.state;
+    if (state && state.db.meta.macroBriefings) {
+      // Convert legacy array to object if necessary, but user said start fresh
+      if (Array.isArray(state.db.meta.macroBriefings)) {
+        state.db.meta.macroBriefings = {};
+      }
+      this.briefings = state.db.meta.macroBriefings;
+    }
+
     this.bindEvents();
-    this.loadBriefings();
+    this.renderCalendar();
+    this.renderBriefing();
     this.initialized = true;
-    console.log('[MacroManager] Initialized');
+    console.log('[MacroManager] v2.0 Initialized');
   },
 
   bindEvents() {
-    const els = window.els;
-    if (els['btn-refresh-sector']) {
-      els['btn-refresh-sector'].onclick = () => this.refreshSectorMatrix();
+    const saveBtn = document.getElementById('macro-briefing-save');
+    if (saveBtn) {
+      saveBtn.onclick = () => this.saveBriefing();
     }
-    if (els['macro-briefing-save']) {
-      els['macro-briefing-save'].onclick = () => this.saveBriefing();
+
+    // Auto-save briefing on input (optional, but requested by user before)
+    const input = document.getElementById('macro-briefing-input');
+    if (input) {
+      input.oninput = () => {
+        // We could add a debounce here if needed
+      };
     }
   },
 
   async render() {
     this.initTradingView();
-    this.renderBriefings();
-    
-    // Auto-refresh sector matrix if it's the first time in this session
-    if (!this.sectorDataFetched) {
-      this.refreshSectorMatrix();
-      this.sectorDataFetched = true;
-    }
+    this.initHeatmap();
+    this.renderCalendar();
+    this.renderBriefing();
   },
 
   initTradingView() {
@@ -56,176 +73,139 @@ export const macroManager = {
     });
   },
 
-  async refreshSectorMatrix() {
-    const tbody = document.getElementById('macro-sector-body');
-    if (!tbody) return;
+  initHeatmap() {
+    const container = document.getElementById('macro-heatmap-container');
+    if (!container || container.querySelector('iframe')) return;
 
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 40px; opacity:0.5;">데이터 분석 중... (Yahoo Finance)</td></tr>';
-
-    try {
-      const sectors = [
-        { sym: "XLK", name: "XLK (기술)" },
-        { sym: "XLF", name: "XLF (금융)" },
-        { sym: "XLV", name: "XLV (헬스케어)" },
-        { sym: "XLY", name: "XLY (임의소비)" },
-        { sym: "XLC", name: "XLC (통신)" },
-        { sym: "XLI", name: "XLI (산업재)" },
-        { sym: "XLE", name: "XLE (에너지)" },
-        { sym: "XLP", name: "XLP (필수소비)" },
-        { sym: "XLB", name: "XLB (소재)" },
-        { sym: "XLU", name: "XLU (유틸리티)" },
-        { sym: "XLRE", name: "XLRE (부동산)" }
-      ];
-
-      const allSymbols = ["SPY", ...sectors.map(s => s.sym)];
-      const data = await this.fetchHistoricalData(allSymbols);
-      
-      if (!data || !data.SPY) {
-        throw new Error('시장 데이터를 가져오는데 실패했습니다.');
-      }
-
-      const spy = data.SPY;
-      const spyRet5 = (spy.close - spy.close5) / spy.close5 * 100;
-      const spyRet20 = (spy.close - spy.close20) / spy.close20 * 100;
-
-      const rowsHtml = sectors.map(s => {
-        const d = data[s.sym];
-        if (!d) return `<tr><td style="padding:12px;">${s.name}</td><td colspan="3" style="text-align:center;">N/A</td></tr>`;
-
-        const ret5 = (d.close - d.close5) / d.close5 * 100;
-        const ret20 = (d.close - d.close20) / d.close20 * 100;
-        
-        const rs5 = (ret5 - spyRet5).toFixed(2);
-        const rs20 = (ret20 - spyRet20).toFixed(2);
-        const isUp = d.close > d.sma50;
-
-        return `
-          <tr style="background: var(--bg-panel); border-radius: 8px;">
-            <td style="padding: 12px; font-weight: 700;">${s.name}</td>
-            <td style="padding: 12px; text-align: center; font-weight: 800; color: white; background: ${rs5 > 0 ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 44, 44, 0.4)'}">${rs5}%</td>
-            <td style="padding: 12px; text-align: center; font-weight: 800; color: white; background: ${rs20 > 0 ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 44, 44, 0.4)'}">${rs20}%</td>
-            <td style="padding: 12px; text-align: center; font-weight: 800; color: white; background: ${isUp ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 44, 44, 0.4)'}">${isUp ? 'UP' : 'DWN'}</td>
-          </tr>
-        `;
-      }).join('');
-
-      tbody.innerHTML = rowsHtml;
-    } catch (err) {
-      console.error('[MacroManager] Sector Refresh Error:', err);
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--red);">데이터를 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.</td></tr>`;
-    }
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    
+    container.innerHTML = '';
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js';
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      "exchanges": [],
+      "dataSource": "S&P500",
+      "grouping": "sector",
+      "blockSize": "market_cap_basic",
+      "blockColor": "change",
+      "locale": "ko",
+      "symbolUrl": "",
+      "colorTheme": theme,
+      "hasTopBar": true,
+      "isDataSetEnabled": false,
+      "isZoomEnabled": true,
+      "hasSymbolTooltip": true,
+      "width": "100%",
+      "height": "100%"
+    });
+    container.appendChild(script);
   },
 
-  async fetchHistoricalData(symbols) {
-    const results = {};
-    const proxies = [
-      'https://api.allorigins.win/raw?url=',
-      'https://corsproxy.io/?',
-      'https://api.codetabs.com/v1/proxy?quest='
-    ];
+  renderCalendar() {
+    const container = document.getElementById('macro-calendar-container');
+    if (!container) return;
 
-    await Promise.all(symbols.map(async (sym) => {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=3mo`;
-      let data = null;
+    const year = this.currentMonth.getFullYear();
+    const month = this.currentMonth.getMonth();
+    const today = new Date().toISOString().split('T')[0];
 
-      for (const proxy of proxies) {
-        try {
-          const fullUrl = proxy.includes('?') ? (proxy + encodeURIComponent(url)) : (proxy + url);
-          const resp = await fetch(fullUrl);
-          if (resp.ok) {
-            const json = await resp.json();
-            const chart = json.chart?.result?.[0];
-            if (chart) {
-              const quotes = chart.indicators.quote[0];
-              const closes = quotes.close.filter(c => c !== null);
-              if (closes.length >= 50) {
-                const current = closes[closes.length - 1];
-                const c5 = closes[closes.length - 6]; // ~5 trading days ago
-                const c20 = closes[closes.length - 21]; // ~20 trading days ago
-                
-                // Simple SMA50
-                const last50 = closes.slice(-50);
-                const sma50 = last50.reduce((a, b) => a + b, 0) / 50;
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startOffset = firstDay.getDay(); // 0: Sun, 1: Mon...
+    const daysInMonth = lastDay.getDate();
 
-                results[sym] = { close: current, close5: c5, close20: c20, sma50: sma50 };
-                break;
-              }
-            }
-          }
-        } catch (e) { continue; }
-      }
-    }));
+    const monthNames = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+    
+    let html = `
+      <div class="calendar-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <button type="button" class="btn-icon-sm" id="macro-prev-month"> &lt; </button>
+        <strong style="font-size: 16px; color: var(--text-main);">${year}년 ${monthNames[month]}</strong>
+        <button type="button" class="btn-icon-sm" id="macro-next-month"> &gt; </button>
+      </div>
+      <div class="calendar-grid-mini" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;">
+        <div class="day-head">일</div><div class="day-head">월</div><div class="day-head">화</div>
+        <div class="day-head">수</div><div class="day-head">목</div><div class="day-head">금</div><div class="day-head">토</div>
+    `;
 
-    return results;
+    // Empty spaces
+    for (let i = 0; i < startOffset; i++) {
+      html += `<div class="day-cell muted"></div>`;
+    }
+
+    // Days
+    for (let d = 1; d <= daysInMonth; d++) {
+      const pad = n => String(n).padStart(2, '0');
+      const dateKey = `${year}-${pad(month + 1)}-${pad(d)}`;
+      const isSelected = dateKey === this.selectedDate;
+      const isToday = dateKey === today;
+      const hasBriefing = !!this.briefings[dateKey];
+
+      html += `
+        <div class="day-cell ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${hasBriefing ? 'has-data' : ''}" 
+             onclick="macroManager.selectDate('${dateKey}')">
+          ${d}
+          ${hasBriefing ? '<span class="dot"></span>' : ''}
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+    // Re-bind month nav
+    document.getElementById('macro-prev-month').onclick = () => {
+      this.currentMonth.setMonth(this.currentMonth.getMonth() - 1);
+      this.renderCalendar();
+    };
+    document.getElementById('macro-next-month').onclick = () => {
+      this.currentMonth.setMonth(this.currentMonth.getMonth() + 1);
+      this.renderCalendar();
+    };
+  },
+
+  selectDate(dateKey) {
+    this.selectedDate = dateKey;
+    this.renderCalendar();
+    this.renderBriefing();
+  },
+
+  renderBriefing() {
+    const display = document.getElementById('selected-date-display');
+    const input = document.getElementById('macro-briefing-input');
+    if (!display || !input) return;
+
+    const date = new Date(this.selectedDate);
+    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' };
+    display.innerText = date.toLocaleDateString('ko-KR', options);
+
+    const content = this.briefings[this.selectedDate] || '';
+    input.value = content;
+    
+    // Auto-focus on focus if needed
+    // input.focus();
   },
 
   saveBriefing() {
-    const els = window.els;
-    const state = window.state;
-    const input = els['macro-briefing-input'];
-    if (!input || !input.value.trim()) return;
+    const input = document.getElementById('macro-briefing-input');
+    if (!input) return;
 
     const content = input.value.trim();
-    const briefing = {
-      id: crypto.randomUUID(),
-      date: new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }),
-      timestamp: Date.now(),
-      content: content
-    };
-
-    if (!state.db.meta.macroBriefings) state.db.meta.macroBriefings = [];
-    state.db.meta.macroBriefings.unshift(briefing); // Newest first
-
-    saveDB(state.db);
-    if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
-
-    input.value = '';
-    this.renderBriefings();
-    alert('브리핑이 저장되었습니다.');
-  },
-
-  renderBriefings() {
-    const els = window.els;
-    const state = window.state;
-    const list = els['macro-briefing-list'];
-    if (!list) return;
-
-    const briefings = state.db.meta.macroBriefings || [];
-    if (briefings.length === 0) {
-      list.innerHTML = '<div style="text-align:center; padding: 40px; opacity:0.3; font-weight:700;">아직 작성된 브리핑이 없습니다.</div>';
-      return;
+    if (content) {
+      this.briefings[this.selectedDate] = content;
+    } else {
+      delete this.briefings[this.selectedDate];
     }
 
-    list.innerHTML = briefings.map(b => `
-      <div class="briefing-card card" style="padding: 20px; border-left: 4px solid var(--accent); background: var(--bg-panel); margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
-          <strong style="font-size: 15px; color: var(--accent);">${b.date}</strong>
-          <button type="button" class="tool-btn btn-sm danger-btn" onclick="macroManager.deleteBriefing('${b.id}')">삭제</button>
-        </div>
-        <div class="briefing-content" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: var(--text-main); font-weight: 500;">${this.escapeHtml(b.content)}</div>
-      </div>
-    `).join('');
-  },
-
-  deleteBriefing(id) {
+    // Persist
     const state = window.state;
-    if (!confirm('이 브리핑을 삭제하시겠습니까?')) return;
-    
-    state.db.meta.macroBriefings = (state.db.meta.macroBriefings || []).filter(b => b.id !== id);
+    state.db.meta.macroBriefings = this.briefings;
     saveDB(state.db);
     if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
-    
-    this.renderBriefings();
-  },
 
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  },
-
-  loadBriefings() {
-    this.renderBriefings();
+    this.renderCalendar();
+    alert(`${this.selectedDate} 전략이 저장되었습니다.`);
   }
 };
 

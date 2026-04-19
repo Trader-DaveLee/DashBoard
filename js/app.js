@@ -65,7 +65,7 @@ const ID_LIST = [
   'overview-risk-report','sim-start-balance','sim-trade-count','btn-run-sim','simulation-chart','simulation-stats',
   'view-library','q','f-from','f-to','f-status','f-side','f-setup','f-tag','f-mistake','f-grade','sort','clear-filters','library-result-count','library-pagination','review-position','review-breadcrumb','prev-trade','next-trade','filter-same-setup','filter-same-ticker','clear-quick-filter','trade-table','detail','detail-insights',
   'view-playbook','playbook-gallery','view-stocks','stocks-grid','stocks-page-display','stocks-page-info',
-  'view-macro','macro-sector-table','macro-sector-body','btn-refresh-sector','macro-briefing-input','macro-briefing-save','macro-briefing-list',
+  'view-macro','macro-chart-container','macro-heatmap-container','macro-calendar-container','selected-date-display','macro-briefing-input','macro-briefing-save',
   'stocks-edit-modal','stocks-symbol-input','stocks-detail-modal','stocks-detail-memo','stocks-save-status',
   'app-modal','modal-title','modal-desc','modal-input','modal-btn-cancel','modal-btn-confirm',
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',

@@ -2999,57 +2999,150 @@ body {
   border-radius: 12px;
 }
 
-/* Daily Briefing Timeline */
-.briefing-timeline {
-  max-height: 800px;
-  overflow-y: auto;
-  padding-right: 8px;
-}
+/* ==========================================================================
+   🌐 Macro Tab Styles (v2.0)
+   ========================================================================== */
+.macro-container { margin-top: 32px; }
 
-.briefing-card {
-  position: relative;
-  background: var(--bg-panel);
+/* 맵 & 차트 공통 스타일 */
+.macro-chart-box, #macro-heatmap-container {
+  height: 600px;
+  background: var(--bg-input);
+  border-radius: 16px;
+  overflow: hidden;
   border: 1px solid var(--border-main);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: var(--shadow-subtle);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
 }
 
-.briefing-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-hover);
-  border-color: var(--accent);
+/* Strategic Briefing Terminal */
+.macro-briefing-terminal {
+  margin-top: 24px;
 }
 
-.briefing-card .tool-btn.danger-btn {
-  opacity: 0;
-  transition: opacity 0.2s ease;
+/* Mini Calendar UI */
+.mini-calendar {
+  user-select: none;
 }
 
-.briefing-card:hover .tool-btn.danger-btn {
-  opacity: 1;
+.calendar-grid-mini {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
 }
 
-.briefing-content {
-  font-family: inherit;
-  font-weight: 500;
-  line-height: 1.7;
+.day-head {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  padding: 8px 0;
+  text-transform: uppercase;
 }
 
-/* Scrollbar for briefing timeline */
-.briefing-timeline::-webkit-scrollbar {
+.day-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--bg-input);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-main);
+}
+
+.day-cell:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.day-cell.selected {
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.day-cell.today {
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  background: var(--bg-panel);
+}
+
+.day-cell.muted {
+  opacity: 0.2;
+  cursor: default;
+  pointer-events: none;
+}
+
+.day-cell.has-data {
+  font-weight: 900;
+}
+
+.day-cell .dot {
+  position: absolute;
+  bottom: 6px;
   width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
 }
 
-.briefing-timeline::-webkit-scrollbar-thumb {
-  background: var(--border-main);
-  border-radius: 2px;
+.day-cell.selected .dot {
+  background: #fff;
 }
 
-/* Responsiveness for PC (Tablet sized PC screens) */
+/* Briefing Editor */
+.briefing-editor-wrapper {
+  margin-top: 8px;
+  flex: 1;
+  display: flex;
+}
+
+.modern-briefing-editor {
+  width: 100%;
+  min-height: 400px;
+  border: none;
+  background: var(--bg-input);
+  padding: 24px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text-main);
+  resize: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.modern-briefing-editor:focus {
+  background: var(--bg-panel);
+  border-color: var(--accent-soft);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  outline: none;
+}
+
+/* Status Icon Animation */
+.pulse-icon {
+  width: 8px;
+  height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Desktop Responsiveness */
 @media (max-width: 1200px) {
-  .macro-main-grid {
-    grid-template-columns: 1fr;
+  .macro-briefing-terminal {
+    grid-template-columns: 1fr !important;
   }
 }
