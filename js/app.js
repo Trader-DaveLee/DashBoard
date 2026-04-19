@@ -1555,9 +1555,8 @@ function renderNav() {
   // PC vs Mobile view filtering
   const isMobile = window.innerWidth <= 768;
   const filteredViews = views.filter(v => {
-    if (isMobile) return ['overview', 'memo'].includes(v);
-    return ['overview', 'journal', 'library', 'playbook', 'stocks', 'macro'].includes(v);
-
+    if (isMobile) return ['overview', 'macro', 'stocks', 'memo'].includes(v);
+    return ['overview', 'macro', 'stocks', 'journal', 'library', 'playbook'].includes(v);
   });
 
   els['nav'].innerHTML = filteredViews.map(view => `

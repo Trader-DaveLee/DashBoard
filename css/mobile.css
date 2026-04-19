@@ -536,4 +536,64 @@
   .memo-bubble .content p {
     margin: 0 0 2px 0 !important;
   }
+
+  /* 10. Macro View Optimization (New) */
+  #view-macro.active {
+    display: block !important;
+  }
+  
+  .is-mobile .macro-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .is-mobile .macro-card {
+    padding: 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .is-mobile .macro-card h3 {
+    font-size: 16px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Adjust TradingView heights for mobile */
+  .is-mobile #macro-chart-container,
+  .is-mobile #macro-heatmap-container {
+    height: 400px !important;
+    min-height: 400px !important;
+  }
+
+  /* Briefing Terminal Optimization */
+  .is-mobile .macro-briefing-terminal {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .is-mobile .macro-calendar-container,
+  .is-mobile .macro-editor-container {
+    width: 100% !important;
+    background: var(--bg-panel) !important;
+    padding: 20px !important;
+    border-radius: 24px !important;
+    border: 1px solid var(--border-subtle) !important;
+  }
+
+  .is-mobile .macro-briefing-input {
+    min-height: 350px !important;
+  }
+
+  .is-mobile .tab-main-header {
+    margin-bottom: 20px !important;
+  }
+
+  .is-mobile .tab-main-title {
+    font-size: 28px !important;
+  }
 }
