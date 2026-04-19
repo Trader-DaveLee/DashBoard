@@ -2845,6 +2845,27 @@ body {
 
 .stock-card:hover .stock-card-header { opacity: 1; transform: translateY(0); }
 
+.stocks-rich-editor {
+  line-height: 1.8;
+  color: var(--text-main);
+  outline: none;
+}
+
+.stocks-rich-editor:empty:before {
+  content: attr(placeholder);
+  color: var(--text-muted);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Rich Editor Styling within Stocks Modal */
+.stocks-rich-editor b, .stocks-rich-editor strong { font-weight: 800; color: var(--text-main); }
+.stocks-rich-editor u { text-decoration: underline; text-underline-offset: 4px; }
+.stocks-rich-editor ul, .stocks-rich-editor ol { padding-left: 24px; margin: 12px 0; }
+.stocks-rich-editor li { margin-bottom: 6px; }
+.stocks-rich-editor ul { list-style-type: disc; }
+.stocks-rich-editor ol { list-style-type: decimal; }
+
 .stock-card-header .btn-icon-sm {
   width: 30px;
   height: 30px;

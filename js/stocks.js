@@ -90,12 +90,14 @@ class StocksManager {
     if (memoArea) {
       memoArea.oninput = () => {
         this.autoSaveMemo(memoArea.innerHTML);
+        this.updateCharCount();
       };
       // Prevent HTML formatting on paste
       memoArea.onpaste = (e) => {
         e.preventDefault();
         const text = e.clipboardData.getData('text/plain');
         document.execCommand('insertText', false, text);
+        this.updateCharCount();
       };
     }
 
@@ -104,10 +106,12 @@ class StocksManager {
       btn.onclick = (e) => {
         e.preventDefault();
         const cmd = btn.dataset.command;
+        const val = btn.dataset.value || null;
         if (cmd) {
-          document.execCommand(cmd, false, null);
+          document.execCommand(cmd, false, val);
           memoArea.focus();
           this.autoSaveMemo(memoArea.innerHTML);
+          this.updateCharCount();
         }
       };
     });
@@ -118,6 +122,15 @@ class StocksManager {
       symbolInput.onkeydown = (e) => {
         if (e.key === 'Enter') this.handleSaveStock();
       };
+    }
+  }
+
+  updateCharCount() {
+    const editor = document.getElementById('stocks-detail-memo');
+    const countEl = document.getElementById('stocks-memo-char-count');
+    if (editor && countEl) {
+      const text = editor.innerText || '';
+      countEl.innerText = `${text.trim().length} characters`;
     }
   }
 
@@ -342,7 +355,7 @@ class StocksManager {
       if (scrollArea) scrollArea.scrollTop = 0;
       
       this.embedDetailWidgets(stock.symbol);
-      // Contenteditable doesn't need autoResize, but we keep the logic consistent if needed
+      this.updateCharCount();
     }, 50);
   }
 

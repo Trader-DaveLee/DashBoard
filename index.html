@@ -1653,13 +1653,39 @@
               <div class="premium-label-line"></div>
               <label style="margin: 0; font-size: 14px; color: var(--text-main); font-weight: 800;">나의 메모</label>
             </div>
-            <div class="memo-toolbar" style="display: flex; gap: 4px;">
-              <button type="button" class="tool-btn btn-sm" data-command="bold" style="width: 32px; height: 32px; padding: 0; font-weight: 900;">B</button>
-              <button type="button" class="tool-btn btn-sm" data-command="underline" style="width: 32px; height: 32px; padding: 0; text-decoration: underline; font-weight: 900;">U</button>
+            <div class="memo-toolbar" id="stocks-editor-toolbar" style="display: flex; gap: 4px; flex-wrap: wrap;">
+              <button type="button" class="tool-btn btn-sm" data-command="bold" title="굵게"><b>B</b></button>
+              <button type="button" class="tool-btn btn-sm" data-command="underline" title="밑줄"><u>U</u></button>
+              <div class="toolbar-divider" style="width:1px; height:16px; background:var(--border-main); margin:0 4px; opacity:0.5;"></div>
+              
+              <button type="button" class="tool-btn btn-sm" data-command="justifyLeft" title="왼쪽 정렬">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px;"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>
+              </button>
+              <button type="button" class="tool-btn btn-sm" data-command="justifyCenter" title="중앙 정렬">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px;"><line x1="18" y1="10" x2="6" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="18" y1="18" x2="6" y2="18"></line></svg>
+              </button>
+              <button type="button" class="tool-btn btn-sm" data-command="justifyRight" title="오른쪽 정렬">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px;"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg>
+              </button>
+              
+              <div class="toolbar-divider" style="width:1px; height:16px; background:var(--border-main); margin:0 4px; opacity:0.5;"></div>
+              
+              <button type="button" class="tool-btn btn-sm" data-command="insertUnorderedList" title="불렛 목록">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+              </button>
+              
+              <div class="toolbar-divider" style="width:1px; height:16px; background:var(--border-main); margin:0 4px; opacity:0.5;"></div>
+              
+              <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="5" title="크게">A+</button>
+              <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="3" title="보통">A</button>
+              <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="2" title="작게">A-</button>
             </div>
           </div>
-          <div id="stocks-detail-memo" contenteditable="true" class="rich-memo-editor" style="flex: 1; border-radius: 16px; padding: 20px; font-size: 14px; font-weight: 500; background: var(--bg-input); border: 1px solid var(--border-main); overflow-y: auto; outline: none; min-height: 200px;" data-placeholder="분석 내용이나 계획을 자유롭게 기록하세요..."></div>
-          <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700;" id="stocks-save-status">자동 저장됨</div>
+          <div id="stocks-detail-memo" contenteditable="true" class="rich-memo-editor stocks-rich-editor" style="flex: 1; border-radius: 16px; padding: 20px; font-size: 14px; font-weight: 500; background: var(--bg-input); border: 1px solid var(--border-main); overflow-y: auto; outline: none; min-height: 200px;" data-placeholder="분석 내용이나 계획을 자유롭게 기록하세요..."></div>
+          <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted); font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
+            <div id="stocks-save-status">자동 저장됨</div>
+            <div id="stocks-memo-char-count" style="opacity: 0.6;">0 characters</div>
+          </div>
         </div>
       </div>
     </div>
