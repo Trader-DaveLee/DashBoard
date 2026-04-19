@@ -896,7 +896,7 @@ export async function deleteTradeFromFirebase(user, tradeId) {
 export async function saveMemoToFirebase(user, memo) {
   if (!user) return;
   const memoRef = doc(db, 'users', user.uid, 'memos', memo.id);
-  await setDoc(memoRef, memo);
+  await setDoc(memoRef, cleanObject(memo));
 }
 
 export async function deleteMemoFromFirebase(user, memoId) {
@@ -915,7 +915,9 @@ export function listenMemos(user, onUpdate) {
   return onSnapshot(q, (querySnapshot) => {
     const memos = [];
     querySnapshot.forEach((doc) => {
-      memos.push(doc.data());
+      const data = doc.data();
+      const normalized = normalizeMemo({ id: doc.id, ...data });
+      if (normalized) memos.push(normalized);
     });
     // Sort logic if needed or just pass as is
     onUpdate(memos);

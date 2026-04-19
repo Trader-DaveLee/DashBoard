@@ -1141,6 +1141,7 @@ function initAuth() {
       // Start Real-time Sync for Memos
       memoUnsubscribe = listenMemos(user, (memos) => {
         state.db.memos = memos;
+        saveDB(state.db); // Persist remote changes to local storage
         if (typeof window.renderMemos === 'function') window.renderMemos(false);
       });
 

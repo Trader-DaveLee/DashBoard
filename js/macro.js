@@ -152,12 +152,12 @@ export const macroManager = {
     const monthNames = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
     
     let html = `
-      <div class="calendar-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <div class="calendar-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; width: 100%;">
         <button type="button" class="btn-icon-sm" id="macro-prev-month"> &lt; </button>
         <strong style="font-size: 16px; color: var(--text-main);">${year}년 ${monthNames[month]}</strong>
         <button type="button" class="btn-icon-sm" id="macro-next-month"> &gt; </button>
       </div>
-      <div class="calendar-grid-mini" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;">
+      <div class="calendar-grid-mini" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; width: 100%;">
         <div class="day-head">일</div><div class="day-head">월</div><div class="day-head">화</div>
         <div class="day-head">수</div><div class="day-head">목</div><div class="day-head">금</div><div class="day-head">토</div>
     `;
