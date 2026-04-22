@@ -393,10 +393,10 @@ async function fetchEconomicEvents(forceRefresh = false) {
         
         return `
           <div class="eco-item-v3 ${isTodayPoint ? 'is-today-point' : ''}" ${isTodayPoint ? `id="${scrollTargetId}"` : ''}>
-            <div class="eco-row" style="${isTodayPoint ? 'border-left: 4px solid var(--accent); padding-left: 12px;' : ''}">
+            <div class="eco-row">
               <div class="eco-left">
                 <div class="eco-time-info">
-                  <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date} ${isTodayPoint ? '(Today)' : ''}</span>
+                  <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}${isTodayPoint ? ' <span class="today-tag">(Today)</span>' : ''}</span>
                   <span class="eco-time" style="font-weight:700;">${ev.time}</span>
                 </div>
                 <div class="eco-main" data-id="${ev.timestamp}">
