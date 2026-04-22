@@ -294,7 +294,6 @@ export const macroManager = {
     if (!editor) return;
 
     const content = editor.innerHTML.trim();
-    // Check if it's practically empty (could have <br> etc)
     const plainText = editor.innerText.trim();
 
     if (plainText || content !== '') {
@@ -304,13 +303,30 @@ export const macroManager = {
     }
 
     // Persist
-    const state = window.state;
-    state.db.meta.macroBriefings = this.briefings;
-    saveDB(state.db);
-    if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+    try {
+      const state = window.state;
+      state.db.meta.macroBriefings = this.briefings;
+      saveDB(state.db);
+      if (state.user) saveMetaToFirebase(state.user, state.db.meta);
+      
+      this.renderCalendar();
+      if (window.showToast) window.showToast(`${this.selectedDate} 전략이 저장되었습니다.`);
+      else alert(`${this.selectedDate} 전략이 저장되었습니다.`);
+    } catch (err) {
+      console.error('[Macro Save Error]', err);
+      alert('저장 도중 오류가 발생했습니다.');
+    }
+  },
 
+  /**
+   * Sync remote changes (V3.2.0)
+   */
+  syncRemoteData(newBriefings) {
+    if (!newBriefings) return;
+    this.briefings = newBriefings;
     this.renderCalendar();
-    alert(`${this.selectedDate} 전략이 저장되었습니다.`);
+    this.renderBriefing();
+    console.log('[MacroManager] Sync complete');
   }
 };
 

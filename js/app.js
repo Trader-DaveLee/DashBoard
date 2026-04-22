@@ -1153,11 +1153,17 @@ function initAuth() {
 
       // Start Real-time Sync for Meta (Economic Indicators, etc.)
       metaUnsubscribe = listenMeta(user, (newMeta) => {
-        // V3.1.2: Seamlessly update meta and refresh relevant UI
         state.db.meta = newMeta;
-        if (state.view === 'overview') {
+        
+        // 1. Refresh Macro Strategic Editor (Real-time sync)
+        if (macroManager && typeof macroManager.syncRemoteData === 'function') {
+          macroManager.syncRemoteData(newMeta.macroBriefings);
+        }
+
+        // 2. Refresh Overview & Economic events
+        if (state.view === 'overview' || state.view === 'macro') {
             fetchEconomicEvents();
-            renderOverviewPortfolio(); 
+            if (state.view === 'overview') renderOverviewPortfolio(); 
         }
       });
     } else {
