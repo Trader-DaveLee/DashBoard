@@ -6,7 +6,8 @@ import { state, views, renderViews } from './app.js';
  * Features: Real-time sync support, Trade Detail Modal, Home FAB Refresh.
  */
 
-const MOBILE_BREAKPOINT = 768;
+const MOBILE_BREAKPOINT = 768; // 기존 스마트폰 기준
+const TABLET_BREAKPOINT = 1200; // iPad Pro 11인치 가로 모드까지 커버
 let isMobileMode = false;
 let lastWidth = window.innerWidth;
 
@@ -33,7 +34,13 @@ function initMobile() {
 }
 
 function checkMobileMode() {
-  isMobileMode = window.innerWidth <= MOBILE_BREAKPOINT;
+  const isTouch = (navigator.maxTouchPoints > 0) || ('ontouchstart' in window);
+  const width = window.innerWidth;
+  
+  // 1. 768px 이하는 무조건 모바일 모드
+  // 2. 1200px 이하이면서 터치 기기인 경우(iPad 등) 모바일 모드 유지
+  isMobileMode = width <= MOBILE_BREAKPOINT || (isTouch && width <= TABLET_BREAKPOINT);
+
   if (isMobileMode) {
     document.body.classList.add('is-mobile');
     reparentMemoPanel();

@@ -1,8 +1,8 @@
-/* 📱 Trading DashBoard Mobile Lite (v1.0) 
-   Targeting screen widths <= 768px
+/* 📱 Trading DashBoard Mobile Lite (v1.1) 
+   Targeting screen widths <= 768px OR Tablets (up to 1200px) with touch
 */
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1200px) and (pointer: coarse) {
 
   /* 1. Global Layout Resets */
   :root {

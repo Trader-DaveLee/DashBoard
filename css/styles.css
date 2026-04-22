@@ -784,7 +784,7 @@ tbody tr:hover { background: var(--bg-nav); cursor: pointer; }
 /* ==========================================================================
    📱 Mobile Optimization (Responsive UI) & Card View
    ========================================================================== */
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1200px) and (pointer: coarse) {
   .container { padding: 12px; }
   .card, .phase-card { padding: 16px; border-radius: 16px; }
   .topbar { padding: 12px; gap: 12px; flex-wrap: wrap; }
@@ -983,7 +983,7 @@ tbody tr:hover { background: var(--bg-nav); cursor: pointer; }
   .assessment-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .context-helper-row { grid-template-columns: 1fr; }
 }
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1200px) and (pointer: coarse) {
   .journal-sidebar { max-height: none; overflow: visible; overscroll-behavior: auto; padding-right: 0; }
   .assessment-grid { grid-template-columns: 1fr; }
   .execution-section-group { padding: 14px; }
@@ -1032,7 +1032,7 @@ tbody tr:hover { background: var(--bg-nav); cursor: pointer; }
 .playbook-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; align-items:start; }
 .playbook-card { min-height: 100%; }
 .playbook-info { gap:8px; }
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1200px) and (pointer: coarse) {
   .overview-calendar-grid { grid-template-columns: 1fr; }
   .price-map-kpis { grid-template-columns: 1fr; }
   .playbook-grid { grid-template-columns: 1fr; }
@@ -2708,7 +2708,7 @@ body {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1200px) and (pointer: coarse) {
   .simulation-header {
     flex-direction: column;
     align-items: flex-start;
@@ -2981,7 +2981,7 @@ body {
   .stocks-grid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1200px) and (pointer: coarse) {
   .stocks-toolbar { flex-direction: column; gap: 20px; padding: 20px; align-items: stretch; text-align: center; }
   .toolbar-center { display: flex; justify-content: center; }
 }
