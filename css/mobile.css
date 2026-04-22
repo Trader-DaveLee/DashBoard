@@ -536,6 +536,10 @@
   .memo-bubble .content p {
     margin: 0 0 2px 0 !important;
   }
+  .memo-bubble .content * {
+    color: inherit !important;
+    background-color: transparent !important;
+  }
 
   /* 10. Macro View Optimization (v3.0) */
   #view-macro.active {

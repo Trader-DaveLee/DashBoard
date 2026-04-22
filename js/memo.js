@@ -240,6 +240,13 @@ function initMemoWidget() {
           reader.readAsDataURL(file);
         }
       }
+      
+      // Force Plain Text Paste for text items to avoid style contamination (v2.1.9)
+      const text = e.clipboardData.getData('text/plain');
+      if (text) {
+        e.preventDefault();
+        document.execCommand('insertText', false, text);
+      }
     });
   }
 

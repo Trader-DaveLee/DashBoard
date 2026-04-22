@@ -362,55 +362,69 @@ const MOCK_ECO_RECOVERY_DATA = [
 async function fetchEconomicEvents(forceRefresh = false) {
   const container = document.getElementById('economic-indicator-list');
   const pageInfo = document.getElementById('eco-page-info');
-  if (!container || !pageInfo) return;
+  if (!container) return;
 
   try {
     const { success, data } = await MarketService.fetchEconomicCalendar(forceRefresh);
     ALL_ECO_EVENTS = data || []; 
-    // V3.1.6: Filters removed as per user request (show all countries/impacts)
     let filtered = [...ALL_ECO_EVENTS]; 
 
-    // Sort: Upcoming events first (or by timestamp)
+    // Sort: Newest/Future first -> Past (Descending)
     filtered.sort((a, b) => {
-      if (a.timestamp !== b.timestamp) return a.timestamp - b.timestamp;
+      if (a.timestamp !== b.timestamp) return b.timestamp - a.timestamp;
       return (IMPACT_SCORE[b.impact] || 0) - (IMPACT_SCORE[a.impact] || 0);
     });
 
-    const totalPages = Math.ceil(filtered.length / ecoEventsPerPage);
-    if (currentEcoPage >= totalPages) currentEcoPage = 0;
+    if (pageInfo) pageInfo.style.display = 'none';
 
-    const start = currentEcoPage * ecoEventsPerPage;
-    const paged = filtered.slice(start, start + ecoEventsPerPage);
-
-    pageInfo.innerText = `${currentEcoPage + 1} / ${Math.max(1, totalPages)}`;
-
-    // 4. Render with Delete & Memo functionality
-    if (paged.length === 0) {
+    if (filtered.length === 0) {
       container.innerHTML = '<div class="empty-placeholder" style="grid-column:1/-1; padding:30px;">등록된 지표가 없습니다. "+" 버튼으로 추가하세요.</div>';
     } else {
-      container.innerHTML = paged.map(ev => `
-        <div class="eco-item-v3">
-          <div class="eco-row">
-            <div class="eco-left">
-              <div class="eco-time-info">
-                <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}</span>
-                <span class="eco-time" style="font-weight:700;">${ev.time}</span>
-              </div>
-              <div class="eco-main" data-id="${ev.timestamp}">
-                <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
-                  <span style="font-size:13px; flex-shrink:0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
-                  <div class="eco-impact-badge impact-${ev.impact}" style="font-size:8px; padding:2px 5px; flex-shrink:0;">${ev.impact.toUpperCase()}</div>
+      const now = Date.now();
+      let scrollTargetId = null;
+      
+      // Find the first event that is today or past to scroll to
+      const todayIdx = filtered.findIndex(ev => ev.timestamp <= now);
+      const targetIdx = todayIdx !== -1 ? todayIdx : filtered.length - 1;
+
+      container.innerHTML = filtered.map((ev, idx) => {
+        const isTodayPoint = idx === targetIdx;
+        if (isTodayPoint) scrollTargetId = `eco-today-${ev.timestamp}`;
+        
+        return `
+          <div class="eco-item-v3 ${isTodayPoint ? 'is-today-point' : ''}" ${isTodayPoint ? `id="${scrollTargetId}"` : ''}>
+            <div class="eco-row" style="${isTodayPoint ? 'border-left: 4px solid var(--accent); padding-left: 12px;' : ''}">
+              <div class="eco-left">
+                <div class="eco-time-info">
+                  <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date} ${isTodayPoint ? '(Today)' : ''}</span>
+                  <span class="eco-time" style="font-weight:700;">${ev.time}</span>
                 </div>
-                <div class="eco-label-text">${ev.label}</div>
+                <div class="eco-main" data-id="${ev.timestamp}">
+                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
+                    <span style="font-size:13px; flex-shrink:0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
+                    <div class="eco-impact-badge impact-${ev.impact}" style="font-size:8px; padding:2px 5px; flex-shrink:0;">${ev.impact.toUpperCase()}</div>
+                  </div>
+                  <div class="eco-label-text">${ev.label}</div>
+                </div>
               </div>
+              <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
+                style="background:none; border:none; cursor:pointer; color:var(--red); opacity:0.3; transition:0.2s; padding: 4px; flex-shrink: 0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
             </div>
-            <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
-              style="background:none; border:none; cursor:pointer; color:var(--red); opacity:0.3; transition:0.2s; padding: 4px; flex-shrink: 0;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+
+      // Auto-scroll to today point
+      if (scrollTargetId) {
+        setTimeout(() => {
+          const targetEl = document.getElementById(scrollTargetId);
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 300);
+      }
 
       // Bind interaction events
       container.querySelectorAll('.eco-main').forEach(el => {
@@ -460,14 +474,6 @@ function bindV18Events() {
   if (ecoEntrySave) ecoEntrySave.onclick = () => saveManualEconomicEvent();
 
   if (ecoDetailCloseBottom) ecoDetailCloseBottom.onclick = () => ecoDetailModal.classList.remove('show');
-
-  if (btnEcoPrev) btnEcoPrev.onclick = () => {
-    if (currentEcoPage > 0) { currentEcoPage--; fetchEconomicEvents(); }
-  };
-  if (btnEcoNext) btnEcoNext.onclick = () => {
-    const totalPages = Math.ceil(ALL_ECO_EVENTS.length / ecoEventsPerPage);
-    if (currentEcoPage < totalPages - 1) { currentEcoPage++; fetchEconomicEvents(); }
-  };
 
   window.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.remove('show');
