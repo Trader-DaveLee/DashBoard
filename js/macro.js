@@ -7,7 +7,11 @@ import { saveDB, saveMetaToFirebase } from './storage.js';
 export const macroManager = {
   initialized: false,
   currentMonth: new Date(),
-  selectedDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+  selectedDate: (() => {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  })(), // YYYY-MM-DD (Local)
   briefings: {}, // Loaded from state.db.meta.macroBriefings
 
   init() {
@@ -201,7 +205,9 @@ export const macroManager = {
     const isMobile = window.innerWidth <= 768;
     const year = this.currentMonth.getFullYear();
     const month = this.currentMonth.getMonth();
-    const today = new Date().toISOString().split('T')[0];
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);

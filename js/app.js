@@ -380,23 +380,29 @@ async function fetchEconomicEvents(forceRefresh = false) {
     if (filtered.length === 0) {
       container.innerHTML = '<div class="empty-placeholder" style="grid-column:1/-1; padding:30px;">등록된 지표가 없습니다. "+" 버튼으로 추가하세요.</div>';
     } else {
-      const now = Date.now();
+      const now = new Date();
+      const todayKey = getLocalDateKey(now);
       let scrollTargetId = null;
       
-      // Find the first event that is today or past to scroll to
-      const todayIdx = filtered.findIndex(ev => ev.timestamp <= now);
-      const targetIdx = todayIdx !== -1 ? todayIdx : filtered.length - 1;
+      // Target for scrolling: first event of today, OR closest past event
+      let targetIdx = filtered.findIndex(ev => getLocalDateKey(new Date(ev.timestamp)) === todayKey);
+      if (targetIdx === -1) {
+        targetIdx = filtered.findIndex(ev => ev.timestamp <= now.getTime());
+      }
+      const finalTargetIdx = targetIdx !== -1 ? targetIdx : filtered.length - 1;
 
       container.innerHTML = filtered.map((ev, idx) => {
-        const isTodayPoint = idx === targetIdx;
-        if (isTodayPoint) scrollTargetId = `eco-today-${ev.timestamp}`;
+        const evDateKey = getLocalDateKey(new Date(ev.timestamp));
+        const isToday = evDateKey === todayKey;
+        const isScrollTarget = idx === finalTargetIdx;
+        if (isScrollTarget) scrollTargetId = `eco-today-${ev.timestamp}`;
         
         return `
-          <div class="eco-item-v3 ${isTodayPoint ? 'is-today-point' : ''}" ${isTodayPoint ? `id="${scrollTargetId}"` : ''}>
+          <div class="eco-item-v3 ${isScrollTarget ? 'is-today-point' : ''}" ${isScrollTarget ? `id="${scrollTargetId}"` : ''}>
             <div class="eco-row">
               <div class="eco-left">
                 <div class="eco-time-info">
-                  <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}${isTodayPoint ? ' <span class="today-tag">(Today)</span>' : ''}</span>
+                  <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}${isToday ? ' <span class="today-tag">(Today)</span>' : ''}</span>
                   <span class="eco-time" style="font-weight:700;">${ev.time}</span>
                 </div>
                 <div class="eco-main" data-id="${ev.timestamp}">
