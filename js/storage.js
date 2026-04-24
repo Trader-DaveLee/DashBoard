@@ -502,6 +502,8 @@ function normalizeMemo(m) {
     id: m.id || crypto.randomUUID(),
     content: String(m.content || m.text || '').trim(),
     date: normalizeDate(m.date),
+    parentId: m.parentId || null,
+    isPinnedHistory: !!m.isPinnedHistory
   };
 }
 
