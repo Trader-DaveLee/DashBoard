@@ -56,11 +56,11 @@ function initMemoWidget() {
     if (!panel.classList.contains('memo-hide')) {
       if (input) input.focus();
       renderMemos();
-      // Ensure scroll to bottom on open (v2.1.8)
+      // Ensure scroll to bottom on open (v2.2.0: increased delay for mobile)
       setTimeout(() => {
         const container = document.getElementById('memo-messages');
         if (container) container.scrollTop = container.scrollHeight;
-      }, 50);
+      }, 150);
     }
   });
 
@@ -700,14 +700,14 @@ function renderStandardView(container, pinArea, restoreBtn, forceScrollToBottom)
 
   container.innerHTML = html;
   
-  // Robust animated scroll-to-bottom only when forced
+  // Robust animated scroll-to-bottom only when forced (v2.2.0: increased delay)
   if (forceScrollToBottom && !searchQuery) {
     setTimeout(() => {
       container.scrollTo({
         top: container.scrollHeight,
         behavior: 'smooth'
       });
-    }, 50);
+    }, 150);
   }
   
   setTimeout(() => { newlyAddedId = null; }, 1000);

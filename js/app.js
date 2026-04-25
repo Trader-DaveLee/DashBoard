@@ -4126,23 +4126,32 @@ function scrollMemoToBottom(smooth = false) {
   const container = document.getElementById('memo-messages');
   if (!container) return;
 
-  // 모바일에서는 memo-panel이 항상 visible이므로 패널 체크 제거 (v2.1.9)
-  const isMobile = window.innerWidth <= 768;
-  if (!isMobile) {
+  // v2.2.0: Use consistent mobile detection with body class (supports iPads)
+  const isMobileMode = document.body.classList.contains('is-mobile');
+  if (!isMobileMode) {
     const panel = document.getElementById('memo-panel');
     if (panel && panel.classList.contains('memo-hide')) return;
   }
 
-  if (smooth) {
-    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-  } else {
-    container.scrollTop = container.scrollHeight;
+  const doScroll = () => {
+    if (smooth) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    } else {
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
+  doScroll();
+
+  // 모바일 환경에서 레이아웃 계산이 늦어지는 경우를 대비해 짧은 간격으로 한 번 더 실행 (v2.2.0)
+  if (isMobileMode) {
+    setTimeout(doScroll, 100);
   }
 }
 
 // 모바일 키보드 포커스 시 스크롤 대응 추가
 window.addEventListener('resize', () => {
-  const isMobile = window.innerWidth <= 768;
+  const isMobile = document.body.classList.contains('is-mobile');
   if (isMobile) {
     const activeElement = document.activeElement;
     if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
