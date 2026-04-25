@@ -1160,6 +1160,7 @@ function initAuth() {
       // Start Real-time Sync for Meta (Economic Indicators, etc.)
       metaUnsubscribe = listenMeta(user, (newMeta) => {
         state.db.meta = newMeta;
+        saveDB(state.db); // Sync to LocalStorage/IDB
         
         // 1. Refresh Macro Strategic Editor (Real-time sync)
         if (macroManager && typeof macroManager.syncRemoteData === 'function') {
@@ -1170,6 +1171,16 @@ function initAuth() {
         if (state.view === 'overview' || state.view === 'macro') {
             fetchEconomicEvents();
             if (state.view === 'overview') renderOverviewPortfolio(); 
+        }
+
+        // 3. Refresh Memos (Pinned status is in meta)
+        if (typeof window.renderMemos === 'function') {
+          window.renderMemos(false);
+        }
+
+        // 4. Refresh Stocks
+        if (stocksManager && typeof stocksManager.render === 'function') {
+          stocksManager.render();
         }
       });
     } else {

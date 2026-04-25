@@ -521,8 +521,10 @@ function groupMemosByDate(memos) {
   return groups;
 }
 
+/**
+ * Main Rendering Logic (Consolidated)
+ */
 export function renderMemos(forceScrollToBottom = false) {
-  window.renderMemos = renderMemos; // Expose for app.js sync
   const container = document.getElementById('memo-messages');
   const monthTitle = document.getElementById('memo-month-title');
   const pinArea = document.getElementById('memo-pin-area');
@@ -530,6 +532,9 @@ export function renderMemos(forceScrollToBottom = false) {
   const historyToggle = document.getElementById('memo-history-toggle');
   
   if (!container) return;
+
+  // Check if user is already at the bottom before rendering new content
+  const wasNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
   if (monthTitle) monthTitle.innerText = isHistoryView ? 'Pin History' : currentViewMonth;
   if (historyToggle) {
     if (isHistoryView) historyToggle.classList.add('active');
@@ -551,7 +556,12 @@ function renderHistoryView(container, pinArea, restoreBtn) {
   if (restoreBtn) restoreBtn.classList.add('memo-hide');
 
   const historyMemos = (state.db.memos || [])
-    .filter(m => m.isPinnedHistory && m.date.startsWith(currentViewMonth))
+    .filter(m => {
+      if (!m.isPinnedHistory) return false;
+      const d = new Date(m.date);
+      const mLabel = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      return mLabel === currentViewMonth;
+    })
     .sort((a,b) => new Date(b.date) - new Date(a.date));
 
   let html = `
@@ -621,8 +631,12 @@ function renderStandardView(container, pinArea, restoreBtn, forceScrollToBottom)
 
   let allMemos = state.db.memos || [];
   
-  // 1. Month Filter
-  let filteredByMonth = allMemos.filter(m => m.date.startsWith(currentViewMonth));
+  // 1. Month Filter (Use Local Time instead of UTC ISO string start)
+  let filteredByMonth = allMemos.filter(m => {
+    const d = new Date(m.date);
+    const mLabel = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return mLabel === currentViewMonth;
+  });
   
   // 2. Search Filter (Threaded logic)
   let finalMemos = filteredByMonth;
@@ -701,17 +715,20 @@ function renderStandardView(container, pinArea, restoreBtn, forceScrollToBottom)
   container.innerHTML = html;
   
   // Robust animated scroll-to-bottom only when forced (v2.2.0: increased delay)
-  if (forceScrollToBottom && !searchQuery) {
+  if ((forceScrollToBottom || wasNearBottom) && !searchQuery) {
     setTimeout(() => {
       container.scrollTo({
         top: container.scrollHeight,
-        behavior: 'smooth'
+        behavior: (forceScrollToBottom && !wasNearBottom) ? 'auto' : 'smooth'
       });
     }, 150);
   }
   
   setTimeout(() => { newlyAddedId = null; }, 1000);
 }
+
+// Expose for app.js sync
+window.renderMemos = renderMemos;
 
 function formatDateLabel(dateStr) {
   const d = new Date(dateStr);
