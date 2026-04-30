@@ -144,6 +144,7 @@ export function recalcTrade(trade) {
   let netPnl = realizedPnl + unrealizedPnl;
   if (trade.manualRealizedPnl !== 0) {
     netPnl = trade.manualRealizedPnl;
+    realizedPnl = netPnl; // Overview 등에서 realizedPnl을 기준으로 집계하는 로직 대응
   }
 
   const grossForFee = Math.abs(grossRealized + grossUnrealized);

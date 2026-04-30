@@ -51,7 +51,7 @@ const ID_LIST = [
   'view-overview','metrics','overview-from','overview-to','overview-clear','overview-search','prev-month','calendar-title','next-month','calendar','equity-chart','balance-chart','setup-chart','mistake-list','research-notes','overview-portfolio','overview-history-list',
   'realtime-clock','quick-launch-grid','btn-manage-quick-links','journal-sidebar','journal-pretrade-phase','journal-risk-phase','risk-planner-card','pretrade-brief','btn-context-structure','btn-context-catalyst','btn-thesis-trigger','btn-thesis-invalidation','planner-mode-note',
   'view-journal','view-memo','trade-form','trade-id','trade-date','trade-end-date','btn-start-now','btn-end-now','holding-preview','ticker','btn-manage-ticker','status','status-toggle','side','setup-entry','btn-manage-setup-entry','setup-exit','btn-manage-setup-exit',
-  'timeframe','capital-allocation','avg-entry-price','total-position-size','exit-price','manual-realized-pnl','trade-result',
+  'timeframe','capital-allocation','avg-entry-price','total-position-size','exit-price','manual-realized-pnl','manual-pnl-sign','trade-result',
   'account-size','risk-pct','leverage','current-price','planner-mode','planner-legs','planner-weight-mode','btn-generate-plan','btn-apply-plan','planner-summary','maker-fee','taker-fee','stop-price','target-price','stop-type','price-map-distance-summary',
   'context','thesis','review','tags','mistakes',
   'add-entry','entries','add-exit','exits','pnl-adjustment','btn-apply-adjustment','calc-summary','quick-tags','quick-mistakes','live-notes','btn-insert-time','add-live-chart','live-charts-container',
@@ -1335,7 +1335,7 @@ function bindEvents() {
 
   [
     'trade-date','trade-end-date','ticker','status','side','setup-entry','setup-exit',
-    'timeframe','capital-allocation','avg-entry-price','total-position-size','exit-price','manual-realized-pnl','trade-result',
+    'timeframe','capital-allocation','avg-entry-price','total-position-size','exit-price','manual-realized-pnl','manual-pnl-sign','trade-result',
     'account-size','risk-pct','leverage','current-price','planner-mode','planner-legs','planner-weight-mode','btn-generate-plan','btn-apply-plan','planner-summary','maker-fee','taker-fee','stop-price','target-price','stop-type','price-map-distance-summary',
     'context','thesis','review','tags','mistakes','grade','live-notes'
   ].forEach(id => {
@@ -2068,7 +2068,7 @@ function readForm() {
     avgEntryPrice: Number(getVal('avg-entry-price') || 0),
     totalPositionSize: getVal('total-position-size'),
     exitPrice: Number(getVal('exit-price') || 0),
-    manualRealizedPnl: Number(getVal('manual-realized-pnl') || 0),
+    manualRealizedPnl: Number(getVal('manual-realized-pnl') || 0) * Number(getVal('manual-pnl-sign') || 1),
     result: getVal('trade-result') || 'NONE',
 
     tags: splitCsv(getVal('tags')),
@@ -2210,7 +2210,9 @@ function applyTradeToForm(trade, options = {}) {
   setVal('avg-entry-price', trade.avgEntryPrice || '');
   setVal('total-position-size', trade.totalPositionSize || '');
   setVal('exit-price', trade.exitPrice || '');
-  setVal('manual-realized-pnl', trade.manualRealizedPnl || '');
+  const mPnl = trade.manualRealizedPnl || 0;
+  setVal('manual-pnl-sign', mPnl < 0 ? '-1' : '1');
+  setVal('manual-realized-pnl', Math.abs(mPnl) || '');
   setVal('trade-result', trade.result || 'NONE');
 
   setVal('tags', (trade.tags || []).join(', '));
