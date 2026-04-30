@@ -14,7 +14,8 @@ export function recalcTrade(trade) {
   const manualPnl = Number(trade.manualRealizedPnl || 0);
   const avgEntry = Number(trade.avgEntryPrice || 0);
   const exitPrice = Number(trade.exitPrice || 0);
-  const qty = Number(trade.totalPositionSize || 0);
+  const rawQty = String(trade.totalPositionSize || '');
+  const qty = Number(rawQty.replace(/[^0-9.]/g, '') || 0);
   const lev = Math.max(1, Number(trade.leverage || 1));
 
   // 기본 손익 및 R 계산

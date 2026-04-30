@@ -3449,19 +3449,19 @@ function openSelectedInJournal(id = state.selectedTradeId) {
   const trade = state.db.trades.find(row => row.id === id);
   if (!trade) return;
   
-  // Ensure we are in journal view
+  // 1. Switch View first
   state.view = 'journal';
   state.selectedTradeId = trade.id;
-  
-  // Apply data to form
-  applyTradeToForm(trade);
-  
   renderViews();
-  refreshJournalStatus('Trade Loaded into Journal');
-  
-  // Scroll to top of journal form
-  const wrapper = document.querySelector('.journal-form-wrapper');
-  if (wrapper) wrapper.scrollTop = 0;
+
+  // 2. Load data after DOM is ready/switched
+  setTimeout(() => {
+    applyTradeToForm(trade);
+    refreshJournalStatus('Trade Loaded: ' + trade.ticker);
+    
+    const wrapper = document.querySelector('.journal-form-wrapper');
+    if (wrapper) wrapper.scrollTop = 0;
+  }, 50);
 }
 
 function openSelectedInLibrary(id) {
