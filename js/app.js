@@ -50,7 +50,8 @@ const ID_LIST = [
   'nav','force-save-draft','export-json','import-json-btn','import-json','journal-status','journal-sub-status','draft-saved-at',
   'view-overview','metrics','overview-from','overview-to','overview-clear','overview-search','prev-month','calendar-title','next-month','calendar','equity-chart','balance-chart','setup-chart','mistake-list','research-notes','overview-portfolio','overview-history-list',
   'realtime-clock','quick-launch-grid','btn-manage-quick-links','journal-sidebar','journal-pretrade-phase','journal-risk-phase','risk-planner-card','pretrade-brief','btn-context-structure','btn-context-catalyst','btn-thesis-trigger','btn-thesis-invalidation','planner-mode-note',
-  'view-journal','view-memo','trade-form','trade-id','trade-date','trade-end-date','btn-now','btn-end-now','holding-preview','ticker','btn-manage-ticker','status','status-toggle','side','setup-entry','btn-manage-setup-entry','setup-exit','btn-manage-setup-exit',
+  'view-journal','view-memo','trade-form','trade-id','trade-date','trade-end-date','btn-start-now','btn-end-now','holding-preview','ticker','btn-manage-ticker','status','status-toggle','side','setup-entry','btn-manage-setup-entry','setup-exit','btn-manage-setup-exit',
+  'timeframe','capital-allocation','avg-entry-price','total-position-size','exit-price','manual-realized-pnl','trade-result',
   'account-size','risk-pct','leverage','current-price','planner-mode','planner-legs','planner-weight-mode','btn-generate-plan','btn-apply-plan','planner-summary','maker-fee','taker-fee','stop-price','target-price','stop-type','price-map-distance-summary',
   'context','thesis','review','tags','mistakes',
   'add-entry','entries','add-exit','exits','pnl-adjustment','btn-apply-adjustment','calc-summary','quick-tags','quick-mistakes','live-notes','btn-insert-time','add-live-chart','live-charts-container',
@@ -1233,8 +1234,16 @@ function bindEvents() {
   initJournalSidebarSync();
   initStatusToggle();
 
-  if(els['btn-now']) els['btn-now'].onclick = () => { pushUndoSnapshot(); setVal('trade-date', inputDate(nowIso())); markDirty(); updatePreview(); persistDraft(); };
-  if(els['btn-end-now']) els['btn-end-now'].onclick = () => { pushUndoSnapshot(); setVal('status', 'CLOSED'); if (typeof initStatusToggle === 'function') initStatusToggle(); setVal('trade-end-date', inputDate(nowIso())); markDirty(); updatePreview(); persistDraft(); };
+  if(els['btn-start-now']) els['btn-start-now'].onclick = () => { pushUndoSnapshot(); setVal('trade-date', inputDate(nowIso())); markDirty(); updatePreview(); persistDraft(); };
+  if(els['btn-end-now']) els['btn-end-now'].onclick = () => { 
+    pushUndoSnapshot(); 
+    setVal('status', 'CLOSED'); 
+    if (typeof initStatusToggle === 'function') initStatusToggle(); 
+    setVal('trade-end-date', inputDate(nowIso())); 
+    markDirty(); 
+    updatePreview(); 
+    persistDraft(); 
+  };
   if(els['prev-month']) els['prev-month'].onclick = () => { state.month.setMonth(state.month.getMonth() - 1); renderCalendar(); };
   if(els['next-month']) els['next-month'].onclick = () => { state.month.setMonth(state.month.getMonth() + 1); renderCalendar(); };
 
@@ -1326,6 +1335,7 @@ function bindEvents() {
 
   [
     'trade-date','trade-end-date','ticker','status','side','setup-entry','setup-exit',
+    'timeframe','capital-allocation','avg-entry-price','total-position-size','exit-price','manual-realized-pnl','trade-result',
     'account-size','risk-pct','leverage','current-price','planner-mode','planner-legs','planner-weight-mode','btn-generate-plan','btn-apply-plan','planner-summary','maker-fee','taker-fee','stop-price','target-price','stop-type','price-map-distance-summary',
     'context','thesis','review','tags','mistakes','grade','live-notes'
   ].forEach(id => {
@@ -2052,6 +2062,15 @@ function readForm() {
     thesis: getVal('thesis'),
     review: getVal('review'),
     liveNotes: getVal('live-notes'),
+
+    timeframe: getVal('timeframe'),
+    capitalAllocation: getVal('capital-allocation'),
+    avgEntryPrice: Number(getVal('avg-entry-price') || 0),
+    totalPositionSize: getVal('total-position-size'),
+    exitPrice: Number(getVal('exit-price') || 0),
+    manualRealizedPnl: Number(getVal('manual-realized-pnl') || 0),
+    result: getVal('trade-result') || 'NONE',
+
     tags: splitCsv(getVal('tags')),
     mistakes: splitCsv(getVal('mistakes')),
     checkedRules: getCheckedRules(),
@@ -2071,26 +2090,21 @@ function handleSubmit(event) {
   if (event) event.preventDefault();
   const trade = readForm();
   
+  // 수동 입력 중심이므로 기존의 엄격한 밸리데이션을 제거하거나 경고로 대체
+  const hasManualData = trade.manualRealizedPnl !== 0 || trade.avgEntryPrice > 0 || trade.exitPrice > 0;
+
+  if (!hasManualData && !trade.metrics.valid) {
+    showModal({ type: 'ALERT', title: '입력 확인', desc: '자동 계산을 위해 손절가와 진입 정보를 입력하거나, 하단에 수동으로 손익 정보를 입력해주세요.' });
+    return;
+  }
+
   if (trade.metrics.exitExceeds100) {
-    showModal({ type: 'ALERT', title: '계산 오류', desc: `실제 체결(FILLED) 청산 비중 합계가 100%를 초과할 수 없습니다. (현재: ${trade.metrics.actualExitPct.toFixed(1)}%)` });
-    return;
-  }
-  if (!trade.metrics.valid) {
-    showModal({ type: 'ALERT', title: '입력 누락', desc: '손절가와 실제 진입 레그(가격 + Risk Share)를 먼저 입력해주세요.' });
-    return;
-  }
-  if (trade.status === 'CLOSED' && trade.metrics.actualExitPct < 100) {
-    showModal({ type: 'ALERT', title: '상태 오류', desc: 'CLOSED 저장 시에는 FILLED 청산 합계가 100%여야 합니다.' });
-    return;
-  }
-  if (trade.status === 'OPEN' && trade.metrics.actualExitPct >= 100) {
-    showModal({ type: 'ALERT', title: '상태 오류', desc: '실제 체결(FILLED) 청산이 100% 완료되었습니다. 상태를 CLOSED로 변경해주세요.' });
+    showModal({ type: 'ALERT', title: '청산 비중 초과', desc: `청산 비중 합계가 100%를 초과합니다. (현재: ${trade.metrics.actualExitPct.toFixed(1)}%)` });
     return;
   }
   
   if (trade.grade === 'S' && trade.checkedRules.length < state.db.meta.checklists.length) {
-    showModal({ type: 'ALERT', title: '원칙 위반 경고', desc: 'S등급은 설정한 원칙(체크리스트)을 100% 완벽히 지켰을 때만 부여할 수 있습니다.<br>체크리스트를 확인하거나 등급을 하향 조정하세요.' });
-    return;
+    showModal({ type: 'ALERT', title: '원칙 점검', desc: 'S등급은 모든 원칙을 지켰을 때 권장됩니다. 체크리스트를 확인해 주세요.' });
   }
 
   const existingIndex = state.db.trades.findIndex(row => row.id === trade.id);
@@ -2191,6 +2205,14 @@ function applyTradeToForm(trade, options = {}) {
   setVal('thesis', trade.thesis || '');
   setVal('review', trade.review || '');
   setVal('live-notes', trade.liveNotes || '');
+  setVal('timeframe', trade.timeframe || '');
+  setVal('capital-allocation', trade.capitalAllocation || '');
+  setVal('avg-entry-price', trade.avgEntryPrice || '');
+  setVal('total-position-size', trade.totalPositionSize || '');
+  setVal('exit-price', trade.exitPrice || '');
+  setVal('manual-realized-pnl', trade.manualRealizedPnl || '');
+  setVal('trade-result', trade.result || 'NONE');
+
   setVal('tags', (trade.tags || []).join(', '));
   setVal('mistakes', (trade.mistakes || []).join(', '));
   

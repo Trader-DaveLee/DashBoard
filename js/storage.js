@@ -604,6 +604,14 @@ export function normalizeTrade(t = {}) {
     review: String(t.review || '').trim(),
     liveNotes: String(t.liveNotes || '').trim(),
 
+    timeframe: String(t.timeframe || '').trim(),
+    capitalAllocation: String(t.capitalAllocation || '').trim(),
+    avgEntryPrice: Number(t.avgEntryPrice || 0),
+    totalPositionSize: String(t.totalPositionSize || '').trim(),
+    exitPrice: Number(t.exitPrice || 0),
+    manualRealizedPnl: Number(t.manualRealizedPnl || 0),
+    result: String(t.result || 'NONE').toUpperCase(),
+
     tags: normalizeLowerList(t.tags),
     mistakes: normalizeLowerList(t.mistakes),
     checkedRules: normalizeList(t.checkedRules),

@@ -139,7 +139,13 @@ export function recalcTrade(trade) {
   }
 
   const totalFees = entryFees + exitFees;
-  const netPnl = realizedPnl + unrealizedPnl;
+  
+  // 수동 입력된 손익이 있으면 그것을 우선 사용
+  let netPnl = realizedPnl + unrealizedPnl;
+  if (trade.manualRealizedPnl !== 0) {
+    netPnl = trade.manualRealizedPnl;
+  }
+
   const grossForFee = Math.abs(grossRealized + grossUnrealized);
   const feePctOfGross = grossForFee > 0 ? (totalFees / grossForFee) * 100 : 0;
 
@@ -239,6 +245,13 @@ export function recalcTrade(trade) {
     breakEvenPrice, accountImpact, projectedPnl, projectedR, hasProjection, projectionSteps,
     entryBreakdown, weightedLeverage, actualRiskUsed, actualRiskPctOfBudget, availableRiskDollar, overRiskDollar,
     pnlAdjustment,
+    manualRealizedPnl: trade.manualRealizedPnl,
+    avgEntryPrice: trade.avgEntryPrice,
+    exitPrice: trade.exitPrice,
+    totalPositionSize: trade.totalPositionSize,
+    result: trade.result,
+    timeframe: trade.timeframe,
+    capitalAllocation: trade.capitalAllocation
   };
 }
 
