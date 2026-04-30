@@ -191,6 +191,32 @@ const AVAILABLE_STOCKS = [
   { sym: 'LMT', name: 'Lockheed' }, { sym: 'SYK', name: 'Stryker' }, { sym: 'MDLZ', name: 'Mondelez' }, { sym: 'TJX', name: 'TJ Maxx' }, { sym: 'ISRG', name: 'Intuitive' }
 ];
 
+function initPnlSignToggle() {
+  const btn = document.getElementById('btn-pnl-sign-toggle');
+  const input = document.getElementById('manual-pnl-sign');
+  if (!btn || !input) return;
+
+  const updateUI = () => {
+    const val = input.value === '-1' ? '-' : '+';
+    btn.textContent = val;
+    btn.style.color = val === '-' ? 'var(--red)' : 'var(--accent)';
+    btn.style.borderColor = val === '-' ? 'var(--red)' : 'var(--accent)';
+    btn.style.background = val === '-' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(59, 130, 246, 0.05)';
+  };
+
+  window.updatePnlSignUI = updateUI;
+
+  btn.onclick = () => {
+    pushUndoSnapshot();
+    input.value = input.value === '1' ? '-1' : '1';
+    updateUI();
+    handleFormMutation();
+  };
+
+  // Initial sync
+  updateUI();
+}
+
 function initPriceTicker() {
   const saved = localStorage.getItem('ticker_symbols');
   state.tickerSymbols = saved ? JSON.parse(saved) : DEFAULT_SYMBOLS;
@@ -1243,6 +1269,7 @@ function bindEvents() {
 
   initJournalSidebarSync();
   initStatusToggle();
+  initPnlSignToggle();
 
   if(els['btn-start-now']) els['btn-start-now'].onclick = () => { pushUndoSnapshot(); setVal('trade-date', inputDate(nowIso())); markDirty(); updatePreview(); persistDraft(); };
   if(els['btn-end-now']) els['btn-end-now'].onclick = () => { 
@@ -1849,7 +1876,8 @@ function resetFormForce() {
   [
     'trade-id','context','thesis','review','tags','mistakes','live-notes',
     'stop-price','target-price','current-price','trade-end-date',
-    'avg-entry-price','total-position-size','exit-price','manual-realized-pnl'
+    'avg-entry-price','total-position-size','exit-price','manual-realized-pnl',
+    'capital-allocation','timeframe'
   ].forEach(id => setVal(id, ''));
   setVal('planner-mode', 'BALANCED');
   setVal('planner-legs', 3);
@@ -2115,6 +2143,8 @@ function applyTradeToForm(trade, options = {}) {
   renderChartInputs('exit');
   renderChartInputs('live');
   renderTradeChecklist(trade.checkedRules || []); 
+  
+  if (typeof updatePnlSignUI === 'function') updatePnlSignUI();
   
   setTimeout(() => {
     document.querySelectorAll('textarea.auto-resize').forEach(ta => autoResize(ta));
