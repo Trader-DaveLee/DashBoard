@@ -3239,3 +3239,31 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Realized P&L Input Group Refinement */
+.pnl-input-group {
+  overflow: hidden;
+  border: 1px solid var(--border-main);
+  background: var(--bg-card);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.pnl-input-group:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.pnl-input-group select#manual-pnl-sign {
+  border: none !important;
+  background: var(--bg-input) !important;
+  border-right: 1px solid var(--border-main) !important;
+  padding: 0 !important;
+  width: 36px !important;
+  font-size: 1.1rem !important;
+  color: var(--text-main) !important;
+}
+.pnl-input-group input#manual-realized-pnl {
+  border: none !important;
+  padding-left: 30px !important;
+}
+.pnl-input-group .unit {
+  left: 12px !important;
+}

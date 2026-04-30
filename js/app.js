@@ -1848,7 +1848,8 @@ function resetFormForce() {
 
   [
     'trade-id','context','thesis','review','tags','mistakes','live-notes',
-    'stop-price','target-price','current-price','trade-end-date'
+    'stop-price','target-price','current-price','trade-end-date',
+    'avg-entry-price','total-position-size','exit-price','manual-realized-pnl'
   ].forEach(id => setVal(id, ''));
   setVal('planner-mode', 'BALANCED');
   setVal('planner-legs', 3);
@@ -2691,7 +2692,7 @@ function renderOverviewHistory() {
   
   list.querySelectorAll('[data-trade-id]').forEach(item => {
     const id = item.getAttribute('data-trade-id');
-    item.querySelector('[data-action="open"]')?.addEventListener('click', () => openSelectedInJournal(id));
+    item.querySelector('[data-action="open"]')?.addEventListener('click', () => openSelectedInLibrary(id));
     item.querySelector('[data-action="edit"]')?.addEventListener('click', (e) => { e.stopPropagation(); openSelectedInJournal(id); });
   });
 }
@@ -3447,11 +3448,31 @@ function stepSelectedTrade(direction) {
 function openSelectedInJournal(id = state.selectedTradeId) {
   const trade = state.db.trades.find(row => row.id === id);
   if (!trade) return;
-  applyTradeToForm(trade);
-  state.selectedTradeId = trade.id;
+  
+  // Ensure we are in journal view
   state.view = 'journal';
+  state.selectedTradeId = trade.id;
+  
+  // Apply data to form
+  applyTradeToForm(trade);
+  
   renderViews();
-  refreshJournalStatus('선택 트레이드 로드 완료');
+  refreshJournalStatus('Trade Loaded into Journal');
+  
+  // Scroll to top of journal form
+  const wrapper = document.querySelector('.journal-form-wrapper');
+  if (wrapper) wrapper.scrollTop = 0;
+}
+
+function openSelectedInLibrary(id) {
+  const trade = state.db.trades.find(row => row.id === id);
+  if (!trade) return;
+  
+  state.view = 'library';
+  state.selectedTradeId = trade.id;
+  
+  renderViews();
+  // Library view should automatically show details if selectedTradeId is set
 }
 
 function filterBySelectedSetup() {
