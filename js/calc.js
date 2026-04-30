@@ -1,251 +1,71 @@
-export function sumWeights(rows) {
-  return rows.reduce((sum, row) => sum + Math.max(0, Number(row.weight || 0)), 0);
-}
-
 function round(value, digits = 4) {
   return Number(Number(value || 0).toFixed(digits));
 }
 
-function stopFeeRate(trade, maker, taker) {
-  return (trade.stopType || 'M') === 'M' ? maker : taker;
-}
-
-function normalizeEntryLegs(trade) {
-  return (trade.entries || []).filter(e => Number(e.price) > 0 && Number(e.weight) > 0).map(e => ({
-    price: Number(e.price || 0),
-    type: String(e.type || 'M').toUpperCase() === 'T' ? 'T' : 'M',
-    weight: Math.max(0, Number(e.weight || 0)),
-    leverage: Math.max(1, Number(e.leverage || trade.leverage || 1)),
-  }));
-}
-
-function normalizeExitLegs(trade) {
-  return (trade.exits || []).filter(e => Number(e.price) > 0 && Number(e.weight) > 0).map(e => ({
-    price: Number(e.price || 0),
-    type: String(e.type || 'M').toUpperCase() === 'T' ? 'T' : 'M',
-    weight: Math.max(0, Number(e.weight || 0)),
-    status: String(e.status || (trade.status === 'CLOSED' ? 'FILLED' : 'PLANNED')).toUpperCase() === 'FILLED' ? 'FILLED' : 'PLANNED',
-  }));
-}
-
 export function recalcTrade(trade) {
   const side = trade.side === 'SHORT' ? -1 : 1;
-  const maker = Number(trade.makerFee || 0) / 100;
-  const taker = Number(trade.takerFee || 0) / 100;
   const stop = Number(trade.stopPrice || 0);
   const targetPrice = Number(trade.targetPrice || 0);
   const accountSize = Math.max(0, Number(trade.accountSize || 0));
   const riskPct = Math.max(0, Number(trade.riskPct || 0));
   const riskDollar = accountSize * riskPct / 100;
-  const stopFee = stopFeeRate(trade, maker, taker);
-
-  const pnlAdjustment = Number(trade.pnlAdjustment || 0);
-
-  const entries = normalizeEntryLegs(trade);
-  const exitRows = normalizeExitLegs(trade);
-  const filledExits = exitRows.filter(e => e.status === 'FILLED' || trade.status === 'CLOSED');
-  const plannedExits = trade.status === 'OPEN' ? exitRows.filter(e => e.status !== 'FILLED') : [];
-
-  const filledExitPctRaw = sumWeights(filledExits);
-  if (filledExitPctRaw > 100) {
-    const base = baseMetrics(pnlAdjustment, riskDollar, accountSize);
-    base.exitExceeds100 = true;
-    base.actualExitPct = filledExitPctRaw;
-    return base;
-  }
-
-  const entryWeightTotal = sumWeights(entries);
-  if (!stop || !entries.length || entryWeightTotal <= 0) {
-    return baseMetrics(pnlAdjustment, riskDollar, accountSize);
-  }
-
-  let directionError = false;
-  let totalQty = 0;
-  let totalNotional = 0;
-  let totalMargin = 0;
-  let entryFees = 0;
-  let actualRiskUsed = 0;
-  const entryBreakdown = [];
-
-  for (const leg of entries) {
-    const entryFeeRate = leg.type === 'M' ? maker : taker;
-    if ((side === 1 && stop >= leg.price) || (side === -1 && stop <= leg.price)) directionError = true;
-    const unitRisk = Math.abs(leg.price - stop) + leg.price * entryFeeRate + stop * stopFee;
-    const legRiskBudget = riskDollar * (leg.weight / 100);
-    const legQty = unitRisk > 0 ? legRiskBudget / unitRisk : 0;
-    const legNotional = legQty * leg.price;
-    const legMargin = legNotional / Math.max(1, leg.leverage);
-    const legEntryFees = leg.price * legQty * entryFeeRate;
-    const legStopRisk = legQty * unitRisk;
-
-    totalQty += legQty;
-    totalNotional += legNotional;
-    totalMargin += legMargin;
-    entryFees += legEntryFees;
-    actualRiskUsed += legStopRisk;
-    entryBreakdown.push({
-      price: leg.price,
-      type: leg.type,
-      leverage: leg.leverage,
-      weight: leg.weight,
-      qty: legQty,
-      notional: legNotional,
-      margin: legMargin,
-      riskDollar: legStopRisk,
-    });
-  }
-
-  if (directionError || totalQty <= 0) return baseMetrics(pnlAdjustment, riskDollar, accountSize, 0, true);
-
-  const avgEntry = totalNotional / totalQty;
-  const weightedLeverage = totalMargin > 0 ? totalNotional / totalMargin : Math.max(1, Number(trade.leverage || 1));
-  const sliderPct = accountSize ? (totalMargin / accountSize) * 100 : 0;
-  const stopDistancePct = avgEntry ? (Math.abs(avgEntry - stop) / avgEntry) * 100 : 0;
-
-  let avgExit = 0;
-  let grossRealized = 0;
-  let exitFees = 0;
-  const actualExitPct = filledExitPctRaw;
-  const actualRemainingPct = Math.max(0, 100 - actualExitPct);
-
-  if (filledExits.length && actualExitPct > 0) {
-    let totalClosedQty = 0;
-    for (const leg of filledExits) {
-      const closeQty = totalQty * (leg.weight / 100);
-      const feeRate = leg.type === 'M' ? maker : taker;
-      totalClosedQty += closeQty;
-      avgExit += leg.price * closeQty;
-      grossRealized += (leg.price - avgEntry) * side * closeQty;
-      exitFees += leg.price * closeQty * feeRate;
-    }
-    avgExit = totalClosedQty > 0 ? avgExit / totalClosedQty : 0;
-  }
-
-  const entryFeesRealized = entryFees * (actualExitPct / 100);
-  const entryFeesRemaining = entryFees - entryFeesRealized;
-  const realizedPnl = grossRealized - entryFeesRealized - exitFees + pnlAdjustment;
-
-  const remainingQty = totalQty * (actualRemainingPct / 100);
-  const remainingExposure = remainingQty * avgEntry;
-  const residualRisk = remainingQty * (Math.abs(avgEntry - stop) + stop * stopFee);
-
-  let grossUnrealized = 0;
-  let unrealizedPnl = 0;
-  const markPrice = Number(trade.markPrice || 0);
-  const missingMarkPrice = remainingQty > 0 && markPrice === 0;
-  if (remainingQty > 0 && markPrice > 0) {
-    grossUnrealized = (markPrice - avgEntry) * side * remainingQty;
-    unrealizedPnl = grossUnrealized - entryFeesRemaining;
-  }
-
-  const totalFees = entryFees + exitFees;
   
-  // 수동 입력된 손익이 있으면 그것을 우선 사용
-  let netPnl = realizedPnl + unrealizedPnl;
-  if (trade.manualRealizedPnl !== 0) {
-    netPnl = trade.manualRealizedPnl;
-    realizedPnl = netPnl; // Overview 등에서 realizedPnl을 기준으로 집계하는 로직 대응
-  }
+  // 수동 입력값들
+  const manualPnl = Number(trade.manualRealizedPnl || 0);
+  const avgEntry = Number(trade.avgEntryPrice || 0);
+  const exitPrice = Number(trade.exitPrice || 0);
+  const qty = Number(trade.totalPositionSize || 0);
+  const lev = Math.max(1, Number(trade.leverage || 1));
 
-  const grossForFee = Math.abs(grossRealized + grossUnrealized);
-  const feePctOfGross = grossForFee > 0 ? (totalFees / grossForFee) * 100 : 0;
+  // 기본 손익 및 R 계산
+  const pnl = manualPnl;
+  const r = riskDollar > 0 ? pnl / riskDollar : 0;
+  const impact = accountSize > 0 ? (pnl / accountSize) * 100 : 0;
 
-  const realizedR = riskDollar ? realizedPnl / riskDollar : 0;
-  const unrealizedR = riskDollar ? unrealizedPnl / riskDollar : 0;
-  const r = riskDollar ? netPnl / riskDollar : 0;
-  const accountImpact = accountSize > 0 ? (netPnl / accountSize) * 100 : 0;
-  const assumedCloseFee = remainingQty * avgEntry * taker;
-  const breakEvenPrice = remainingQty > 0 ? avgEntry + (side * ((entryFeesRemaining + assumedCloseFee) / remainingQty)) : 0;
-  const actualRiskPctOfBudget = riskDollar > 0 ? (actualRiskUsed / riskDollar) * 100 : 0;
-  const availableRiskDollar = Math.max(0, riskDollar - actualRiskUsed);
-  const overRiskDollar = Math.max(0, actualRiskUsed - riskDollar);
+  // 거리 계산 (현재가 또는 평단가 기준)
+  const current = Number(trade.currentPrice || avgEntry || 0);
+  const stopDistPct = (current && stop) ? (Math.abs(current - stop) / current) * 100 : 0;
+  const stopDistAbs = (current && stop) ? Math.abs(current - stop) : 0;
 
-  let projectedPnl = 0;
-  let projectedR = 0;
-  let hasProjection = false;
-  const projectionSteps = [];
+  const result = {
+    valid: (avgEntry > 0 || pnl !== 0),
+    directionError: false,
+    riskDollar,
+    avgEntry,
+    avgExit: exitPrice,
+    qty,
+    margin: (avgEntry * qty) / lev,
+    notional: avgEntry * qty,
+    leverage: lev,
+    weightedLeverage: lev,
+    stopDistancePct: stopDistPct,
+    stopDistanceAbs: stopDistAbs,
+    pnl: pnl,
+    netPnl: pnl,
+    realizedPnl: pnl,
+    unrealizedPnl: 0,
+    r: r,
+    realizedR: r,
+    unrealizedR: 0,
+    accountImpact: impact,
+    projectedPnl: pnl,
+    projectedR: r,
+    totalFees: 0, 
+    breakEvenPrice: avgEntry,
+    actualRiskUsed: qty * stopDistAbs,
+    actualRiskPctOfBudget: riskDollar > 0 ? (qty * stopDistAbs / riskDollar) * 100 : 0,
+    residualRisk: trade.status === 'OPEN' ? qty * stopDistAbs : 0,
+    actualExitPct: trade.status === 'CLOSED' ? 100 : 0,
+    remainingPct: trade.status === 'OPEN' ? 100 : 0,
+    entryBreakdown: [],
+    projectionSteps: [],
+    hasProjection: false,
+    missingMarkPrice: false,
+    exitExceeds100: false
+  };
 
-  if (trade.status === 'OPEN' && plannedExits.length && remainingQty > 0) {
-    let projectedClosedPct = 0;
-    let cumulativePnl = realizedPnl;
-    let cumulativeFees = 0;
-    plannedExits.forEach((leg, idx) => {
-      const closePct = Math.max(0, Number(leg.weight || 0));
-      const closeQty = totalQty * (closePct / 100);
-      const feeRate = leg.type === 'M' ? maker : taker;
-      const gross = (leg.price - avgEntry) * side * closeQty;
-      const entryFeeAlloc = entryFees * (closePct / 100);
-      const exitFee = leg.price * closeQty * feeRate;
-      cumulativeFees += exitFee;
-      cumulativePnl += gross - entryFeeAlloc - exitFee;
-      projectedClosedPct += closePct;
-      const remPct = Math.max(0, 100 - actualExitPct - projectedClosedPct);
-      const remQty = totalQty * (remPct / 100);
-      const remRisk = remQty * (Math.abs(avgEntry - stop) + stop * stopFee);
-      projectionSteps.push({
-        label: `TP${idx + 1}`,
-        price: leg.price,
-        closePct,
-        cumulativePnl,
-        cumulativeR: riskDollar ? cumulativePnl / riskDollar : 0,
-        remainingQty: remQty,
-        remainingRisk: remRisk,
-      });
-    });
-    projectedPnl = projectionSteps.length ? projectionSteps[projectionSteps.length - 1].cumulativePnl : 0;
-    projectedR = riskDollar ? projectedPnl / riskDollar : 0;
-    hasProjection = projectionSteps.length > 0;
-
-    const projectedPct = actualExitPct + plannedExits.reduce((sum, leg) => sum + Number(leg.weight || 0), 0);
-    if (targetPrice > 0 && projectedPct < 100) {
-      const remPct = Math.max(0, 100 - projectedPct);
-      const closeQty = totalQty * (remPct / 100);
-      const gross = (targetPrice - avgEntry) * side * closeQty;
-      const entryFeeAlloc = entryFees * (remPct / 100);
-      const exitFee = targetPrice * closeQty * taker;
-      projectedPnl += gross - entryFeeAlloc - exitFee;
-      projectedR = riskDollar ? projectedPnl / riskDollar : 0;
-      projectionSteps.push({
-        label: 'Final TP',
-        price: targetPrice,
-        closePct: remPct,
-        cumulativePnl: projectedPnl,
-        cumulativeR: projectedR,
-        remainingQty: 0,
-        remainingRisk: 0,
-      });
-      hasProjection = true;
-    }
-  } else if (trade.status === 'OPEN' && targetPrice > 0 && remainingQty > 0) {
-    const projectedGross = (targetPrice - avgEntry) * side * remainingQty;
-    const projectedExitFees = targetPrice * remainingQty * taker;
-    projectedPnl = realizedPnl + projectedGross - entryFeesRemaining - projectedExitFees;
-    projectedR = riskDollar ? projectedPnl / riskDollar : 0;
-    hasProjection = true;
-    projectionSteps.push({
-      label: 'TP',
-      price: targetPrice,
-      closePct: actualRemainingPct,
-      cumulativePnl: projectedPnl,
-      cumulativeR: projectedR,
-      remainingQty: 0,
-      remainingRisk: 0,
-    });
-  } else {
-    // CLOSED 상태이거나 계획된 Exit이 없는 경우
-    projectedPnl = realizedPnl;
-    projectedR = realizedR;
-  }
-
-  return {
-    valid: true, directionError: false, exitExceeds100: false, missingMarkPrice,
-    riskDollar, avgEntry, avgExit, qty: totalQty, margin: totalMargin, sliderPct, notional: totalNotional, stopDistancePct, stopDistanceAbs: Math.abs(avgEntry - stop),
-    actualExitPct, plannedExitPct: sumWeights(plannedExits), remainingPct: actualRemainingPct, remainingQty, remainingExposure, residualRisk,
-    grossRealized, realizedPnl, grossUnrealized, unrealizedPnl, pnl: netPnl, netPnl,
-    realizedR, unrealizedR, r, totalFees, entryFees, exitFees, feePctOfGross,
-    breakEvenPrice, accountImpact, projectedPnl, projectedR, hasProjection, projectionSteps,
-    entryBreakdown, weightedLeverage, actualRiskUsed, actualRiskPctOfBudget, availableRiskDollar, overRiskDollar,
-    pnlAdjustment,
+  // 추가 필드 병합 (UI 연동용)
+  Object.assign(result, {
     manualRealizedPnl: trade.manualRealizedPnl,
     avgEntryPrice: trade.avgEntryPrice,
     exitPrice: trade.exitPrice,
@@ -253,131 +73,24 @@ export function recalcTrade(trade) {
     result: trade.result,
     timeframe: trade.timeframe,
     capitalAllocation: trade.capitalAllocation
-  };
-}
-
-
-export function generatePlannerSuggestion(trade) {
-  const currentPrice = Number(trade.currentPrice || trade.markPrice || 0);
-  const stop = Number(trade.stopPrice || 0);
-  const target = Number(trade.targetPrice || 0);
-  const legsCount = Math.max(1, Math.min(4, Number(trade.plannerLegs || 3)));
-  const side = trade.side === 'SHORT' ? -1 : 1;
-  const plannerMode = normalizePlannerModeValue(trade.plannerMode || 'BALANCED');
-  const plannerWeightMode = normalizePlannerWeightModeValue(trade.plannerWeightMode || 'BACKLOADED');
-
-  if (!currentPrice || !stop || !trade.accountSize || !trade.riskPct) return { valid: false, reason: '현재가, 손절가, 계좌, 리스크를 먼저 입력하세요.' };
-  if ((side === 1 && stop >= currentPrice) || (side === -1 && stop <= currentPrice)) return { valid: false, reason: '현재가와 손절가 방향이 맞지 않습니다.' };
-
-  const dist = Math.abs(currentPrice - stop);
-  const profitMove = target > 0 && ((side === 1 && target > currentPrice) || (side === -1 && target < currentPrice))
-    ? Math.abs(target - currentPrice)
-    : dist * 1.2;
-
-  let prices = [];
-  if (plannerMode === 'SINGLE' || legsCount === 1) {
-    prices = [currentPrice];
-  } else if (plannerMode === 'BALANCED') {
-    const deepest = currentPrice + (-side) * dist * 0.45;
-    prices = Array.from({ length: legsCount }, (_, i) => {
-      const t = legsCount === 1 ? 0 : i / (legsCount - 1);
-      return currentPrice + (deepest - currentPrice) * t;
-    });
-  } else if (plannerMode === 'AVERAGING') {
-    const deepest = currentPrice + (-side) * dist * 0.82;
-    prices = Array.from({ length: legsCount }, (_, i) => {
-      const t = legsCount === 1 ? 0 : i / (legsCount - 1);
-      return currentPrice + (deepest - currentPrice) * t;
-    });
-  } else if (plannerMode === 'PYRAMID') {
-    const top = currentPrice + side * Math.max(dist * 0.6, profitMove * 0.6);
-    prices = Array.from({ length: legsCount }, (_, i) => {
-      const t = legsCount === 1 ? 0 : i / (legsCount - 1);
-      return currentPrice + (top - currentPrice) * t;
-    });
-  }
-
-  const weightsRaw = plannerWeightMode === 'FRONTLOADED'
-    ? Array.from({ length: legsCount }, (_, i) => legsCount - i)
-    : plannerWeightMode === 'BACKLOADED'
-      ? Array.from({ length: legsCount }, (_, i) => i + 1)
-      : Array.from({ length: legsCount }, () => 1);
-  const rawSum = weightsRaw.reduce((a, b) => a + b, 0);
-  const weights = weightsRaw.map(w => (w / rawSum) * 100);
-
-  let entries = prices.map((price, idx) => ({
-    price: round(price, 4),
-    type: 'T',
-    weight: round(weights[idx], 2),
-    leverage: Math.max(1, Number(trade.leverage || 1)),
-  }));
-
-  let metrics = recalcTrade({ ...trade, plannerMode, plannerWeightMode, entries, exits: [] });
-  entries = entries.map((entry, idx) => {
-    const breakdown = metrics.entryBreakdown[idx];
-    const desiredCapital = Math.max(1, Number(trade.accountSize || 0) * (entry.weight / 100));
-    const suggestedLeverage = breakdown && breakdown.notional > 0
-      ? Math.max(1, Math.ceil(breakdown.notional / desiredCapital))
-      : Math.max(1, Number(trade.leverage || 1));
-    return { ...entry, leverage: Math.max(1, suggestedLeverage, Number(trade.leverage || 1)) };
   });
 
-  metrics = recalcTrade({ ...trade, plannerMode, plannerWeightMode, entries, exits: [] });
+  return result;
+}
+
+// Planner Suggestion은 수동 입력 모드에서는 큰 의미가 없으므로 최소화하거나 제거 가능
+// 여기서는 호출 시 오류가 나지 않도록 빈 객체/기본값을 반환하는 형태로 유지하거나
+// 사용자가 필요 없다고 했으므로 내부 로직을 아주 단순하게 변경
+export function generatePlannerSuggestion(trade) {
   return {
-    valid: true,
-    entries,
-    metrics,
-    currentPrice: round(currentPrice, 4),
-    stopPrice: round(stop, 4),
-    plannerMode,
-    plannerWeightMode,
-    plannerModeLabel: plannerModeLabel(plannerMode),
-    plannerWeightModeLabel: plannerWeightModeLabel(plannerWeightMode),
+    valid: false,
+    reason: '수동 기록 모드에서는 플래너 기능을 사용하지 않습니다.',
+    entries: [],
+    metrics: recalcTrade(trade)
   };
 }
 
-function normalizePlannerModeValue(value) {
-  const raw = String(value || '').trim().toUpperCase();
-  if (raw === 'LADDER' || raw === 'LADDER_TIGHT') return 'BALANCED';
-  if (raw === 'LADDER_DEEP') return 'AVERAGING';
-  if (['SINGLE','BALANCED','AVERAGING','PYRAMID'].includes(raw)) return raw;
-  return 'BALANCED';
-}
-
-function normalizePlannerWeightModeValue(value) {
-  const raw = String(value || '').trim().toUpperCase();
-  return ['EQUAL','FRONTLOADED','BACKLOADED'].includes(raw) ? raw : 'BACKLOADED';
-}
-
-function plannerModeLabel(value) {
-  return {
-    SINGLE: 'Single Entry',
-    BALANCED: 'Balanced Scale-in',
-    AVERAGING: 'Cost Averaging',
-    PYRAMID: 'Pyramiding',
-  }[value] || 'Balanced Scale-in';
-}
-
-function plannerWeightModeLabel(value) {
-  return {
-    EQUAL: '균등 배분',
-    FRONTLOADED: '초기 진입 비중↑',
-    BACKLOADED: '확인 후 비중↑',
-  }[value] || '확인 후 비중↑';
-}
-
-function baseMetrics(pnlAdjustment = 0, riskDollar = 0, accountSize = 0, avgEntry = 0, directionError = false) {
-  const pnl = Number(pnlAdjustment || 0);
-  const r = riskDollar > 0 ? pnl / riskDollar : 0;
-  const impact = accountSize > 0 ? (pnl / accountSize) * 100 : 0;
-
-  return {
-    valid: false, directionError, exitExceeds100: false, missingMarkPrice: false, riskDollar, avgEntry, avgExit: 0,
-    qty: 0, margin: 0, sliderPct: 0, notional: 0, stopDistancePct: 0, stopDistanceAbs: 0, actualExitPct: 0, plannedExitPct: 0,
-    remainingPct: 0, remainingQty: 0, remainingExposure: 0, residualRisk: 0,
-    grossRealized: 0, realizedPnl: pnl, grossUnrealized: 0, unrealizedPnl: 0,
-    pnl: pnl, netPnl: pnl, realizedR: r, unrealizedR: 0, r: r,
-    totalFees: 0, entryFees: 0, exitFees: 0, feePctOfGross: 0, breakEvenPrice: 0, accountImpact: impact, projectedPnl: pnl, projectedR: r, hasProjection: false, projectionSteps: [],
-    entryBreakdown: [], weightedLeverage: 1, actualRiskUsed: 0, actualRiskPctOfBudget: 0, availableRiskDollar: Math.max(0, riskDollar), overRiskDollar: 0,
-  };
+function baseMetrics(pnlAdjustment = 0, riskDollar = 0, accountSize = 0, avgEntry = 0, directionError = false, trade = null) {
+  // 기존 코드와의 하위 호환성을 위해 남겨두되, recalcTrade를 쓰도록 유도
+  return recalcTrade(trade || { pnlAdjustment, riskDollar, accountSize, avgEntryPrice: avgEntry, side: 'LONG' });
 }

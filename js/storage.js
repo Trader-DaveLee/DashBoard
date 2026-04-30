@@ -618,10 +618,7 @@ export function normalizeTrade(t = {}) {
 
     evidence: normalizeEvidence(t.evidence, t.artifacts, t.entryChart, t.exitChart),
     closedAt: t.closedAt ? normalizeDate(t.closedAt) : '',
-    updatedAt: t.updatedAt ? normalizeDate(t.updatedAt) : '',
-    entries: normalizeLegs(t.entries, { kind: 'entry', withDefault: true, defaultLeverage: Math.max(1, Number(t.leverage || 5)) }),
-    exits: normalizeLegs(t.exits, { kind: 'exit', withDefault: false, tradeStatus: String(t.status || 'OPEN').toUpperCase() }),
-    pnlAdjustment: Number(t.pnlAdjustment || 0),
+    updatedAt: t.updatedAt ? normalizeDate(t.updatedAt) : ''
   };
 
   trade.metrics = recalcTrade(trade);
@@ -691,19 +688,6 @@ function normalizeEvidence(evidence, artifacts, legacyEntry, legacyExit) {
   };
 }
 
-function normalizeLegs(value, options = {}) {
-  const { kind = 'entry', withDefault = false, defaultLeverage = 1, tradeStatus = 'OPEN' } = options;
-  const rows = Array.isArray(value) ? value : [];
-  const mapped = rows.map(row => ({
-    price: Number(row.price || 0),
-    type: String(row.type || 'M').toUpperCase() === 'T' ? 'T' : 'M',
-    weight: Math.max(0, Number(row.weight || 0)),
-    leverage: kind === 'entry' ? Math.max(1, Number(row.leverage || defaultLeverage || 1)) : undefined,
-    status: kind === 'exit' ? String(row.status || (tradeStatus === 'CLOSED' ? 'FILLED' : 'PLANNED')).toUpperCase() : undefined,
-  }));
-  if (!mapped.length && withDefault) return [{ price: 0, type: 'M', weight: 100, leverage: Math.max(1, Number(defaultLeverage || 1)) }];
-  return mapped;
-}
 
 function normalizeList(value) {
   if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
@@ -949,6 +933,22 @@ export function listenMeta(user, onUpdate) {
     }
   }, (error) => {
     console.error("[Firebase Listen Meta Error]", error);
+  });
+}
+
+/**
+ * ⚡ Firebase Real-time Listener for Trades
+ */
+export function listenTrades(user, callback) {
+  if (!user) return;
+  const tradesRef = collection(db, 'users', user.uid, 'trades');
+  return onSnapshot(tradesRef, (snapshot) => {
+    const trades = snapshot.docs.map(d => normalizeTrade({ id: d.id, ...d.data() }));
+    // 정렬 (최신순)
+    trades.sort((a, b) => new Date(b.date) - new Date(a.date));
+    callback(trades);
+  }, (error) => {
+    console.error("[Firebase Listen Trades Error]", error);
   });
 }
 /**

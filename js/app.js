@@ -7,7 +7,7 @@ import {
   loadDraft, saveDraft, clearDraft, hydrateDBFromIndexedDB, hydrateDraftFromIndexedDB,
   syncWithFirebase, saveTradeToFirebase, deleteTradeFromFirebase,
   saveMetaToFirebase, saveMemoToFirebase, deleteMemoFromFirebase, compressImage,
-  listenMemos, listenMeta
+  listenMemos, listenMeta, listenTrades
 } from './storage.js';
 import { loginWithGoogle, logout, watchAuthState } from './firebase-auth.js';
 import { runMonteCarlo } from './simulation.js';
@@ -22,9 +22,7 @@ export const state = {
   month: new Date(),
   selectedTradeId: null,
   filteredTrades: [],
-  draftEntries: [{ price: 0, type: 'M', weight: 100, leverage: 5 }],
   plannerSuggestion: null,
-  draftExits: [],
   draftEntryCharts: [],
   draftExitCharts: [],
   draftLiveCharts: [],
@@ -54,7 +52,7 @@ const ID_LIST = [
   'timeframe','capital-allocation','avg-entry-price','total-position-size','exit-price','manual-realized-pnl','manual-pnl-sign','trade-result',
   'account-size','risk-pct','leverage','current-price','planner-mode','planner-legs','planner-weight-mode','btn-generate-plan','btn-apply-plan','planner-summary','maker-fee','taker-fee','stop-price','target-price','stop-type','price-map-distance-summary',
   'context','thesis','review','tags','mistakes',
-  'add-entry','entries','add-exit','exits','pnl-adjustment','btn-apply-adjustment','calc-summary','quick-tags','quick-mistakes','live-notes','btn-insert-time','add-live-chart','live-charts-container',
+  'calc-summary','quick-tags','quick-mistakes','live-notes','btn-insert-time','add-live-chart','live-charts-container',
   'add-entry-chart','entry-charts-container','add-exit-chart','exit-charts-container',
   'btn-realtime-chart','realtime-chart-board','rt-chart-container','btn-clear-rt-chart',
   'eval-status-badge','assessment-risk-used','assessment-risk-budget','assessment-projected-pnl','assessment-final-pnl','assessment-projected-r','assessment-final-r','assessment-bep','assessment-residual','assessment-fees','assessment-account-impact','post-assessment-copy',
@@ -1118,6 +1116,7 @@ function openQuickLinkManager() {
 
 let memoUnsubscribe = null;
 let metaUnsubscribe = null;
+let tradesUnsubscribe = null;
 
 function initAuth() {
   watchAuthState(async (user) => {
@@ -1129,6 +1128,10 @@ function initAuth() {
     if (metaUnsubscribe) {
       metaUnsubscribe();
       metaUnsubscribe = null;
+    }
+    if (tradesUnsubscribe) {
+      tradesUnsubscribe();
+      tradesUnsubscribe = null;
     }
 
     if (user) {
@@ -1154,8 +1157,15 @@ function initAuth() {
       // Start Real-time Sync for Memos
       memoUnsubscribe = listenMemos(user, (memos) => {
         state.db.memos = memos;
-        saveDB(state.db); // Persist remote changes to local storage
+        saveDB(state.db); 
         if (typeof window.renderMemos === 'function') window.renderMemos(false);
+      });
+
+      tradesUnsubscribe = listenTrades(user, (trades) => {
+        state.db.trades = trades;
+        saveDB(state.db);
+        render();
+        updatePreview();
       });
 
       // Start Real-time Sync for Meta (Economic Indicators, etc.)
@@ -1247,8 +1257,6 @@ function bindEvents() {
   if(els['prev-month']) els['prev-month'].onclick = () => { state.month.setMonth(state.month.getMonth() - 1); renderCalendar(); };
   if(els['next-month']) els['next-month'].onclick = () => { state.month.setMonth(state.month.getMonth() + 1); renderCalendar(); };
 
-  if(els['add-entry']) els['add-entry'].onclick = () => { pushUndoSnapshot(); state.draftEntries.push({ price: 0, type: 'M', weight: 0, leverage: Math.max(1, Number(getVal('leverage') || 1)) }); renderLegs('entry'); updatePreview(); persistDraft(); };
-  if(els['add-exit']) els['add-exit'].onclick = () => { pushUndoSnapshot(); state.draftExits.push({ price: 0, type: 'M', weight: 0, status: 'PLANNED' }); renderLegs('exit'); updatePreview(); persistDraft(); };
   if(els['btn-generate-plan']) els['btn-generate-plan'].onclick = () => { updatePreview(); refreshJournalStatus('플랜 생성|추천안 적용 가능'); };
   if(els['btn-apply-plan']) els['btn-apply-plan'].onclick = applyPlannerSuggestion;
   
@@ -1352,24 +1360,6 @@ function bindEvents() {
     els['pnl-adjustment-sign'].addEventListener('change', handleFormMutation);
   }
 
-  if (els['btn-apply-adjustment']) {
-    els['btn-apply-adjustment'].onclick = () => {
-      handleFormMutation();
-      const btn = els['btn-apply-adjustment'];
-      const originalText = btn.textContent;
-      btn.textContent = '적용됨 ✓';
-      btn.style.background = 'var(--green-soft)';
-      btn.style.color = 'var(--green)';
-      btn.style.borderColor = '#a7f3d0';
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = 'var(--accent-soft)';
-        btn.style.color = 'var(--accent)';
-        btn.style.borderColor = '#bfdbfe';
-      }, 1500);
-    };
-  }
-
   if (els['setup-entry']) {
     els['setup-entry'].addEventListener('change', () => {
       applySetupTemplateIfHelpful();
@@ -1380,8 +1370,6 @@ function bindEvents() {
   if (els['leverage']) {
     const syncLeverage = () => {
       const lev = Math.max(1, Number(getVal('leverage') || 1));
-      state.draftEntries = state.draftEntries.map(row => ({ ...row, leverage: lev }));
-      renderLegs('entry');
       handleFormMutation();
     };
     els['leverage'].addEventListener('change', syncLeverage);
@@ -1472,8 +1460,6 @@ const JOURNAL_SNAPSHOT_FIELDS = [
 function captureJournalSnapshot() {
   return {
     fields: Object.fromEntries(JOURNAL_SNAPSHOT_FIELDS.map(id => [id, getVal(id)])),
-    entries: cloneRows(state.draftEntries),
-    exits: cloneRows(state.draftExits),
     entryCharts: cloneChartItems(state.draftEntryCharts),
     exitCharts: cloneChartItems(state.draftExitCharts),
     liveCharts: cloneChartItems(state.draftLiveCharts),
@@ -1506,13 +1492,9 @@ function applyJournalSnapshot(snapshot, options = {}) {
   if (!snapshot) return;
   state.suspendUndo = true;
   JOURNAL_SNAPSHOT_FIELDS.forEach(id => setVal(id, snapshot.fields?.[id] ?? ''));
-  state.draftEntries = cloneRows(snapshot.entries || [{ price: 0, type: 'M', weight: 100, leverage: Math.max(1, Number(getVal('leverage') || 1)) }]);
-  state.draftExits = cloneRows(snapshot.exits || []);
   state.draftEntryCharts = normalizeChartDraftArray(snapshot.entryCharts);
   state.draftExitCharts = normalizeChartDraftArray(snapshot.exitCharts);
   state.draftLiveCharts = normalizeChartDraftArray(snapshot.liveCharts);
-  renderLegs('entry');
-  renderLegs('exit');
   renderChartInputs('entry');
   renderChartInputs('exit');
   renderChartInputs('live');
@@ -1841,13 +1823,9 @@ function hydrateInitialForm() {
   setVal('desk-rules', state.db.meta.rules || '');
   setTimeout(() => autoResize(els['desk-rules']), 0);
   
-  state.draftEntries = [{ price: 0, type: 'M', weight: 100, leverage: Math.max(1, Number(getVal('leverage') || 1)) }];
-  state.draftExits = [];
   state.draftEntryCharts = [emptyChartItem()];
   state.draftExitCharts = [emptyChartItem()];
   state.draftLiveCharts = [emptyChartItem()];
-  renderLegs('entry');
-  renderLegs('exit');
   renderChartInputs('entry');
   renderChartInputs('exit');
   renderChartInputs('live');
@@ -1861,89 +1839,6 @@ function restoreDraftIfPresent() {
   applyTradeToForm(draft.trade, { keepId: Boolean(draft.trade.id) });
 }
 
-function renderLegs(kind) {
-  const key = kind === 'entry' ? 'draftEntries' : 'draftExits';
-  const target = els[kind === 'entry' ? 'entries' : 'exits'];
-  if(!target) return;
-
-  target.innerHTML = state[key].map((leg, index) => {
-    if (kind === 'entry') {
-      return `
-        <div class="leg-row" data-kind="${kind}" data-index="${index}">
-          <div class="input-with-unit">
-            <span class="unit left">$</span>
-            <input type="number" step="0.01" class="leg-price" value="${safeNumber(leg.price)}" placeholder="Entry Price" />
-          </div>
-          <select class="leg-type" style="width: 100%;">
-            <option value="M" ${leg.type === 'M' ? 'selected' : ''}>Maker</option>
-            <option value="T" ${leg.type === 'T' ? 'selected' : ''}>Taker</option>
-          </select>
-          <div class="input-with-unit">
-            <input type="number" step="0.01" class="leg-weight" value="${safeNumber(leg.weight)}" placeholder="Risk Share" />
-            <span class="unit right">%</span>
-          </div>
-          <div class="input-with-unit">
-            <input type="number" step="0.1" class="leg-leverage" value="${safeNumber(leg.leverage || getVal('leverage') || 1)}" placeholder="Lev" />
-            <span class="unit right">x</span>
-          </div>
-          <button type="button" class="tool-btn leg-delete danger-text" style="color:var(--muted); border-color:var(--line);">✕</button>
-        </div>
-      `;
-    }
-    return `
-      <div class="leg-row" data-kind="${kind}" data-index="${index}">
-        <div class="input-with-unit">
-          <span class="unit left">$</span>
-          <input type="number" step="0.01" class="leg-price" value="${safeNumber(leg.price)}" placeholder="Exit / Target Price" />
-        </div>
-        <select class="leg-type" style="width: 100%;">
-          <option value="M" ${leg.type === 'M' ? 'selected' : ''}>Maker</option>
-          <option value="T" ${leg.type === 'T' ? 'selected' : ''}>Taker</option>
-        </select>
-        <div class="input-with-unit">
-          <input type="number" step="0.01" class="leg-weight" value="${safeNumber(leg.weight)}" placeholder="Close %" />
-          <span class="unit right">%</span>
-        </div>
-        <select class="leg-status" style="width:100%;">
-          <option value="PLANNED" ${leg.status === 'FILLED' ? '' : 'selected'}>Planned</option>
-          <option value="FILLED" ${leg.status === 'FILLED' ? 'selected' : ''}>Filled</option>
-        </select>
-        <button type="button" class="tool-btn leg-delete danger-text" style="color:var(--muted); border-color:var(--line);">✕</button>
-      </div>
-    `;
-  }).join('');
-
-  target.querySelectorAll('.leg-row').forEach(row => {
-    const index = Number(row.dataset.index);
-    row.querySelector('.leg-price').addEventListener('input', event => updateLeg(kind, index, 'price', event.target.value));
-    row.querySelector('.leg-type').addEventListener('change', event => updateLeg(kind, index, 'type', event.target.value));
-    row.querySelector('.leg-weight').addEventListener('input', event => updateLeg(kind, index, 'weight', event.target.value));
-    const lev = row.querySelector('.leg-leverage');
-    if (lev) lev.addEventListener('input', event => updateLeg(kind, index, 'leverage', event.target.value));
-    const status = row.querySelector('.leg-status');
-    if (status) status.addEventListener('change', event => updateLeg(kind, index, 'status', event.target.value));
-    row.querySelector('.leg-delete').onclick = () => deleteLeg(kind, index);
-  });
-}
-
-function updateLeg(kind, index, field, value) {
-  const rows = kind === 'entry' ? state.draftEntries : state.draftExits;
-  rows[index][field] = ['type','status'].includes(field) ? value : Number(value || 0);
-  markDirty();
-  updatePreview();
-  persistDraft();
-}
-
-function deleteLeg(kind, index) {
-  pushUndoSnapshot();
-  const rows = kind === 'entry' ? state.draftEntries : state.draftExits;
-  rows.splice(index, 1);
-  if (kind === 'entry' && !rows.length) rows.push({ price: 0, type: 'M', weight: 100, leverage: Math.max(1, Number(getVal('leverage') || 1)) });
-  renderLegs(kind);
-  markDirty();
-  updatePreview();
-  persistDraft();
-}
 
 function resetFormForce() {
   if (!state.suspendUndo) pushUndoSnapshot();
@@ -1977,14 +1872,10 @@ function resetFormForce() {
   setVal('maker-fee', tpl.makerFee || 0.02);
   setVal('taker-fee', tpl.takerFee || 0.05);
 
-  state.draftEntries = [{ price: 0, type: 'M', weight: 100, leverage: Math.max(1, Number(getVal('leverage') || 1)) }];
-  state.draftExits = [];
   state.draftEntryCharts = [emptyChartItem()];
   state.draftExitCharts = [emptyChartItem()];
   state.draftLiveCharts = [emptyChartItem()];
   
-  renderLegs('entry');
-  renderLegs('exit');
   renderChartInputs('entry');
   renderChartInputs('exit');
   renderChartInputs('live');
@@ -2078,10 +1969,7 @@ function readForm() {
       entryCharts: state.draftEntryCharts.filter(chartItemIsFilled).map(item => ({ timeframe: item.timeframe || DEFAULT_TIMEFRAME, url: sanitizeUrl(item.url) })),
       exitCharts: state.draftExitCharts.filter(chartItemIsFilled).map(item => ({ timeframe: item.timeframe || DEFAULT_TIMEFRAME, url: sanitizeUrl(item.url) })),
       liveCharts: state.draftLiveCharts.filter(chartItemIsFilled).map(item => ({ timeframe: item.timeframe || DEFAULT_TIMEFRAME, url: sanitizeUrl(item.url) })),
-    },
-    entries: cloneRows(state.draftEntries),
-    exits: cloneRows(state.draftExits),
-    pnlAdjustment: Number(getVal('pnl-adjustment') || 0) * Number(getVal('pnl-adjustment-sign') || 1),
+    }
   };
   return normalizeTrade(trade);
 }
@@ -2221,11 +2109,7 @@ function applyTradeToForm(trade, options = {}) {
   state.draftEntryCharts = normalizeChartDraftArray(trade.evidence?.entryCharts);
   state.draftExitCharts = normalizeChartDraftArray(trade.evidence?.exitCharts);
   state.draftLiveCharts = normalizeChartDraftArray(trade.evidence?.liveCharts);
-  state.draftEntries = cloneRows(trade.entries || [{ price: 0, type: 'M', weight: 100 }]);
-  state.draftExits = cloneRows(trade.exits || []);
   
-  renderLegs('entry');
-  renderLegs('exit');
   renderChartInputs('entry');
   renderChartInputs('exit');
   renderChartInputs('live');
@@ -2609,8 +2493,6 @@ function applyPlannerSuggestion() {
     return;
   }
   pushUndoSnapshot();
-  state.draftEntries = cloneRows(state.plannerSuggestion.entries || []).map(row => ({ ...row, leverage: Math.max(1, Number(row.leverage || getVal('leverage') || 1)) }));
-  renderLegs('entry');
   handleFormMutation();
   refreshJournalStatus('추천안 적용 완료');
 }
@@ -3385,14 +3267,6 @@ function renderTradeDetail(trade) {
       <div>Residual Risk</div><div class="mono">${moneyAbs(trade.metrics.residualRisk)} (${trade.metrics.remainingPct.toFixed(1)}% remaining)</div>
     </div>
 
-    <div class="execution-ladder-card">
-      <h4 class="execution-ladder-header">Execution Ladder</h4>
-      <div class="execution-ladder-track">
-        ${renderTimeline('entry', trade.entries)}
-        ${renderTimeline('exit', trade.exits)}
-      </div>
-    </div>
-
     <div style="margin-top:24px;">
       <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">원칙 점검</h4>
       <div class="chips" style="margin-bottom:12px;">
@@ -3427,26 +3301,6 @@ function renderTradeDetail(trade) {
 
   document.getElementById('load-selected-into-journal').onclick = () => openSelectedInJournal(trade.id);
   bindEvidenceOpeners(els['detail']);
-}
-
-function renderTimeline(type, rows) {
-  if (!rows.length) return `
-    <div class="timeline-col">
-      <div class="timeline-dot"></div>
-      <div class="timeline-label">${type.toUpperCase()}</div>
-      <div class="timeline-meta mono">—</div>
-    </div>
-  `;
-  return rows.map((row, idx) => `
-    <div class="timeline-col">
-      <div class="timeline-dot ${type === 'entry' ? 'entry' : 'exit'}"></div>
-      <div class="timeline-label">${type.toUpperCase()} ${idx + 1}</div>
-      <div class="timeline-meta mono">
-        ${safeNumber(row.price)}<br>
-        ${safeNumber(row.weight)}%${type === 'entry' ? `<br>${safeNumber(row.leverage || 1)}x` : `<br>${row.status === 'FILLED' ? 'FILLED' : 'PLAN'}`}
-      </div>
-    </div>
-  `).join('');
 }
 
 function renderDetailInsights(trade, rows) {
@@ -3805,15 +3659,6 @@ function splitCsv(value) {
   return String(value || '').split(',').map(v => v.trim()).filter(Boolean);
 }
 
-function cloneRows(rows) {
-  return (rows || []).map(row => ({
-    price: Number(row.price || 0),
-    type: row.type === 'T' ? 'T' : 'M',
-    weight: Number(row.weight || 0),
-    leverage: Math.max(1, Number(row.leverage || 1)),
-    status: row.status === 'FILLED' ? 'FILLED' : 'PLANNED',
-  }));
-}
 
 function qty(value) {
   return Number(value || 0).toFixed(5);
