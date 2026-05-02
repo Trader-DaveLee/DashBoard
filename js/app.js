@@ -2003,53 +2003,59 @@ function readForm() {
 
 function handleSubmit(event) {
   if (event) event.preventDefault();
-  const trade = readForm();
-  
-  if (trade.metrics.exitExceeds100) {
-    showModal({ type: 'ALERT', title: '계산 오류', desc: `청산 비중 합계가 100%를 초과할 수 없습니다.` });
-    return;
-  }
-  if (!trade.ticker) {
-    showModal({ type: 'ALERT', title: '입력 누락', desc: '티커를 선택해주세요.' });
-    return;
-  }
-  
-  if (trade.grade === 'S' && trade.checkedRules.length < state.db.meta.checklists.length) {
-    showModal({ type: 'ALERT', title: '원칙 위반 경고', desc: 'S등급은 설정한 원칙(체크리스트)을 100% 완벽히 지켰을 때만 부여할 수 있습니다.<br>체크리스트를 확인하거나 등급을 하향 조정하세요.' });
-    return;
-  }
+  try {
+    const trade = readForm();
+    
+    if (trade.metrics.exitExceeds100) {
+      showModal({ type: 'ALERT', title: '계산 오류', desc: `청산 비중 합계가 100%를 초과할 수 없습니다.` });
+      return;
+    }
+    if (!trade.ticker) {
+      showModal({ type: 'ALERT', title: '입력 누락', desc: '티커를 선택해주세요.' });
+      return;
+    }
+    
+    const checklists = state.db.meta.checklists || [];
+    if (trade.grade === 'S' && trade.checkedRules.length < checklists.length) {
+      showModal({ type: 'ALERT', title: '원칙 위반 경고', desc: 'S등급은 설정한 원칙(체크리스트)을 100% 완벽히 지켰을 때만 부여할 수 있습니다.<br>체크리스트를 확인하거나 등급을 하향 조정하세요.' });
+      return;
+    }
 
-  const existingIndex = state.db.trades.findIndex(row => row.id === trade.id);
-  const existing = existingIndex >= 0 ? state.db.trades[existingIndex] : null;
-  const enteredClosedAt = getVal('trade-end-date') ? readDateInputAsIso(getVal('trade-end-date')) : '';
-  trade.updatedAt = nowIso();
-  if (trade.status === 'CLOSED') {
-    trade.closedAt = enteredClosedAt || existing?.closedAt || nowIso();
-  } else {
-    trade.closedAt = '';
+    const existingIndex = state.db.trades.findIndex(row => row.id === trade.id);
+    const existing = existingIndex >= 0 ? state.db.trades[existingIndex] : null;
+    const enteredClosedAt = getVal('trade-end-date') ? readDateInputAsIso(getVal('trade-end-date')) : '';
+    trade.updatedAt = nowIso();
+    if (trade.status === 'CLOSED') {
+      trade.closedAt = enteredClosedAt || existing?.closedAt || nowIso();
+    } else {
+      trade.closedAt = '';
+    }
+    if (existingIndex >= 0) {
+      state.db.trades[existingIndex] = trade;
+    } else {
+      state.db.trades.unshift(trade);
+    }
+
+    state.db.meta.lastTradeForm = {
+      ticker: trade.ticker,
+      side: trade.side,
+    };
+
+    syncMetaFromTrade(trade);
+    state.db.meta.rules = getVal('desk-rules');
+    state.db.meta.accountBalance = Number(state.db.meta.accountBalance || trade.accountSize || 0);
+    saveDB(state.db);
+
+    clearDraft();
+    state.selectedTradeId = trade.id;
+    setVal('trade-id', trade.id);
+    state.dirty = false;
+    render();
+    refreshJournalStatus('저장 완료|로컬 데이터 저장됨');
+  } catch (error) {
+    console.error('[handleSubmit Error]', error);
+    refreshJournalStatus('저장 실패|' + error.message, 'error');
   }
-  if (existingIndex >= 0) {
-    state.db.trades[existingIndex] = trade;
-  } else {
-    state.db.trades.unshift(trade);
-  }
-
-  state.db.meta.lastTradeForm = {
-    ticker: trade.ticker,
-    side: trade.side,
-  };
-
-  syncMetaFromTrade(trade);
-  state.db.meta.rules = getVal('desk-rules');
-  state.db.meta.accountBalance = Number(state.db.meta.accountBalance || trade.accountSize || 0);
-  saveDB(state.db);
-
-  clearDraft();
-  state.selectedTradeId = trade.id;
-  setVal('trade-id', trade.id);
-  state.dirty = false;
-  render();
-  refreshJournalStatus('저장 완료|로컬 데이터 저장됨');
 }
 
 function syncMetaFromTrade(trade) {
