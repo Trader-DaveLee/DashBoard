@@ -1081,6 +1081,7 @@ function openQuickLinkManager() {
 function bindEvents() {
   if(els['modal-btn-cancel']) els['modal-btn-cancel'].onclick = () => { hideModal(); if (modalCallback) modalCallback(null); };
   if(els['btn-refresh-economic']) els['btn-refresh-economic'].onclick = () => fetchEconomicEvents(true);
+  if(els['btn-theme-toggle']) els['btn-theme-toggle'].onclick = toggleTheme;
   
   if(els['modal-btn-confirm']) els['modal-btn-confirm'].onclick = () => {
     hideModal();
