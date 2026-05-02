@@ -714,38 +714,38 @@
           </div>
         </div>
         <div class="filter-grid filter-grid-extended">
-          <label><span>검색</span><input id="q" placeholder="ticker, thesis, tag, mistake..." /></label>
+          <label><span>Search</span><input id="q" placeholder="ticker, thesis, tag, mistake..." /></label>
           <label><span>From</span><input id="f-from" type="date" /></label>
           <label><span>To</span><input id="f-to" type="date" /></label>
-          <label><span>상태</span><select id="f-status">
+          <label><span>Status</span><select id="f-status">
               <option value="ALL">ALL</option>
               <option>OPEN</option>
               <option>CLOSED</option>
             </select></label>
-          <label><span>방향</span><select id="f-side">
+          <label><span>Direction</span><select id="f-side">
               <option value="ALL">ALL</option>
               <option>LONG</option>
               <option>SHORT</option>
             </select></label>
-          <label><span>셋업</span><input id="f-setup" placeholder="BREAKOUT" /></label>
-          <label><span>태그</span><input id="f-tag" placeholder="trend, sweep" /></label>
-          <label><span>실수</span><input id="f-mistake" placeholder="fomo, early exit" /></label>
-          <label><span>Grade</span><select id="f-grade">
+          <label><span>Setup</span><input id="f-setup" placeholder="BREAKOUT" /></label>
+          <label><span>Tags</span><input id="f-tag" placeholder="trend, sweep" /></label>
+          <label><span>Mistakes</span><input id="f-mistake" placeholder="fomo, early exit" /></label>
+          <label><span>Grade</span><select id="f-grade" class="eval-grade-select">
               <option value="ALL">ALL</option>
               <option>S</option>
               <option>A</option>
               <option>B</option>
               <option>C</option>
-              <option>D</option>
+              <option>F</option>
             </select></label>
-          <label><span>정렬</span><select id="sort">
-              <option value="newest">최신순</option>
-              <option value="oldest">오래된순</option>
-              <option value="bestR">R 높은순</option>
-              <option value="worstR">R 낮은순</option>
+          <label><span>Sort</span><select id="sort">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="bestR">Best R</option>
+              <option value="worstR">Worst R</option>
             </select></label>
           <div class="inline-actions align-end">
-            <button id="clear-filters" type="button" class="tool-btn">필터 초기화</button>
+            <button id="clear-filters" type="button" class="tool-btn">Reset Filters</button>
           </div>
         </div>
 
@@ -756,11 +756,11 @@
             <span class="subtle-pill white" id="review-breadcrumb">선택 없음</span>
           </div>
           <div class="inline-actions">
-            <button id="prev-trade" type="button" class="tool-btn">이전</button>
-            <button id="next-trade" type="button" class="tool-btn">다음</button>
-            <button id="filter-same-setup" type="button" class="tool-btn">같은 셋업</button>
-            <button id="filter-same-ticker" type="button" class="tool-btn">같은 종목</button>
-            <button id="clear-quick-filter" type="button" class="tool-btn">필터 해제</button>
+            <button id="prev-trade" type="button" class="tool-btn">Prev</button>
+            <button id="next-trade" type="button" class="tool-btn">Next</button>
+            <button id="filter-same-setup" type="button" class="tool-btn">Same Setup</button>
+            <button id="filter-same-ticker" type="button" class="tool-btn">Same Ticker</button>
+            <button id="clear-quick-filter" type="button" class="tool-btn">Clear Filter</button>
           </div>
         </div>
 
@@ -768,17 +768,17 @@
           <table>
             <thead>
               <tr>
-                <th>날짜</th>
-                <th>상태</th>
-                <th>티커</th>
-                <th>방향 (Direction)</th>
-                <th>셋업 (Entry Setup)</th>
-                <th>AVG IN (Avg In)</th>
-                <th>AVG OUT (Avg Out)</th>
-                <th>PNL (Final P&L)</th>
-                <th>R (Final R-multiple)</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Ticker</th>
+                <th>Direction</th>
+                <th>Entry Setup</th>
+                <th>Avg In</th>
+                <th>Avg Out</th>
+                <th>Final P&amp;L</th>
+                <th>Final R-Multiple</th>
                 <th>Grade</th>
-                <th>태그 (Tags)</th>
+                <th>Tags</th>
               </tr>
             </thead>
             <tbody id="trade-table"></tbody>
