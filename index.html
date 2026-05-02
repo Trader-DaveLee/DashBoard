@@ -1013,11 +1013,21 @@
         <label><span>Date</span><input type="date" id="eco-date" /></label>
         <label><span>Time</span><input type="time" id="eco-time" /></label>
         <label><span>Title</span><input type="text" id="eco-title" placeholder="예: FOMC 성명서 발표" /></label>
+        <label><span>Country</span>
+          <select id="eco-country">
+            <option value="ALL">🌐 ALL</option>
+            <option value="US">🇺🇸 USA</option>
+            <option value="EU">🇪🇺 EURO</option>
+            <option value="JP">🇯🇵 JPN</option>
+            <option value="CN">🇨🇳 CHN</option>
+            <option value="KR">🇰🇷 KOR</option>
+          </select>
+        </label>
         <label><span>Importance</span>
           <select id="eco-impact">
-            <option value="LOW">Low</option>
-            <option value="MID">Mid</option>
             <option value="HIGH">High</option>
+            <option value="MID">Mid</option>
+            <option value="LOW">Low</option>
           </select>
         </label>
         <label><span>Memo</span><textarea id="eco-memo" rows="3" placeholder="주요 관전 포인트..."></textarea></label>

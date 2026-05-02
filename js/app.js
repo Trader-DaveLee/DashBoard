@@ -348,6 +348,9 @@ function saveManualEcoEvents(events) {
 }
 
 const IMPACT_SCORE = { high: 3, med: 2, low: 1 };
+const COUNTRY_FLAGS = {
+  'ALL': '🌐', 'US': '🇺🇸', 'EU': '🇪🇺', 'JP': '🇯🇵', 'CN': '🇨🇳', 'KR': '🇰🇷'
+};
 
 // V2.0.1: Fallback data for emergency recovery
 const MOCK_ECO_RECOVERY_DATA = [
@@ -404,8 +407,9 @@ async function fetchEconomicEvents(forceRefresh = false) {
                   <span class="eco-time" style="font-weight:700; font-size:14px;">${ev.time}</span>
                 </div>
                 <div class="eco-main" data-id="${ev.timestamp}" style="cursor:pointer;">
-                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
                     <div class="eco-impact-badge impact-${ev.impact}" style="font-size:9px; padding:2px 6px;">${ev.impact.toUpperCase()}</div>
+                    <span style="font-size:14px;" title="${ev.country}">${COUNTRY_FLAGS[ev.country] || '🌐'}</span>
                   </div>
                   <div class="eco-label-text" style="font-weight:600; font-size:14px;">${ev.label}</div>
                 </div>
@@ -503,6 +507,7 @@ function saveManualEconomicEvent() {
   const dateVal = document.getElementById('eco-date').value;
   const timeVal = document.getElementById('eco-time').value;
   const title = document.getElementById('eco-title').value;
+  const country = document.getElementById('eco-country').value;
   const impact = document.getElementById('eco-impact').value;
   const memo = document.getElementById('eco-memo').value;
 
@@ -521,7 +526,7 @@ function saveManualEconomicEvent() {
   const newItem = {
     date: dateVal,
     time: timeVal || '00:00',
-    country: 'ALL',
+    country: country || 'ALL',
     label: title,
     memo: memo || '',
     impact: impact.toLowerCase(),
@@ -572,7 +577,9 @@ function openEcoDetail(id) {
 
   document.getElementById('detail-eco-title').innerText = ev.label;
   document.getElementById('detail-eco-time').innerText = `${ev.date} ${ev.time}`;
-  document.getElementById('detail-eco-country').innerText = ev.country === 'ALL' ? '🌐 ALL' : ev.country;
+  
+  const flag = COUNTRY_FLAGS[ev.country] || '🌐';
+  document.getElementById('detail-eco-country').innerText = `${flag} ${ev.country}`;
 
   const impactBadge = document.getElementById('detail-eco-impact');
   if (impactBadge) {
