@@ -550,7 +550,7 @@ function saveManualEconomicEvent() {
   document.getElementById('eco-time').value = '';
   document.getElementById('eco-title').value = '';
   document.getElementById('eco-memo').value = '';
-  document.getElementById('eco-impact').value = 'LOW';
+  document.getElementById('eco-impact').value = 'HIGH';
 }
 
 function deleteManualEconomicEvent(id) {
