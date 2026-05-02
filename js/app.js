@@ -1546,6 +1546,10 @@ export function renderViews() {
   if (state.view === 'journal') {
     setTimeout(() => {
       document.querySelectorAll('textarea.auto-resize').forEach(ta => autoResize(ta));
+      // 저널 탭 진입 시 차트 입력란이 비어있어도 최소 한 줄은 보이도록 강제 렌더링
+      renderChartInputs('entry');
+      renderChartInputs('exit');
+      renderChartInputs('live');
     }, 10);
   }
   
