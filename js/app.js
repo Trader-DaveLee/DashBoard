@@ -3043,34 +3043,35 @@ function renderTradeDetail(trade) {
       <div>PnL / R</div><div class="mono ${(trade.metrics?.pnl || 0) > 0 ? 'positive' : (trade.metrics?.pnl || 0) < 0 ? 'negative' : ''}">${money(trade.metrics?.pnl || 0)} / ${Number(trade.metrics?.r || 0).toFixed(2)}R</div>
     </div>
 
-    <div class="execution-ladder-card">
-      <h4 class="execution-ladder-header">Execution Ladder</h4>
-      <div class="execution-ladder-track">
-        ${renderTimeline('entry', trade.entries)}
-        ${renderTimeline('exit', trade.exits)}
-      </div>
-    </div>
-
     <div style="margin-top:24px;">
-      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">원칙 점검</h4>
+      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">Rule Verification</h4>
       <div class="chips" style="margin-bottom:12px;">
          ${(trade.checkedRules || []).length ? trade.checkedRules.map(r => `<span class="chip" style="background:var(--green-soft); color:var(--green); border-color:#a7f3d0;">✓ ${escapeHtml(r)}</span>`).join('') : '<span class="muted-caption" style="font-size:12px;">체크된 항목 없음</span>'}
       </div>
     </div>
 
-    <div style="margin-top:24px;">
-      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">Pre-trade</h4>
-      <p style="margin:0 0 8px; color:var(--text-main);"><strong>Context:</strong> ${escapeHtml(trade.context || '—')}</p>
-      <p style="margin:0; color:var(--text-main);"><strong>Thesis:</strong> ${escapeHtml(trade.thesis || '—')}</p>
+    <div style="margin-top:24px; padding:16px; background:var(--bg-panel); border:1px dashed var(--border-main); border-radius:12px;">
+      <h4 style="margin:0 0 12px; font-size:13px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Pre-trade Plan</h4>
+      <div style="display:grid; gap:12px;">
+        <div>
+          <div style="font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:4px;">Market Context</div>
+          <div style="font-size:14px; color:var(--text-main); line-height:1.5;">${escapeHtml(trade.context || '—')}</div>
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:4px;">Entry Thesis & Invalidation</div>
+          <div style="font-size:14px; color:var(--text-main); line-height:1.5;">${escapeHtml(trade.thesis || '—')}</div>
+        </div>
+      </div>
     </div>
 
     <div style="margin-top:24px;">
-      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">Review</h4>
-      <p style="margin:0 0 12px; color:var(--text-main);">${escapeHtml(trade.review || '—')}</p>
-      <strong style="font-size:13px; color:var(--text-main);">Live Notes:</strong>
-      <div style="margin-top:8px; padding:16px; background:var(--bg-input); border-radius:12px; font-family:monospace; font-size:12px; white-space:pre-wrap; color:var(--text-main);">${escapeHtml(trade.liveNotes || '—')}</div>
-      <div class="chips" style="margin-top:12px;">${(trade.tags || []).map(tag => `<span class="chip">#${escapeHtml(tag)}</span>`).join(' ') || '<span class="chip">태그 없음</span>'}</div>
-      <div class="chips">${(trade.mistakes || []).map(tag => `<span class="chip danger-chip">${escapeHtml(tag)}</span>`).join(' ') || '<span class="chip">실수 없음</span>'}</div>
+      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">Review & Reflections</h4>
+      <div style="padding:20px; background:var(--bg-input); border:1px solid var(--border-main); border-radius:12px; font-size:14.5px; line-height:1.7; white-space:pre-wrap; color:var(--text-main); min-height:80px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">${escapeHtml(trade.review || '작성된 복기 내용이 없습니다.')}</div>
+      
+      <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:8px;">
+        ${(trade.tags || []).map(tag => `<span class="chip" style="font-weight:700;">#${escapeHtml(tag)}</span>`).join('') || '<span class="chip">태그 없음</span>'}
+        ${(trade.mistakes || []).map(tag => `<span class="chip danger-chip" style="font-weight:700;">#${escapeHtml(tag)}</span>`).join('') || ''}
+      </div>
     </div>
 
     <div style="margin-top:24px;">
