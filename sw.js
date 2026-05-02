@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trading-dashboard-v12';
+const CACHE_NAME = 'trading-dashboard-v14';
 const urlsToCache = [
   './',
   './index.html',

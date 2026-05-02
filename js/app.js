@@ -3017,6 +3017,8 @@ function filterLibraryTrades() {
     if (sort === 'oldest') return new Date(a.date) - new Date(b.date);
     if (sort === 'bestR') return (b.metrics?.r || 0) - (a.metrics?.r || 0);
     if (sort === 'worstR') return (a.metrics?.r || 0) - (b.metrics?.r || 0);
+    if (sort === 'bestPnL') return (b.metrics?.pnl || 0) - (a.metrics?.pnl || 0);
+    if (sort === 'worstPnL') return (a.metrics?.pnl || 0) - (b.metrics?.pnl || 0);
     return new Date(b.date) - new Date(a.date);
   });
 
