@@ -2955,8 +2955,8 @@ function renderLibrary() {
       <td data-label="티커" style="font-weight:800; color:var(--text-main); font-size:14px;">${escapeHtml(trade.ticker)}</td>
       <td data-label="방향">${trade.side || '-'}</td>
       <td data-label="셋업">${escapeHtml(trade.setupEntry || '-')}</td>
-      <td data-label="Avg In" class="mono">${money(trade.averageIn)}</td>
-      <td data-label="Avg Out" class="mono">${money(trade.averageOut)}</td>
+      <td data-label="Avg In" class="mono">${moneyAbsNatural(trade.averageIn)}</td>
+      <td data-label="Avg Out" class="mono">${moneyAbsNatural(trade.averageOut)}</td>
       <td data-label="PnL" class="mono ${(trade.metrics?.pnl || 0) > 0 ? 'positive' : (trade.metrics?.pnl || 0) < 0 ? 'negative' : ''}" style="font-weight:800;">${money(trade.metrics?.pnl || 0)}</td>
       <td data-label="R" class="mono ${(trade.metrics?.r || 0) > 0 ? 'positive' : (trade.metrics?.r || 0) < 0 ? 'negative' : ''}" style="font-weight:800;">${Number(trade.metrics?.r || 0).toFixed(2)}R</td>
       <td data-label="Grade"><span class="badge ${trade.grade === 'S' || trade.grade === 'A' ? 'badge-good' : ''}" style="width:24px; height:24px; display:inline-grid; place-items:center; padding:0; border-radius:50%;">${trade.grade || '-'}</span></td>
@@ -3484,17 +3484,19 @@ function qty(value) {
 }
 
 function money(value) {
-  const num = Number(value || 0);
+  const num = Math.trunc(Number(value || 0));
   const sign = num > 0 ? '+' : '';
-  return `${sign}$${num.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`;
+  return `${sign}$${num.toLocaleString()}`;
 }
 
 function moneyAbs(value) {
-  return `$${Math.abs(Number(value || 0)).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`;
+  const num = Math.trunc(Number(value || 0));
+  return `$${Math.abs(num).toLocaleString()}`;
 }
 
 function moneyAbsNatural(value) {
-  return `$${Math.abs(Math.round(Number(value || 0))).toLocaleString()}`;
+  const num = Math.trunc(Number(value || 0));
+  return `$${Math.abs(num).toLocaleString()}`;
 }
 
 function moneyCompact(value) {
