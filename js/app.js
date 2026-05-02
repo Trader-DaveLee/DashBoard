@@ -2434,8 +2434,12 @@ function renderOverviewHistory() {
         <div class="overview-history-compact-grid">
           <div class="overview-history-main" data-action="open">
             <div>
-              <div class="overview-history-title" style="margin-bottom: 4px;">
-                <span style="font-size: 15px;">${escapeHtml(trade.ticker)}</span>
+              <div class="overview-history-title" style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 15px; font-weight: 800;">${escapeHtml(trade.ticker)}</span>
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">${(() => {
+                  const d = new Date(trade.date);
+                  return isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()}`;
+                })()}</span>
                 <span class="badge ${trade.status === 'OPEN' ? 'badge-open' : 'badge-closed'}" style="font-size: 10px; padding: 1px 6px;">${escapeHtml(trade.status)}</span>
               </div>
               <div class="overview-history-sub" style="margin-bottom: 6px; font-size: 12px;">
