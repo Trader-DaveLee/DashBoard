@@ -104,6 +104,42 @@
       gap: 8px;
       align-items: stretch;
     }
+    .search-results-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border-main);
+      border-radius: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+      position: absolute;
+      width: calc(100% - 40px);
+      z-index: 1000;
+      box-shadow: var(--shadow-lg);
+    }
+    .search-results-box.show { display: block; }
+    .search-result-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .search-result-item:hover { background: var(--bg-panel); color: var(--accent); }
+    .search-result-item:last-child { border-bottom: none; }
+    .ticker-item-mini {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-main);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .ticker-item-mini strong { font-size: 14px; color: var(--text-main); }
+    .ticker-item-mini .muted-caption { font-size: 11px; }
     .time-selector-group input, .time-selector-group select {
       height: 48px !important;
       padding: 0 12px !important;
@@ -928,6 +964,66 @@
       </div>
       <div class="modal-actions" style="margin-top: 20px;">
         <button id="guide-close" class="tool-btn primary-btn" style="width:100%;">가이드 닫기</button>
+      </div>
+    </div>
+  </div>
+  <!-- Ticker Settings Modal -->
+  <div id="ticker-settings-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 720px; max-width: 95vw;">
+      <div class="modal-title">Ticker Board Settings</div>
+      <div class="grid grid-2" style="gap: 20px;">
+        <article>
+          <h4 style="margin: 0 0 12px; font-size: 14px;">Stocks / Indices Search</h4>
+          <input type="text" id="stock-search-input" placeholder="Search Symbol or Name..." style="width: 100%; margin-bottom: 8px;" />
+          <div id="stock-search-results" class="search-results-box"></div>
+        </article>
+        <article>
+          <h4 style="margin: 0 0 12px; font-size: 14px;">Crypto Search (Bybit)</h4>
+          <input type="text" id="crypto-search-input" placeholder="Search BTC, ETH, etc..." style="width: 100%; margin-bottom: 8px;" />
+          <div id="crypto-search-results" class="search-results-box"></div>
+        </article>
+      </div>
+      <div style="margin-top: 24px;">
+        <h4 style="margin: 0 0 12px; font-size: 14px;">Selected Tickers (Drag to reorder - Coming soon)</h4>
+        <div id="selected-tickers-list" class="stack" style="max-height: 200px; overflow-y: auto;"></div>
+      </div>
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button id="ticker-settings-close" class="tool-btn">Close</button>
+        <button id="btn-save-ticker-settings" class="tool-btn primary-btn">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Economic Event Modal -->
+  <div id="eco-entry-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 500px; max-width: 95vw;">
+      <div class="modal-title">Add Economic Event</div>
+      <div class="stack" style="gap:16px;">
+        <label><span>Date</span><input type="date" id="eco-date" /></label>
+        <label><span>Time</span><input type="time" id="eco-time" /></label>
+        <label><span>Title</span><input type="text" id="eco-title" placeholder="예: FOMC 성명서 발표" /></label>
+        <label><span>Importance</span>
+          <select id="eco-impact">
+            <option value="LOW">Low</option>
+            <option value="MID">Mid</option>
+            <option value="HIGH">High</option>
+          </select>
+        </label>
+        <label><span>Memo</span><textarea id="eco-memo" rows="3" placeholder="주요 관전 포인트..."></textarea></label>
+      </div>
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button id="btn-close-eco-entry" class="tool-btn">Cancel</button>
+        <button id="btn-save-eco-event" class="tool-btn primary-btn">Add Event</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="eco-detail-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 440px; max-width: 95vw;">
+      <div class="modal-title" id="eco-detail-title">Event Detail</div>
+      <div id="eco-detail-content" style="font-size: 14px; line-height:1.6; color:var(--text-main);"></div>
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button id="btn-close-eco-detail" class="tool-btn primary-btn" style="width:100%;">Close</button>
       </div>
     </div>
   </div>
