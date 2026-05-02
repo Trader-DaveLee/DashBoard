@@ -3033,12 +3033,12 @@ function renderTradeDetail(trade) {
 
   setHtml('detail', `
     <div class="detail-actions detail-actions-right">
-      <button type="button" class="tool-btn primary-btn detail-load-btn" id="load-selected-into-journal">Journal로 불러오기</button>
+      <button type="button" class="tool-btn primary-btn detail-load-btn" id="load-selected-into-journal">Load into Journal</button>
     </div>
     <div class="kv">
-      <div>티커</div><div><strong>${escapeHtml(trade.ticker)}</strong> · ${escapeHtml(trade.side)} · ${escapeHtml(trade.status)}</div>
+      <div>Ticker</div><div><strong>${escapeHtml(trade.ticker)}</strong> · ${escapeHtml(trade.side)} · ${escapeHtml(trade.status)}</div>
       <div>Setup</div><div>${escapeHtml(trade.setupEntry || '—')} → ${escapeHtml(trade.setupExit || '—')}</div>
-      <div>시작 / 종료</div><div>${formatDateTime(trade.date)} / ${trade.closedAt ? formatDateTime(trade.closedAt) : '—'}</div>
+      <div>Open / Close</div><div>${formatDateTime(trade.date)} / ${trade.closedAt ? formatDateTime(trade.closedAt) : '—'}</div>
       <div>Grade</div><div><span class="badge ${trade.grade === 'S' || trade.grade === 'A' ? 'badge-good' : ''}">${escapeHtml(trade.grade)}</span></div>
       <div>PnL / R</div><div class="mono ${(trade.metrics?.pnl || 0) > 0 ? 'positive' : (trade.metrics?.pnl || 0) < 0 ? 'negative' : ''}">${money(trade.metrics?.pnl || 0)} / ${Number(trade.metrics?.r || 0).toFixed(2)}R</div>
     </div>
@@ -3046,12 +3046,12 @@ function renderTradeDetail(trade) {
     <div style="margin-top:24px;">
       <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">Rule Verification</h4>
       <div class="chips" style="margin-bottom:12px;">
-         ${(trade.checkedRules || []).length ? trade.checkedRules.map(r => `<span class="chip" style="background:var(--green-soft); color:var(--green); border-color:#a7f3d0;">✓ ${escapeHtml(r)}</span>`).join('') : '<span class="muted-caption" style="font-size:12px;">체크된 항목 없음</span>'}
+         ${(trade.checkedRules || []).length ? trade.checkedRules.map(r => `<span class="chip" style="background:var(--green-soft); color:var(--green); border-color:#a7f3d0;">✓ ${escapeHtml(r)}</span>`).join('') : '<span class="muted-caption" style="font-size:12px;">No rules checked</span>'}
       </div>
     </div>
 
     <div style="margin-top:24px; padding:16px; background:var(--bg-panel); border:1px dashed var(--border-main); border-radius:12px;">
-      <h4 style="margin:0 0 12px; font-size:13px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Pre-trade Plan</h4>
+      <h4 style="margin:0 0 12px; font-size:13px; font-weight:800; color:var(--text-main); text-transform:uppercase; letter-spacing:0.5px;">Pre-trade Plan</h4>
       <div style="display:grid; gap:12px;">
         <div>
           <div style="font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:4px;">Market Context</div>
@@ -3065,22 +3065,22 @@ function renderTradeDetail(trade) {
     </div>
 
     <div style="margin-top:24px;">
-      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">Review & Reflections</h4>
-      <div style="padding:20px; background:var(--bg-input); border:1px solid var(--border-main); border-radius:12px; font-size:14.5px; line-height:1.7; white-space:pre-wrap; color:var(--text-main); min-height:80px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">${escapeHtml(trade.review || '작성된 복기 내용이 없습니다.')}</div>
+      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800; color:var(--accent);">Trade Review</h4>
+      <div style="padding:20px; background:var(--bg-input); border:1px solid var(--border-main); border-radius:12px; font-size:14.5px; line-height:1.7; white-space:pre-wrap; color:var(--text-main); min-height:80px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">${escapeHtml(trade.review || 'No review content written.')}</div>
       
       <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:8px;">
-        ${(trade.tags || []).map(tag => `<span class="chip" style="font-weight:700;">#${escapeHtml(tag)}</span>`).join('') || '<span class="chip">태그 없음</span>'}
+        ${(trade.tags || []).map(tag => `<span class="chip" style="font-weight:700;">#${escapeHtml(tag)}</span>`).join('') || '<span class="chip">No Tags</span>'}
         ${(trade.mistakes || []).map(tag => `<span class="chip danger-chip" style="font-weight:700;">#${escapeHtml(tag)}</span>`).join('') || ''}
       </div>
     </div>
 
     <div style="margin-top:24px;">
-      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">Evidence (Charts)</h4>
+      <h4 style="margin:0 0 8px; font-size:14px; font-weight:800;">Charts</h4>
       ${renderEvidenceItems([
         ...(trade.evidence?.entryCharts || []).map((item, idx) => ({ label: chartRowLabel('entry', item?.timeframe || DEFAULT_TIMEFRAME), url: item?.url || item })),
         ...(trade.evidence?.exitCharts || []).map((item, idx) => ({ label: chartRowLabel('exit', item?.timeframe || DEFAULT_TIMEFRAME), url: item?.url || item })),
         ...(trade.evidence?.liveCharts || []).map((item, idx) => ({ label: chartRowLabel('live', item?.timeframe || DEFAULT_TIMEFRAME), url: item?.url || item })),
-      ], { emptyText: '차트 증거 없음' })}
+      ], { emptyText: 'No charts available' })}
     </div>
   `);
 
