@@ -185,23 +185,7 @@ const AVAILABLE_CRYPTO = [
 ];
 
 // V1.9.8 expanded US Stocks DB (Top 100+ S&P500 / Nasdaq)
-const AVAILABLE_STOCKS = [
-  { sym: 'AAPL', name: 'Apple' }, { sym: 'MSFT', name: 'Microsoft' }, { sym: 'GOOGL', name: 'Alphabet' }, { sym: 'AMZN', name: 'Amazon' }, { sym: 'TSLA', name: 'Tesla' },
-  { sym: 'NVDA', name: 'Nvidia' }, { sym: 'META', name: 'Meta' }, { sym: 'BRK.B', name: 'Berkshire' }, { sym: 'UNH', name: 'UnitedHealth' }, { sym: 'JNJ', name: 'J&J' },
-  { sym: 'V', name: 'Visa' }, { sym: 'WMT', name: 'Walmart' }, { sym: 'XOM', name: 'Exxon' }, { sym: 'PG', name: 'P&G' }, { sym: 'MA', name: 'Mastercard' },
-  { sym: 'AVGO', name: 'Broadcom' }, { sym: 'HD', name: 'Home Depot' }, { sym: 'CVX', name: 'Chevron' }, { sym: 'MRK', name: 'Merck' }, { sym: 'KO', name: 'Coca-Cola' },
-  { sym: 'ABBV', name: 'AbbVie' }, { sym: 'PEP', name: 'PepsiCo' }, { sym: 'ADBE', name: 'Adobe' }, { sym: 'COST', name: 'Costco' }, { sym: 'BAC', name: 'BofA' },
-  { sym: 'ACN', name: 'Accenture' }, { sym: 'CSCO', name: 'Cisco' }, { sym: 'NFLX', name: 'Netflix' }, { sym: 'CRM', name: 'Salesforce' }, { sym: 'LIN', name: 'Linde' },
-  { sym: 'ABT', name: 'Abbott' }, { sym: 'AMD', name: 'AMD' }, { sym: 'ORCL', name: 'Oracle' }, { sym: 'DIS', name: 'Disney' }, { sym: 'TXN', name: 'TI' },
-  { sym: 'WFC', name: 'Wells Fargo' }, { sym: 'VZ', name: 'Verizon' }, { sym: 'DHR', name: 'Danaher' }, { sym: 'INTU', name: 'Intuit' }, { sym: 'INTC', name: 'Intel' },
-  { sym: 'QCOM', name: 'Qualcomm' }, { sym: 'IBM', name: 'IBM' }, { sym: 'CAT', name: 'Caterpillar' }, { sym: 'NEE', name: 'NextEra' }, { sym: 'AMAT', name: 'AppliedMat' },
-  { sym: 'GE', name: 'GE' }, { sym: 'LOW', name: 'Lowe\'s' }, { sym: 'HON', name: 'Honeywell' }, { sym: 'MS', name: 'Morgan Stanley' }, { sym: 'GS', name: 'Goldman' },
-  { sym: 'UBER', name: 'Uber' }, { sym: 'ABNB', name: 'Airbnb' }, { sym: 'PDD', name: 'Pinduoduo' }, { sym: 'SHOP', name: 'Shopify' }, { sym: 'PLTR', name: 'Palantir' },
-  { sym: 'PYPL', name: 'PayPal' }, { sym: 'NKE', name: 'Nike' }, { sym: 'SBUX', name: 'Starbucks' }, { sym: 'BMY', name: 'Bristol-Myers' }, { sym: 'RTX', name: 'Raytheon' },
-  { sym: 'PFE', name: 'Pfizer' }, { sym: 'UPS', name: 'UPS' }, { sym: 'C', name: 'Citigroup' }, { sym: 'BA', name: 'Boeing' }, { sym: 'T', name: 'AT&T' },
-  { sym: 'NOW', name: 'ServiceNow' }, { sym: 'AXP', name: 'AmEx' }, { sym: 'TMO', name: 'ThermoFisher' }, { sym: 'SPGI', name: 'S&P Global' }, { sym: 'DE', name: 'Deere' },
-  { sym: 'LMT', name: 'Lockheed' }, { sym: 'SYK', name: 'Stryker' }, { sym: 'MDLZ', name: 'Mondelez' }, { sym: 'TJX', name: 'TJ Maxx' }, { sym: 'ISRG', name: 'Intuitive' }
-];
+// V3.1.0: Real-time search removed the need for hardcoded AVAILABLE_STOCKS
 
 function initPriceTicker() {
   const saved = localStorage.getItem('ticker_symbols');
@@ -619,40 +603,24 @@ function openTickerSettings() {
 
   renderSelectedTickers();
   
-  // Stock Search (Hybrid results focused on stocks)
   stockSearch.oninput = async (e) => {
-    const query = e.target.value.toUpperCase();
+    const query = e.target.value.trim();
     if (query.length < 1) {
       document.getElementById('stock-search-results').classList.remove('show');
       return;
     }
-    const stockResults = AVAILABLE_STOCKS
-      .filter(s => s.sym.includes(query) || s.name.toUpperCase().includes(query))
-      .slice(0, 10)
-      .map(s => ({ symbol: s.sym, name: s.name, type: 'stock' }));
-    renderSearchResults(stockResults, 'stock-search-results');
+    const results = await MarketService.searchStocks(query);
+    renderSearchResults(results, 'stock-search-results');
   };
 
-  // Crypto Search (Live Bybit search)
   cryptoSearch.oninput = async (e) => {
-    const query = e.target.value.toUpperCase();
+    const query = e.target.value.trim();
     if (query.length < 1) {
       document.getElementById('crypto-search-results').classList.remove('show');
       return;
     }
-    try {
-      const resp = await fetch(`https://api.bybit.com/v5/market/tickers?category=linear`);
-      const json = await resp.json();
-      if (json.retCode === 0) {
-        const results = json.result.list
-          .filter(d => d.symbol.includes(query))
-          .slice(0, 10)
-          .map(d => ({ symbol: d.symbol, name: 'Linear Perpetual', type: 'crypto' }));
-        renderSearchResults(results, 'crypto-search-results');
-      }
-    } catch (err) {
-      console.warn('[Crypto Search Error]', err);
-    }
+    const results = await MarketService.searchCrypto(query);
+    renderSearchResults(results, 'crypto-search-results');
   };
 
   modal.classList.add('show');
@@ -683,8 +651,8 @@ window.addTickerFromSearch = (symbol) => {
     renderSelectedTickers();
   }
   // Hide both popovers
-  document.querySelectorAll('.search-results-popover').forEach(p => p.classList.remove('show'));
-  document.querySelectorAll('.ticker-search-input').forEach(i => i.value = '');
+  document.querySelectorAll('.search-results-box').forEach(p => p.classList.remove('show'));
+  document.querySelectorAll('#stock-search-input, #crypto-search-input').forEach(i => i.value = '');
 };
 
 function sortTickerSymbols() {

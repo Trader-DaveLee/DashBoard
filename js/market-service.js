@@ -185,6 +185,75 @@ const MarketService = {
   },
 
   /**
+   * V3.1.0: Real-time Search for Stocks (Yahoo Finance Autocomplete)
+   */
+  async searchStocks(query) {
+    if (!query) return [];
+    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0&listsCount=0`;
+    const proxies = [this.proxyAlternative, this.proxySecondary, this.proxyPrimary];
+
+    for (const proxy of proxies) {
+      try {
+        const fullUrl = proxy.includes('?') ? (proxy + encodeURIComponent(url)) : (proxy + url);
+        const resp = await this.fetchWithTimeout(fullUrl, {}, 4000);
+        if (resp && resp.ok) {
+          const json = await resp.json();
+          const data = json.contents ? JSON.parse(json.contents) : json;
+          if (data.quotes) {
+            return data.quotes
+              .filter(q => q.quoteType === 'EQUITY' || q.quoteType === 'INDEX')
+              .map(q => ({
+                symbol: q.symbol,
+                name: q.shortname || q.longname || q.symbol,
+                type: 'stock'
+              }));
+          }
+        }
+      } catch (e) { continue; }
+    }
+    return [];
+  },
+
+  /**
+   * V3.1.0: Real-time Search for Crypto (Bybit Symbol Search)
+   */
+  async searchCrypto(query) {
+    if (!query) return [];
+    const url = `https://api.bybit.com/v5/market/instruments-info?category=linear`;
+    // We fetch all and filter client-side for better UX in crypto
+    try {
+      const cacheKey = 'mkt_bybit_symbols';
+      let symbols = this.loadCache(cacheKey);
+      
+      if (!symbols) {
+        const proxies = [this.proxyAlternative, this.proxySecondary, this.proxyPrimary];
+        for (const proxy of proxies) {
+          try {
+            const fullUrl = proxy.includes('?') ? (proxy + encodeURIComponent(url)) : (proxy + url);
+            const resp = await this.fetchWithTimeout(fullUrl, {}, 5000);
+            if (resp && resp.ok) {
+              const json = await resp.json();
+              const data = json.contents ? JSON.parse(json.contents) : json;
+              if (data.retCode === 0) {
+                symbols = data.result.list.map(s => ({ symbol: s.symbol, name: s.baseCoin, type: 'crypto' }));
+                this.saveCache(cacheKey, symbols, 1440); // Cache for 24h
+                break;
+              }
+            }
+          } catch (e) { continue; }
+        }
+      }
+
+      if (symbols) {
+        return symbols
+          .filter(s => s.symbol.includes(query.toUpperCase()))
+          .slice(0, 10);
+      }
+    } catch (e) { console.error(e); }
+    return [];
+  },
+
+  /**
    * Parallel update for everything
    */
   async updateAll(symbols) {
