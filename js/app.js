@@ -74,7 +74,7 @@ const ID_LIST = [
   'app-modal','modal-title','modal-desc','modal-input','modal-btn-cancel','modal-btn-confirm',
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',
   'ql-modal','ql-name','ql-url','ql-icon','ql-add','ql-items','ql-close','open-guide-btn','guide-modal','guide-close',
-  'btn-theme-toggle'
+  'btn-theme-toggle', 'eco-search-input', 'eco-month-filter'
 ];
 
 window.__desk = {
@@ -356,56 +356,64 @@ const MOCK_ECO_RECOVERY_DATA = [
 
 async function fetchEconomicEvents(forceRefresh = false) {
   const container = document.getElementById('economic-indicator-list');
-  const pageInfo = document.getElementById('eco-page-info');
-  if (!container || !pageInfo) return;
+  if (!container) return;
+
+  const searchInput = document.getElementById('eco-search-input');
+  const monthFilter = document.getElementById('eco-month-filter');
+  const query = searchInput ? searchInput.value.toLowerCase() : '';
+  const month = monthFilter ? monthFilter.value : 'ALL';
 
   try {
     const { success, data } = await MarketService.fetchEconomicCalendar(forceRefresh);
     ALL_ECO_EVENTS = data || []; 
-    // V3.1.6: Filters removed as per user request (show all countries/impacts)
-    let filtered = [...ALL_ECO_EVENTS]; 
+    
+    const todayStr = getLocalDateKey(new Date());
 
-    // Sort: Upcoming events first (or by timestamp)
-    filtered.sort((a, b) => {
-      if (a.timestamp !== b.timestamp) return a.timestamp - b.timestamp;
-      return (IMPACT_SCORE[b.impact] || 0) - (IMPACT_SCORE[a.impact] || 0);
+    let filtered = ALL_ECO_EVENTS.filter(ev => {
+      const matchesSearch = ev.label.toLowerCase().includes(query) || (ev.memo && ev.memo.toLowerCase().includes(query));
+      const matchesMonth = month === 'ALL' || (ev.date && ev.date.split('-')[1] === month);
+      return matchesSearch && matchesMonth;
     });
 
-    const totalPages = Math.ceil(filtered.length / ecoEventsPerPage);
-    if (currentEcoPage >= totalPages) currentEcoPage = 0;
+    // Sort: Future (Far) -> Today -> Past (Far) [Descending Time]
+    filtered.sort((a, b) => b.timestamp - a.timestamp);
 
-    const start = currentEcoPage * ecoEventsPerPage;
-    const paged = filtered.slice(start, start + ecoEventsPerPage);
-
-    pageInfo.innerText = `${currentEcoPage + 1} / ${Math.max(1, totalPages)}`;
-
-    // 4. Render with Delete & Memo functionality
-    if (paged.length === 0) {
-      container.innerHTML = '<div class="empty-placeholder" style="grid-column:1/-1; padding:30px;">등록된 지표가 없습니다. "+" 버튼으로 추가하세요.</div>';
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-placeholder" style="padding:30px;">등록된 지표가 없습니다.</div>';
     } else {
-      container.innerHTML = paged.map(ev => `
-        <div class="eco-item-v3">
-          <div class="eco-row">
-            <div class="eco-left">
-              <div class="eco-time-info">
-                <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}</span>
-                <span class="eco-time" style="font-weight:700;">${ev.time}</span>
-              </div>
-              <div class="eco-main" data-id="${ev.timestamp}">
-                <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
-                  <span style="font-size:13px; flex-shrink:0;">${ev.country === 'ALL' ? '🌐' : ev.country}</span>
-                  <div class="eco-impact-badge impact-${ev.impact}" style="font-size:8px; padding:2px 5px; flex-shrink:0;">${ev.impact.toUpperCase()}</div>
+      container.innerHTML = filtered.map(ev => {
+        const isToday = ev.date === todayStr;
+        return `
+          <div class="eco-item-v3 ${isToday ? 'is-today' : ''}" id="eco-item-${ev.timestamp}">
+            <div class="eco-row" style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="eco-left" style="display:flex; gap:20px; align-items:center;">
+                <div class="eco-time-info" style="min-width:80px;">
+                  <span class="eco-date" style="display:block; font-size:11px; opacity:0.6;">${ev.date}</span>
+                  <span class="eco-time" style="font-weight:700; font-size:14px;">${ev.time}</span>
                 </div>
-                <div class="eco-label-text">${ev.label}</div>
+                <div class="eco-main" data-id="${ev.timestamp}" style="cursor:pointer;">
+                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                    <div class="eco-impact-badge impact-${ev.impact}" style="font-size:9px; padding:2px 6px;">${ev.impact.toUpperCase()}</div>
+                  </div>
+                  <div class="eco-label-text" style="font-weight:600; font-size:14px;">${ev.label}</div>
+                </div>
               </div>
+              <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
+                style="background:none; border:none; cursor:pointer; color:var(--red); opacity:0.3; transition:0.2s; padding: 10px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
             </div>
-            <button class="btn-eco-del" data-id="${ev.timestamp}" title="지표 삭제" 
-              style="background:none; border:none; cursor:pointer; color:var(--red); opacity:0.3; transition:0.2s; padding: 4px; flex-shrink: 0;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+
+      // Auto-scroll to today
+      const todayEl = container.querySelector('.is-today');
+      if (todayEl) {
+        setTimeout(() => {
+          todayEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }, 150);
+      }
 
       // Bind interaction events
       container.querySelectorAll('.eco-main').forEach(el => {
@@ -418,10 +426,9 @@ async function fetchEconomicEvents(forceRefresh = false) {
         };
       });
     }
-
   } catch (err) {
-    console.error('[Eco Final Error]', err);
-    container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--red);">지표 엔진 초기화 중 에러가 발생했습니다.</div>';
+    console.error('[Eco Render Error]', err);
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--red);">지표를 렌더링하는 중 오류가 발생했습니다.</div>';
   }
 }
 
@@ -433,36 +440,25 @@ function bindV18Events() {
   const modal = document.getElementById('ticker-settings-modal');
   const btnClose = document.getElementById('ticker-settings-close');
   const btnSave = document.getElementById('btn-save-ticker-settings');
-  
+
+  if (btnSettings) btnSettings.onclick = (e) => { e.preventDefault(); openTickerSettings(); };
+  if (btnClose) btnClose.onclick = () => { if(modal) modal.classList.remove('show'); };
+  if (btnSave) btnSave.onclick = () => saveTickerSettings();
+
   const btnAddEco = document.getElementById('btn-add-eco-event');
   const ecoEntryModal = document.getElementById('eco-entry-modal');
   const ecoEntryClose = document.getElementById('btn-close-eco-entry');
   const ecoEntrySave = document.getElementById('btn-save-eco-event');
   
-  const btnEcoPrev = document.getElementById('btn-eco-prev');
-  const btnEcoNext = document.getElementById('btn-eco-next');
-  
-  if (btnSettings) btnSettings.onclick = (e) => { e.preventDefault(); openTickerSettings(); };
-  if (btnClose) btnClose.onclick = () => { if(modal) modal.classList.remove('show'); };
-  if (btnSave) btnSave.onclick = () => saveTickerSettings();
-  
-  const ecoDetailModal = document.getElementById('eco-detail-modal');
-  const ecoDetailClose = document.getElementById('btn-close-eco-detail');
-  const ecoDetailCloseBottom = document.getElementById('btn-close-eco-detail-bottom');
+  const ecoSearch = document.getElementById('eco-search-input');
+  const ecoMonth = document.getElementById('eco-month-filter');
 
   if (btnAddEco) btnAddEco.onclick = () => ecoEntryModal.classList.add('show');
   if (ecoEntryClose) ecoEntryClose.onclick = () => ecoEntryModal.classList.remove('show');
   if (ecoEntrySave) ecoEntrySave.onclick = () => saveManualEconomicEvent();
-
-  if (ecoDetailCloseBottom) ecoDetailCloseBottom.onclick = () => ecoDetailModal.classList.remove('show');
-
-  if (btnEcoPrev) btnEcoPrev.onclick = () => {
-    if (currentEcoPage > 0) { currentEcoPage--; fetchEconomicEvents(); }
-  };
-  if (btnEcoNext) btnEcoNext.onclick = () => {
-    const totalPages = Math.ceil(ALL_ECO_EVENTS.length / ecoEventsPerPage);
-    if (currentEcoPage < totalPages - 1) { currentEcoPage++; fetchEconomicEvents(); }
-  };
+  
+  if (ecoSearch) ecoSearch.oninput = () => fetchEconomicEvents();
+  if (ecoMonth) ecoMonth.onchange = () => fetchEconomicEvents();
 
   window.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.remove('show');
@@ -472,54 +468,52 @@ function bindV18Events() {
 }
 
 function saveManualEconomicEvent() {
-  const dateVal = document.getElementById('input-eco-date').value;
-  const hourVal = document.getElementById('input-eco-hour').value;
-  const minuteVal = document.getElementById('input-eco-minute').value;
-  const country = document.getElementById('input-eco-country').value;
-  const title = document.getElementById('input-eco-title').value;
-  const memo = document.getElementById('input-eco-memo').value;
-  const impact = document.getElementById('input-eco-impact').value;
+  const dateVal = document.getElementById('eco-date').value;
+  const timeVal = document.getElementById('eco-time').value;
+  const title = document.getElementById('eco-title').value;
+  const impact = document.getElementById('eco-impact').value;
+  const memo = document.getElementById('eco-memo').value;
 
-  if (!dateVal || !hourVal || !minuteVal || !title) {
-    alert('날짜, 시간 및 지표 명칭을 모두 입력해주세요.');
+  if (!dateVal || !title) {
+    alert('Please enter both Date and Title.');
     return;
   }
 
-  // Combine components into a valid Date object
-  const dt = new Date(`${dateVal}T${hourVal}:${minuteVal}:00`);
+  // Create a valid timestamp
+  const dt = new Date(`${dateVal}T${timeVal || '00:00'}:00`);
   if (isNaN(dt.getTime())) {
-    alert('유효하지 않은 날짜 또는 시간입니다.');
+    alert('Invalid Date or Time.');
     return;
   }
 
-  const item = {
-    date: (dt.getMonth() + 1).toString().padStart(2, '0') + '/' + dt.getDate().toString().padStart(2, '0'),
-    time: hourVal + ':' + minuteVal,
-    country: country, // Keep the code (like 'JP', 'US', 'ALL')
+  const newItem = {
+    date: dateVal,
+    time: timeVal || '00:00',
+    country: 'ALL',
     label: title,
-    memo: memo,
-    impact: impact,
+    memo: memo || '',
+    impact: impact.toLowerCase(),
     timestamp: dt.getTime()
   };
 
-  // V3.1.0 Sync Logic: Update state.db and save
+  // Persist to state.db
   if (!state.db.meta.ecoEvents) state.db.meta.ecoEvents = [];
-  state.db.meta.ecoEvents.push(item);
+  state.db.meta.ecoEvents.push(newItem);
   saveDB(state.db);
 
-  // Sync with localStorage for MarketService fallback
-  localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(state.db.meta.ecoEvents));
+  // Sync for UI
+  fetchEconomicEvents(true);
 
-
-
+  // Cleanup UI
   const modal = document.getElementById('eco-entry-modal');
   if (modal) modal.classList.remove('show');
   
-  // Reset form
-  document.getElementById('input-eco-title').value = '';
-  document.getElementById('input-eco-memo').value = '';
-  
-  fetchEconomicEvents(true); // Force refresh ALL_ECO_EVENTS
+  // Reset form fields
+  document.getElementById('eco-date').value = '';
+  document.getElementById('eco-time').value = '';
+  document.getElementById('eco-title').value = '';
+  document.getElementById('eco-memo').value = '';
+  document.getElementById('eco-impact').value = 'LOW';
 }
 
 function deleteManualEconomicEvent(id) {
