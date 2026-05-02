@@ -1,4 +1,4 @@
-import { saveDB, saveMetaToFirebase } from './storage.js';
+import { saveDB } from './storage.js';
 
 /**
  * Macro Analysis Manager (v2.0)
@@ -307,7 +307,6 @@ export const macroManager = {
     const state = window.state;
     state.db.meta.macroBriefings = this.briefings;
     saveDB(state.db);
-    if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
 
     this.renderCalendar();
     alert(`${this.selectedDate} 전략이 저장되었습니다.`);

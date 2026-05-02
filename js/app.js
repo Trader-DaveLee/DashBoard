@@ -15,7 +15,6 @@ import {
 import {
   loadDB, saveDB, exportDB, parseImport, normalizeTrade, sanitizeUrl,
   loadDraft, saveDraft, clearDraft, hydrateDBFromIndexedDB, hydrateDraftFromIndexedDB,
-  syncWithFirebase, saveTradeToFirebase, deleteTradeFromFirebase,
   saveMetaToFirebase, compressImage, listenMeta
 } from './storage.js';
 import { runMonteCarlo } from './simulation.js';
@@ -24,7 +23,6 @@ import { macroManager } from './macro.js';
 
 export const state = {
   db: loadDB(),
-  user: null,
   view: 'overview',
   month: new Date(),
   selectedTradeId: null,
@@ -137,7 +135,7 @@ function bootstrap() {
     renderNav();
     renderViews();
     startClock();
-    initAuth();
+
     initPriceTicker();
     initCommaInputs();
     
@@ -147,7 +145,6 @@ function bootstrap() {
     hydratePersistentState().then(() => {
       initOverviewDateFilter();
       render(); 
-      if (state.user) refreshJournalStatus('정상|데이터 동기화 완료');
     }).catch(error => {
       console.error('[post-bootstrap hydration]', error);
       render(); 
@@ -528,8 +525,7 @@ function saveManualEconomicEvent() {
   // Sync with localStorage for MarketService fallback
   localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(state.db.meta.ecoEvents));
 
-  // V3.1.2 Sync Logic: Push to Firebase if user is logged in
-  if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
 
   const modal = document.getElementById('eco-entry-modal');
   if (modal) modal.classList.remove('show');
@@ -550,8 +546,7 @@ function deleteManualEconomicEvent(id) {
     saveDB(state.db);
     localStorage.setItem(ECO_STORAGE_KEY, JSON.stringify(state.db.meta.ecoEvents));
 
-    // V3.1.2 Sync Logic: Push to Firebase if user is logged in
-    if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
   }
   
   fetchEconomicEvents();
@@ -606,8 +601,7 @@ function saveEcoDetailMemo(timestamp) {
   // 1. Local persist
   saveDB(state.db);
 
-  // 2. Firebase sync (real-time across devices)
-  if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
 
   // 3. Re-render list
   fetchEconomicEvents();
@@ -1020,19 +1014,19 @@ function openListManager(key, title, casing) {
     els['list-manage-items'].querySelectorAll('.btn-up').forEach(btn => btn.onclick = (e) => {
       swapArray(arr, Number(e.target.dataset.idx), Number(e.target.dataset.idx) - 1);
       saveDB(state.db); 
-      if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
       renderItems(); renderDropdowns();
     });
     els['list-manage-items'].querySelectorAll('.btn-down').forEach(btn => btn.onclick = (e) => {
       swapArray(arr, Number(e.target.dataset.idx), Number(e.target.dataset.idx) + 1);
       saveDB(state.db);
-      if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
       renderItems(); renderDropdowns();
     });
     els['list-manage-items'].querySelectorAll('.btn-del-item').forEach(btn => btn.onclick = (e) => {
       arr.splice(e.target.dataset.idx, 1);
       saveDB(state.db);
-      if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
       renderItems(); renderDropdowns(); renderQuickChips();
     });
   };
@@ -1046,7 +1040,7 @@ function openListManager(key, title, casing) {
     if (!arr.includes(val)) {
       arr.push(val);
       saveDB(state.db);
-      if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
       els['list-manage-input'].value = '';
       renderItems(); renderDropdowns(); renderQuickChips();
     } else {
@@ -1082,19 +1076,19 @@ function openQuickLinkManager() {
     els['ql-items'].querySelectorAll('.btn-up').forEach(btn => btn.onclick = (e) => {
       swapArray(arr, Number(e.target.dataset.idx), Number(e.target.dataset.idx) - 1);
       saveDB(state.db);
-      if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
       renderItems(); renderQuickLaunch();
     });
     els['ql-items'].querySelectorAll('.btn-down').forEach(btn => btn.onclick = (e) => {
       swapArray(arr, Number(e.target.dataset.idx), Number(e.target.dataset.idx) + 1);
       saveDB(state.db);
-      if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
       renderItems(); renderQuickLaunch();
     });
     els['ql-items'].querySelectorAll('.btn-del-item').forEach(btn => btn.onclick = (e) => {
       arr.splice(e.target.dataset.idx, 1);
       saveDB(state.db);
-      if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
       renderItems(); renderQuickLaunch();
     });
   };
@@ -1107,68 +1101,12 @@ function openQuickLinkManager() {
     if (!state.db.meta.quickLinks) state.db.meta.quickLinks = [];
     state.db.meta.quickLinks.push({ name, url: sanitizeUrl(url), icon: icon || '🔗' });
     saveDB(state.db);
-    if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
     setVal('ql-name', ''); setVal('ql-url', ''); setVal('ql-icon', '');
     renderItems(); renderQuickLaunch();
   };
 
   renderItems();
-}
-
-let memoUnsubscribe = null;
-let metaUnsubscribe = null;
-
-function initAuth() {
-  watchAuthState(async (user) => {
-    state.user = user;
-
-    if (metaUnsubscribe) {
-      metaUnsubscribe();
-      metaUnsubscribe = null;
-    }
-
-    if (user) {
-      els['btn-login'].classList.add('hidden');
-      els['user-info'].classList.remove('hidden');
-      els['user-photo'].src = user.photoURL || '';
-      
-      refreshJournalStatus('동기화 중...|Firebase 데이터 확인');
-      try {
-        const synchedDb = await syncWithFirebase(user);
-        if (synchedDb) {
-          state.db = synchedDb;
-          initMeta();
-          render();
-          updatePreview();
-          refreshJournalStatus('정상|동기화 완료');
-        }
-      } catch (error) {
-        console.error('Sync Error:', error);
-        refreshJournalStatus('오류|동기화 실패', 'err');
-      }
-
-
-
-      // Start Real-time Sync for Meta (Economic Indicators, etc.)
-      metaUnsubscribe = listenMeta(user, (newMeta) => {
-        // V3.1.2: Seamlessly update meta and refresh relevant UI
-        state.db.meta = newMeta;
-        if (state.view === 'overview') {
-            fetchEconomicEvents();
-            renderOverviewPortfolio(); 
-        }
-      });
-    } else {
-      els['btn-login'].classList.remove('hidden');
-      els['user-info'].classList.add('hidden');
-      refreshJournalStatus('로컬 모드|오프라인 저장 중');
-    }
-    renderNav();
-  });
-
-  if (els['btn-theme-toggle']) {
-    els['btn-theme-toggle'].onclick = () => toggleTheme();
-  }
 }
 
 function bindEvents() {
@@ -1197,8 +1135,6 @@ function bindEvents() {
   if(els['btn-manage-setup-exit']) els['btn-manage-setup-exit'].onclick = () => openListManager('exitSetups', 'Exit Setup', 'upper');
   if(els['btn-manage-quick-links']) els['btn-manage-quick-links'].onclick = () => openQuickLinkManager();
 
-  if(els['btn-login']) els['btn-login'].onclick = () => loginWithGoogle().catch(err => showModal({ type: 'ALERT', title: '로그인 실패', desc: err.message }));
-  if(els['btn-logout']) els['btn-logout'].onclick = () => logout().catch(err => showModal({ type: 'ALERT', title: '로그아웃 실패', desc: err.message }));
 
   if(els['btn-context-structure']) els['btn-context-structure'].onclick = () => appendTemplateToField('context', '시장 구조: \n유동성 위치: \n핵심 변수: ');
   if(els['btn-context-catalyst']) els['btn-context-catalyst'].onclick = () => appendTemplateToField('context', '뉴스 / 촉매: \n체크할 변수: ');
@@ -2005,7 +1941,7 @@ function deleteTradeById(id, options = {}) {
     state.db.trades = state.db.trades.filter(trade => trade.id !== id);
     if (state.selectedTradeId === id) state.selectedTradeId = state.db.trades[0]?.id || null;
     saveDB(state.db);
-    if (state.user) deleteTradeFromFirebase(state.user, id).catch(console.error);
+
     if (options.resetCurrent || getVal('trade-id') === id) resetFormForce();
     render();
   refreshJournalStatus('삭제 완료|데이터 정리됨');
@@ -2106,16 +2042,13 @@ function handleSubmit(event) {
   state.db.meta.rules = getVal('desk-rules');
   state.db.meta.accountBalance = Number(state.db.meta.accountBalance || trade.accountSize || 0);
   saveDB(state.db);
-  if (state.user) {
-    saveTradeToFirebase(state.user, trade).catch(console.error);
-    saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
-  }
+
   clearDraft();
   state.selectedTradeId = trade.id;
   setVal('trade-id', trade.id);
   state.dirty = false;
   render();
-  refreshJournalStatus('저장 완료|Firebase 동기화됨');
+  refreshJournalStatus('저장 완료|로컬 데이터 저장됨');
 }
 
 function syncMetaFromTrade(trade) {
@@ -2978,7 +2911,7 @@ function updateBalance() {
   setVal('balance-memo', '');
   if (!getVal('trade-id')) setVal('account-size', total);
   saveDB(state.db);
-  if (state.user) saveMetaToFirebase(state.user, state.db.meta).catch(console.error);
+
   renderAccountBalance();
   renderOverviewPortfolio();
   if (state.view === 'overview') renderOverview();
