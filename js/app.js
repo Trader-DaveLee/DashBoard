@@ -15,7 +15,7 @@ import {
 import {
   loadDB, saveDB, exportDB, parseImport, normalizeTrade, sanitizeUrl,
   loadDraft, saveDraft, clearDraft, hydrateDBFromIndexedDB, hydrateDraftFromIndexedDB,
-  saveMetaToFirebase, compressImage, listenMeta
+  compressImage
 } from './storage.js';
 import { runMonteCarlo } from './simulation.js';
 import { macroManager } from './macro.js';
@@ -74,7 +74,7 @@ const ID_LIST = [
   'app-modal','modal-title','modal-desc','modal-input','modal-btn-cancel','modal-btn-confirm',
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',
   'ql-modal','ql-name','ql-url','ql-icon','ql-add','ql-items','ql-close','open-guide-btn','guide-modal','guide-close',
-  'btn-login', 'user-info', 'user-photo', 'btn-logout', 'btn-theme-toggle'
+  'btn-theme-toggle'
 ];
 
 window.__desk = {

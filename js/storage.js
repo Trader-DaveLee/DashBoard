@@ -137,7 +137,17 @@ export function normalizeMeta(m) {
   if (!meta.logicPrompts) meta.logicPrompts = DEFAULT_LOGIC_PROMPTS;
   if (!meta.deskRules) meta.deskRules = '';
   if (!meta.masterChecklist) meta.masterChecklist = [];
+  if (!meta.checklists) meta.checklists = []; // v3 checklist field
   if (!meta.quickLinks) meta.quickLinks = [];
+  
+  // UI Dropdown & Tag Lists
+  if (!meta.tickers) meta.tickers = [];
+  if (!meta.entrySetups) meta.entrySetups = [];
+  if (!meta.exitSetups) meta.exitSetups = [];
+  if (!meta.tagPresets) meta.tagPresets = [];
+  if (!meta.mistakePresets) meta.mistakePresets = [];
+  if (!meta.macroBriefings) meta.macroBriefings = {};
+  
   return meta;
 }
 
