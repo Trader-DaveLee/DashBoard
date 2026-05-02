@@ -50,6 +50,8 @@ export const views = ['overview', 'macro', 'journal', 'library'];
 window.state = state; // Global exposure for MarketService
 export const els = {};
 let draftTimer = null;
+let currentEcoYear = new Date().getFullYear();
+let currentEcoMonth = new Date().getMonth() + 1; // 1-12
 
 const ID_LIST = [
   'nav','force-save-draft','export-json','import-json-btn','import-json','journal-status','journal-sub-status','draft-saved-at',
@@ -371,11 +373,21 @@ async function fetchEconomicEvents(forceRefresh = false) {
 
     let filtered = ALL_ECO_EVENTS.filter(ev => {
       const matchesSearch = ev.label.toLowerCase().includes(query) || (ev.memo && ev.memo.toLowerCase().includes(query));
-      const matchesMonth = month === 'ALL' || (ev.date && ev.date.split('-')[1] === month);
-      return matchesSearch && matchesMonth;
+      
+      // Filter by Month/Year
+      const [y, m] = ev.date.split('-');
+      const matchesDate = parseInt(y) === currentEcoYear && parseInt(m) === currentEcoMonth;
+      
+      return matchesSearch && matchesDate;
     });
 
-    // Sort: Future (Far) -> Today -> Past (Far) [Descending Time]
+    // Update Display
+    const display = document.getElementById('eco-current-month-display');
+    if (display) display.innerText = `${currentEcoYear}. ${currentEcoMonth.toString().padStart(2, '0')}`;
+
+    // Sort: ASC within the month for natural reading, or DESC if preferred.
+    // User wants Future above Today, Past below Today. 
+    // Within a month, DESC timestamp makes sense.
     filtered.sort((a, b) => b.timestamp - a.timestamp);
 
     if (filtered.length === 0) {
@@ -451,14 +463,34 @@ function bindV18Events() {
   const ecoEntrySave = document.getElementById('btn-save-eco-event');
   
   const ecoSearch = document.getElementById('eco-search-input');
-  const ecoMonth = document.getElementById('eco-month-filter');
+  const btnPrev = document.getElementById('eco-prev-month');
+  const btnNext = document.getElementById('eco-next-month');
+  const ecoDetailModal = document.getElementById('eco-detail-modal');
+  const ecoDetailClose = document.getElementById('btn-close-eco-detail');
+  const btnSaveDetail = document.getElementById('btn-save-eco-detail');
 
   if (btnAddEco) btnAddEco.onclick = () => ecoEntryModal.classList.add('show');
   if (ecoEntryClose) ecoEntryClose.onclick = () => ecoEntryModal.classList.remove('show');
   if (ecoEntrySave) ecoEntrySave.onclick = () => saveManualEconomicEvent();
   
   if (ecoSearch) ecoSearch.oninput = () => fetchEconomicEvents();
-  if (ecoMonth) ecoMonth.onchange = () => fetchEconomicEvents();
+  
+  if (btnPrev) btnPrev.onclick = () => {
+    currentEcoMonth--;
+    if (currentEcoMonth < 1) { currentEcoMonth = 12; currentEcoYear--; }
+    fetchEconomicEvents();
+  };
+  if (btnNext) btnNext.onclick = () => {
+    currentEcoMonth++;
+    if (currentEcoMonth > 12) { currentEcoMonth = 1; currentEcoYear++; }
+    fetchEconomicEvents();
+  };
+
+  if (ecoDetailClose) ecoDetailClose.onclick = () => ecoDetailModal.classList.remove('show');
+  if (btnSaveDetail) btnSaveDetail.onclick = () => {
+    const id = btnSaveDetail.dataset.activeId;
+    if (id) saveEcoDetailMemo(id);
+  };
 
   window.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.remove('show');
@@ -540,27 +572,19 @@ function openEcoDetail(id) {
 
   document.getElementById('detail-eco-title').innerText = ev.label;
   document.getElementById('detail-eco-time').innerText = `${ev.date} ${ev.time}`;
-  document.getElementById('detail-eco-country').innerText = ev.country === 'ALL' ? '🌐' : ev.country;
+  document.getElementById('detail-eco-country').innerText = ev.country === 'ALL' ? '🌐 ALL' : ev.country;
 
   const impactBadge = document.getElementById('detail-eco-impact');
-  impactBadge.innerText = (ev.impact || 'MED').toUpperCase();
-  impactBadge.className = `eco-impact-badge impact-${ev.impact || 'med'}`;
+  if (impactBadge) {
+    impactBadge.innerText = (ev.impact || 'MED').toUpperCase();
+    impactBadge.className = `eco-impact-badge impact-${ev.impact || 'med'}`;
+  }
 
   const textarea = document.getElementById('detail-eco-memo');
-  textarea.value = ev.memo || '';
-  textarea.readOnly = false; // editable on all devices
-  textarea.style.opacity = '1';
-  textarea.style.cursor = 'text';
+  if (textarea) textarea.value = ev.memo || '';
 
-  // Always show save button
-  const saveRow = document.getElementById('detail-eco-save-row');
-  if (saveRow) saveRow.style.display = 'block';
-
-  // Bind save button
   const saveBtn = document.getElementById('btn-save-eco-detail');
-  if (saveBtn) {
-    saveBtn.onclick = () => saveEcoDetailMemo(ev.timestamp);
-  }
+  if (saveBtn) saveBtn.dataset.activeId = ev.timestamp;
 
   modal.classList.add('show');
 }
@@ -569,24 +593,23 @@ function saveEcoDetailMemo(timestamp) {
   const textarea = document.getElementById('detail-eco-memo');
   if (!textarea) return;
 
-  const newMemo = textarea.value.trim();
   const events = state.db.meta.ecoEvents || [];
   const idx = events.findIndex(e => e.timestamp.toString() === timestamp.toString());
-  if (idx === -1) return;
-
-  events[idx].memo = newMemo;
-  state.db.meta.ecoEvents = events;
-
-  // 1. Local persist
-  saveDB(state.db);
-
-
-
-  // 3. Re-render list
-  fetchEconomicEvents();
-
-  const modal = document.getElementById('eco-detail-modal');
-  if (modal) modal.classList.remove('show');
+  
+  if (idx !== -1) {
+    events[idx].memo = textarea.value.trim();
+    state.db.meta.ecoEvents = events;
+    saveDB(state.db);
+    
+    // Refresh
+    fetchEconomicEvents(true);
+    
+    // Close
+    const modal = document.getElementById('eco-detail-modal');
+    if (modal) modal.classList.remove('show');
+    
+    refreshJournalStatus('지표 메모 저장 완료');
+  }
 }
 
 function openTickerSettings() {
