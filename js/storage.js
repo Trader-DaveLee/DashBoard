@@ -1,0 +1,222 @@
+import { recalcTrade } from './calc.js';
+import { idbGet, idbSet, idbDelete } from './idb.js';
+
+export const STORAGE_KEY = 'trading_desk_dashboard_v3';
+export const LEGACY_STORAGE_KEYS = [
+  'trading_desk_dashboard_v3',
+  'btc_trading_research_dashboard_v2'
+];
+export const DRAFT_KEY = 'trading_desk_dashboard_v3_draft';
+const IDB_DB_KEY = 'main-db';
+const IDB_DRAFT_KEY = 'draft';
+
+const DEFAULT_CONTEXT_PROMPTS = {
+  structure: '시장 구조: \n유동성 위치: \n상위 타임프레임 방향: \n세션 성격: ',
+  catalyst: '촉매 / 뉴스: \n시장 테마: \n주의해야 할 이벤트: '
+};
+
+const DEFAULT_LOGIC_PROMPTS = {
+  trigger: '엔트리 트리거: \n추가 진입 조건: \n확인해야 할 가격 행동: ',
+  invalidation: '무효화 기준: \n청산 계획: \n계획이 틀렸다고 인정할 조건: '
+};
+
+const DEFAULT_SETUP_TEMPLATES = {
+  'BREAKOUT': {
+    riskPct: 0.75,
+    plannerMode: 'BALANCED',
+    plannerLegs: 3,
+    plannerWeightMode: 'BACKLOADED',
+    stopType: 'T',
+    tags: ['trend', 'breakout'],
+    checklistHints: ['손절 설정 확인', '상위 구조와 방향 일치', '유동성/거래량 확인'],
+    contextPrompt: '시장 구조: 박스 상단 돌파 또는 고점 갱신 구조 확인\n유동성 위치: 돌파 직전/직후 스탑 유동성 집중 구간\n상위 타임프레임 방향: 상방 모멘텀 유지 여부 확인',
+    thesisPrompt: '엔트리 트리거: 돌파 후 지지 전환 또는 재확인\n추가 진입 조건: 돌파 후 눌림이 얕고 거래량 유지\n무효화 기준: 돌파 실패 후 박스 안 재진입'
+  },
+  'BREAKOUT RETEST': {
+    riskPct: 0.8,
+    plannerMode: 'AVERAGING',
+    plannerLegs: 2,
+    plannerWeightMode: 'BACKLOADED',
+    stopType: 'T',
+    tags: ['breakout', 'retest'],
+    checklistHints: ['손절 설정 확인', '돌파 레벨 재확인', '재테스트 거래량 확인'],
+    contextPrompt: '시장 구조: 돌파 후 되돌림 재테스트 구조\n유동성 위치: 돌파 레벨 바로 아래 유동성 확인\n세션 성격: 모멘텀 유지 여부 체크',
+    thesisPrompt: '엔트리 트리거: 돌파 레벨 재지지 확인\n추가 진입 조건: 되돌림 저점 유지 + 거래량 재확인\n무효화 기준: 재테스트 실패 후 돌파 레벨 하향 이탈'
+  }
+};
+
+/**
+ * 💾 Core Data Handling (100% Local Mode)
+ */
+
+export function loadDB() {
+  const json = localStorage.getItem(STORAGE_KEY);
+  if (!json) return createEmptyDB();
+  try {
+    const raw = JSON.parse(json);
+    return migrateDB(raw);
+  } catch (e) {
+    console.error('Failed to parse DB from localStorage:', e);
+    return createEmptyDB();
+  }
+}
+
+export async function hydrateDBFromIndexedDB() {
+  const data = await idbGet(IDB_DB_KEY);
+  if (data) {
+    return migrateDB(data);
+  }
+  return loadDB();
+}
+
+export function saveDB(dbData) {
+  if (!dbData) return;
+  const json = JSON.stringify(dbData);
+  localStorage.setItem(STORAGE_KEY, json);
+  idbSet(IDB_DB_KEY, dbData).catch(e => console.error('IndexedDB save error:', e));
+}
+
+export function exportDB(dbData) {
+  const blob = new Blob([JSON.stringify(dbData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trading_dashboard_backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function parseImport(jsonStr) {
+  try {
+    const raw = JSON.parse(jsonStr);
+    return migrateDB(raw);
+  } catch (e) {
+    throw new Error('Invalid JSON format');
+  }
+}
+
+function createEmptyDB() {
+  return {
+    schemaVersion: 5,
+    meta: normalizeMeta({}),
+    trades: [],
+    memos: []
+  };
+}
+
+function migrateDB(db) {
+  if (!db) return createEmptyDB();
+  db.meta = normalizeMeta(db.meta || {});
+  db.trades = (db.trades || []).map(normalizeTrade);
+  db.memos = (db.memos || []).map(normalizeMemo);
+  db.schemaVersion = 5;
+  return db;
+}
+
+/**
+ * 🛡️ Data Normalizers
+ */
+
+export function normalizeTrade(t) {
+  if (!t) return null;
+  const trade = { ...t };
+  if (!trade.id) trade.id = 't-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+  if (!trade.date) trade.date = new Date().toISOString();
+  if (!trade.metrics) trade.metrics = { pnl: 0, r: 0 };
+  if (typeof trade.metrics.pnl !== 'number') trade.metrics.pnl = 0;
+  if (typeof trade.metrics.r !== 'number') trade.metrics.r = 0;
+  return recalcTrade(trade);
+}
+
+export function normalizeMeta(m) {
+  const meta = { ...m };
+  if (!meta.balance) meta.balance = { cash: 0, crypto: 0, usdt: 0, stock: 0, total: 0 };
+  if (!meta.balanceHistory) meta.balanceHistory = [];
+  if (!meta.setups) meta.setups = DEFAULT_SETUP_TEMPLATES;
+  if (!meta.contextPrompts) meta.contextPrompts = DEFAULT_CONTEXT_PROMPTS;
+  if (!meta.logicPrompts) meta.logicPrompts = DEFAULT_LOGIC_PROMPTS;
+  if (!meta.deskRules) meta.deskRules = '';
+  if (!meta.masterChecklist) meta.masterChecklist = [];
+  if (!meta.quickLinks) meta.quickLinks = [];
+  return meta;
+}
+
+export function normalizeMemo(m) {
+  if (!m) return null;
+  return {
+    id: m.id || 'm-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+    date: m.date || new Date().toISOString(),
+    content: m.content || '',
+    author: m.author || 'Local User',
+    authorPhoto: m.authorPhoto || ''
+  };
+}
+
+/**
+ * 📝 Draft Handling
+ */
+
+export function loadDraft() {
+  const json = localStorage.getItem(DRAFT_KEY);
+  return json ? JSON.parse(json) : null;
+}
+
+export async function hydrateDraftFromIndexedDB() {
+  return await idbGet(IDB_DRAFT_KEY);
+}
+
+export function saveDraft(draft) {
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  idbSet(IDB_DRAFT_KEY, draft).catch(console.error);
+}
+
+export function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+  idbDelete(IDB_DRAFT_KEY).catch(console.error);
+}
+
+/**
+ * 🛠️ Helpers
+ */
+
+export function sanitizeUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('data:image')) return url;
+  try {
+    const parsed = new URL(url);
+    return parsed.href;
+  } catch (e) {
+    return '';
+  }
+}
+
+export function compressImage(base64Str, maxWidth = 1200, quality = 0.7) {
+  return new Promise((resolve) => {
+    if (!base64Str || !base64Str.startsWith('data:image')) {
+      return resolve(base64Str);
+    }
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxWidth) {
+          width = Math.round((width * maxWidth) / height);
+          height = maxWidth;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = base64Str;
+  });
+}
