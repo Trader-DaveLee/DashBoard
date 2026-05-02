@@ -107,8 +107,8 @@ function createEmptyDB() {
 function migrateDB(db) {
   if (!db) return createEmptyDB();
   db.meta = normalizeMeta(db.meta || {});
-  db.trades = (db.trades || []).map(normalizeTrade);
-  db.memos = (db.memos || []).map(normalizeMemo);
+  db.trades = (db.trades || []).map(normalizeTrade).filter(t => t !== null);
+  db.memos = (db.memos || []).map(normalizeMemo).filter(m => m !== null);
   db.schemaVersion = 5;
   return db;
 }
@@ -118,14 +118,36 @@ function migrateDB(db) {
  */
 
 export function normalizeTrade(t) {
-  if (!t) return null;
+  if (!t || typeof t !== 'object') return null;
   const trade = { ...t };
   if (!trade.id) trade.id = 't-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
   if (!trade.date) trade.date = new Date().toISOString();
+  if (!trade.ticker) trade.ticker = '—';
+  if (!trade.status) trade.status = 'OPEN';
+  if (!trade.side) trade.side = 'LONG';
+  if (!trade.setupEntry) trade.setupEntry = '—';
+  if (!trade.tags) trade.tags = [];
+  if (!trade.mistakes) trade.mistakes = [];
+  
   if (!trade.metrics) trade.metrics = { pnl: 0, r: 0 };
   if (typeof trade.metrics.pnl !== 'number') trade.metrics.pnl = 0;
   if (typeof trade.metrics.r !== 'number') trade.metrics.r = 0;
+  
   return recalcTrade(trade);
+}
+
+export async function hardReset() {
+  if (!confirm('정말로 모든 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+  
+  // 1. Clear LocalStorage
+  localStorage.clear();
+  
+  // 2. Clear IndexedDB
+  await idbDelete('main-db');
+  await idbDelete('draft');
+  
+  // 3. Reload
+  window.location.reload();
 }
 
 export function normalizeMeta(m) {

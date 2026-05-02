@@ -15,7 +15,7 @@ import {
 import {
   loadDB, saveDB, exportDB, parseImport, normalizeTrade, sanitizeUrl,
   loadDraft, saveDraft, clearDraft, hydrateDBFromIndexedDB, hydrateDraftFromIndexedDB,
-  compressImage
+  compressImage, hardReset
 } from './storage.js';
 import { runMonteCarlo } from './simulation.js';
 import { macroManager } from './macro.js';
@@ -84,6 +84,7 @@ window.__desk = {
   openTradeInJournal: id => openSelectedInJournal(id),
   deleteTradeById: id => deleteTradeById(id),
   openHistoryDate: dateKey => openHistoryDate(dateKey),
+  hardReset: () => hardReset(),
 };
 
 function getLocalDateKey(dateObj) {

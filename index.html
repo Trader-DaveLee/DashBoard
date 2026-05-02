@@ -895,7 +895,16 @@
             <li>로컬/브라우저 저장 구조이므로 <strong>정기 백업(JSON 내보내기)</strong>를 습관화하는 것이 좋습니다.</li>
             <li>차트는 링크 중심으로 기록하세요.</li>
           </ul>
+          
+          <div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border-main); text-align:center;">
+              <button type="button" class="btn-icon-sm danger-text" onclick="window.__desk.hardReset()" style="width:100%; padding:12px; border:1px solid var(--red); border-radius:8px; cursor:pointer; font-weight:700;">
+                  ⚠️ 데이터 전체 초기화 (처음부터 시작하기)
+              </button>
+          </div>
         </section>
+      </div>
+      <div class="modal-actions" style="margin-top: 20px;">
+        <button id="guide-close" class="tool-btn primary-btn" style="width:100%;">가이드 닫기</button>
       </div>
     </div>
   </div>
