@@ -1666,6 +1666,11 @@ function renderChartInputs(type) {
   const container = els[containerId];
   if (!container) return;
   compactChartArray(arr);
+  
+  // 사용자가 '+'를 누르지 않아도 기본적으로 하나의 입력란은 보이도록 처리
+  if (arr.length === 0) {
+    arr.push(emptyChartItem());
+  }
 
   container.innerHTML = arr.map((item, idx) => {
     const safeUrl = sanitizeUrl(item?.url || '');
