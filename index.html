@@ -667,7 +667,9 @@
                   <option value="CLOSED">CLOSED</option>
                 </select>
               </div>
-              <button type="button" id="undo-journal" class="tool-btn">↶</button>
+              <button type="button" id="undo-journal" class="tool-btn" title="되돌리기" style="width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path></svg>
+              </button>
               <button type="submit" class="tool-btn primary-btn" style="height: 46px; font-size: 15px; padding: 0 28px;">💾 Save & Update</button>
               <button type="button" id="reset-form" class="tool-btn">초기화</button>
               <button type="button" id="duplicate-trade" class="tool-btn">복제</button>
@@ -957,9 +959,6 @@
             모든 데이터 초기화 후 처음부터 시작
           </button>
         </div>
-      </div>
-      <div class="modal-actions" style="margin-top: 20px;">
-        <button id="guide-close-bottom" class="tool-btn primary-btn" style="width:100%;">가이드 닫기</button>
       </div>
     </div>
   </div>
