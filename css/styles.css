@@ -2054,8 +2054,32 @@ body.modal-open { overflow: hidden; }
 }
 .impact-high { background: #fee2e2; color: #ef4444; }
 .impact-mid { background: #fef3c7; color: #d97706; }
-.impact-low { background: #f3f4f6; color: #6b7280; }
-
+.guide-tile-v3 {
+  transition: all 0.3s ease;
+}
+.guide-tile-v3:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent) !important;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+.hard-reset-zone button:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+.guide-intro-banner {
+  position: relative;
+  overflow: hidden;
+}
+.guide-intro-banner::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-33.333%); } /* V2.1.8: Triple Layer Seamless Loop */

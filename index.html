@@ -900,73 +900,66 @@
 
 
   <div id="guide-modal" class="modal-overlay guide-overlay">
-    <div class="modal-card guide-card">
-      <div class="guide-head">
-        <div>
-          <div class="modal-title" style="margin-bottom:4px;">Trading Desk Dashboard 사용 가이드</div>
-          <div class="guide-subtitle">실전 기록 · 리스크 관리 · 복기를 하나의 루틴으로 묶는 방법</div>
+    <div class="modal-card guide-card" style="width: 760px; max-height: 85vh; overflow-y: auto;">
+      <div class="guide-head" style="padding: 30px; background: var(--bg-panel); border-bottom: 1px solid var(--border-main);">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="width: 48px; height: 48px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+          </div>
+          <div>
+            <div class="modal-title" style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px;">TRADING DESK PRO GUIDE</div>
+            <div class="guide-subtitle" style="font-size: 14px; opacity: 0.6; font-weight: 500;">마켓 분석부터 정교한 매매 기록까지, 완벽한 트레이딩 루틴</div>
+          </div>
         </div>
-        <button id="guide-close" class="tool-btn">×</button>
+        <button id="guide-close" class="tool-btn" style="background:none; border:none; font-size: 24px; cursor:pointer;">&times;</button>
       </div>
-      <div class="guide-body">
-        <section class="guide-section">
-          <h4>핵심 개념</h4>
-          <div class="guide-grid">
-            <article class="guide-tile">
-              <strong>Journal Form</strong>
-              <p>복잡한 계산 없이 핵심 정보만 담습니다. 매매가 끝난 뒤 "수기 입력" 섹션에 결과를 적으세요.</p>
+
+      <div class="guide-body" style="padding: 30px;">
+        <div class="guide-intro-banner" style="background: linear-gradient(135deg, var(--accent), #4f46e5); color: #fff; padding: 25px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(var(--accent-rgb), 0.2);">
+          <h4 style="margin: 0 0 10px; font-size: 18px;">"기록하지 않는 것은 개선할 수 없습니다."</h4>
+          <p style="margin: 0; font-size: 14px; opacity: 0.9; line-height: 1.6;">본 대시보드는 단순한 수익률 계산기를 넘어, 트레이더의 '의사결정 프로세스'를 교정하고 통계적 우위를 찾아가는 전문 연구실입니다.</p>
+        </div>
+
+        <section class="guide-section" style="margin-bottom: 40px;">
+          <h4 style="font-size: 16px; font-weight: 800; border-left: 4px solid var(--accent); padding-left: 12px; margin-bottom: 20px;">CORE WORKFLOW</h4>
+          <div class="guide-grid-v3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <article class="guide-tile-v3" style="background: var(--bg-input); padding: 20px; border-radius: 12px; border: 1px solid var(--border-main);">
+              <div style="color: var(--accent); margin-bottom: 12px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
+              <strong style="display: block; margin-bottom: 8px; font-size: 15px;">Macro: 시장의 결 읽기</strong>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin: 0;">전 세계 실시간 시세와 경제 지표 타임라인을 통해 매수/매도 이전에 '바람의 방향'을 먼저 확인하세요.</p>
             </article>
-            <article class="guide-tile">
-              <strong>Desk Rules (Sidebar)</strong>
-              <p>나만의 매매 원칙을 항상 띄워두고, 뇌동 매매를 방지하는 체크리스트로 활용하세요.</p>
+            <article class="guide-tile-v3" style="background: var(--bg-input); padding: 20px; border-radius: 12px; border: 1px solid var(--border-main);">
+              <div style="color: #10b981; margin-bottom: 12px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+              <strong style="display: block; margin-bottom: 8px; font-size: 15px;">Journal: 과학적 기록</strong>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin: 0;">진입 근거(Thesis)와 퇴출 전략을 정밀하게 기록하세요. 손익 금액보다 중요한 것은 '원칙 준수 여부'입니다.</p>
             </article>
-            <article class="guide-tile">
-              <strong>Library</strong>
-              <p>수익이 큰 거래보다 원칙을 잘 지킨 거래(Grade S/A)를 모아 나만의 필승 패턴을 정립하세요.</p>
+            <article class="guide-tile-v3" style="background: var(--bg-input); padding: 20px; border-radius: 12px; border: 1px solid var(--border-main);">
+              <div style="color: #f59e0b; margin-bottom: 12px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
+              <strong style="display: block; margin-bottom: 8px; font-size: 15px;">Library: 나만의 통계 창고</strong>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin: 0;">누적된 데이터에서 내가 가장 잘하는 '필승 패턴'과 반복되는 '실수'를 필터링하여 전략을 고도화하세요.</p>
+            </article>
+            <article class="guide-tile-v3" style="background: var(--bg-input); padding: 20px; border-radius: 12px; border: 1px solid var(--border-main);">
+              <div style="color: #6366f1; margin-bottom: 12px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></div>
+              <strong style="display: block; margin-bottom: 8px; font-size: 15px;">Overview: 리스크 관리</strong>
+              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin: 0;">MDD와 기대값(Expectancy)을 확인하며 계좌가 안정적인 우상향 곡선을 그리는지 실시간으로 모니터링합니다.</p>
             </article>
           </div>
         </section>
 
-        <section class="guide-section">
-          <h4>추천 루틴</h4>
-          <div class="guide-dual">
-            <div>
-              <strong>매매 전</strong>
-              <ul class="guide-list">
-                <li>체크리스트 통과 여부 확인</li>
-                <li>손절이 명확한지 확인</li>
-                <li>리스크(%)와 레버리지 확인</li>
-                <li>목표가가 현실적인지 확인</li>
-              </ul>
-            </div>
-            <div>
-              <strong>매매 후</strong>
-              <ul class="guide-list">
-                <li>종료 시간 입력</li>
-                <li>실수 태그 최소 1개라도 점검</li>
-                <li>Review에 다음 매매 교정 포인트 한 줄 작성</li>
-              </ul>
-            </div>
+        <div class="hard-reset-zone" style="margin-top: 50px; padding: 25px; border-radius: 16px; background: rgba(239, 68, 68, 0.05); border: 1px dashed #ef4444; text-align: center;">
+          <div style="color: #ef4444; margin-bottom: 15px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           </div>
-        </section>
-
-        <section class="guide-section">
-          <h4>주의할 점</h4>
-          <ul class="guide-list">
-            <li>이 도구는 <strong>실행 보조와 복기용</strong>입니다. 시장 데이터를 자동으로 받아오지 않기 때문에 가격/손절/목표 입력은 사용자가 책임지고 넣어야 합니다.</li>
-            <li>로컬/브라우저 저장 구조이므로 <strong>정기 백업(JSON 내보내기)</strong>를 습관화하는 것이 좋습니다.</li>
-            <li>차트는 링크 중심으로 기록하세요.</li>
-          </ul>
-          
-          <div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border-main); text-align:center;">
-              <button type="button" class="btn-icon-sm danger-text" onclick="window.__desk.hardReset()" style="width:100%; padding:12px; border:1px solid var(--red); border-radius:8px; cursor:pointer; font-weight:700;">
-                  ⚠️ 데이터 전체 초기화 (처음부터 시작하기)
-              </button>
-          </div>
-        </section>
+          <h5 style="margin: 0 0 8px; font-size: 16px; color: #b91c1c;">시스템 전체 초기화 (DANGER ZONE)</h5>
+          <p style="margin: 0 0 20px; font-size: 13px; color: #7f1d1d; opacity: 0.8;">이 작업은 되돌릴 수 없습니다. 모든 매매 일지, 거시 지표, 설정 데이터가 즉시 삭제됩니다.</p>
+          <button type="button" onclick="window.__desk.hardReset()" 
+            style="background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; border: none; padding: 14px 40px; border-radius: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); transition: transform 0.2s;">
+            모든 데이터 초기화 후 처음부터 시작
+          </button>
+        </div>
       </div>
       <div class="modal-actions" style="margin-top: 20px;">
-        <button id="guide-close" class="tool-btn primary-btn" style="width:100%;">가이드 닫기</button>
+        <button id="guide-close-bottom" class="tool-btn primary-btn" style="width:100%;">가이드 닫기</button>
       </div>
     </div>
   </div>

@@ -76,7 +76,7 @@ const ID_LIST = [
   'app-modal','modal-title','modal-desc','modal-input','modal-btn-cancel','modal-btn-confirm',
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',
   'ql-modal','ql-name','ql-url','ql-icon','ql-add','ql-items','ql-close','open-guide-btn','guide-modal','guide-close',
-  'btn-theme-toggle', 'eco-search-input', 'eco-month-filter'
+  'btn-theme-toggle', 'eco-search-input', 'eco-month-filter', 'guide-close-bottom'
 ];
 
 window.__desk = {
@@ -1119,6 +1119,7 @@ function bindEvents() {
   if(els['ql-close']) els['ql-close'].onclick = () => els['ql-modal'].classList.remove('show');
   if(els['open-guide-btn']) els['open-guide-btn'].onclick = () => openGuideModal();
   if(els['guide-close']) els['guide-close'].onclick = () => closeGuideModal();
+  if(els['guide-close-bottom']) els['guide-close-bottom'].onclick = () => closeGuideModal();
   if(els['guide-modal']) els['guide-modal'].addEventListener('click', (e) => { if (e.target === els['guide-modal']) closeGuideModal(); });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && els['guide-modal']?.classList.contains('show')) closeGuideModal();
