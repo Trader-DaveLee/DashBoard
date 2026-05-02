@@ -1574,6 +1574,7 @@ function render() {
   safeCall('renderLibrary', () => renderLibrary());
   // safeCall('renderPlaybook', () => renderPlaybook());
   safeCall('renderMasterChecklist', () => renderMasterChecklist());
+  safeCall('renderTradeChecklist', () => renderTradeChecklist(getCheckedRules()));
   safeCall('updatePreview', () => updatePreview());
 }
 
