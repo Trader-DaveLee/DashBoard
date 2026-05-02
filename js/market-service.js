@@ -215,12 +215,51 @@ const MarketService = {
   },
 
   /**
-   * V3.1.0: Real-time Search for Crypto (Bybit Symbol Search)
+   * V3.1.0: Real-time Search for Crypto (Bybit Symbol Search + Major Fallback)
    */
   async searchCrypto(query) {
     if (!query) return [];
+    const q = query.toUpperCase();
+    
+    // V3.1.1: Major Crypto Fallback (Immediate results for top coins)
+    const MAJOR_CRYPTO_LIST = [
+      { symbol: 'BTCUSDT', name: 'Bitcoin', type: 'crypto' },
+      { symbol: 'ETHUSDT', name: 'Ethereum', type: 'crypto' },
+      { symbol: 'SOLUSDT', name: 'Solana', type: 'crypto' },
+      { symbol: 'XRPUSDT', name: 'Ripple', type: 'crypto' },
+      { symbol: 'ADAUSDT', name: 'Cardano', type: 'crypto' },
+      { symbol: 'DOGEUSDT', name: 'Dogecoin', type: 'crypto' },
+      { symbol: 'AVAXUSDT', name: 'Avalanche', type: 'crypto' },
+      { symbol: 'DOTUSDT', name: 'Polkadot', type: 'crypto' },
+      { symbol: 'LINKUSDT', name: 'Chainlink', type: 'crypto' },
+      { symbol: 'TRXUSDT', name: 'TRON', type: 'crypto' },
+      { symbol: 'MATICUSDT', name: 'Polygon', type: 'crypto' },
+      { symbol: 'BCHUSDT', name: 'Bitcoin Cash', type: 'crypto' },
+      { symbol: 'SHIBUSDT', name: 'Shiba Inu', type: 'crypto' },
+      { symbol: 'LTCUSDT', name: 'Litecoin', type: 'crypto' },
+      { symbol: 'NEARUSDT', name: 'NEAR Protocol', type: 'crypto' },
+      { symbol: 'UNIUSDT', name: 'Uniswap', type: 'crypto' },
+      { symbol: 'APTUSDT', name: 'Aptos', type: 'crypto' },
+      { symbol: 'ARBUSDT', name: 'Arbitrum', type: 'crypto' },
+      { symbol: 'OPUSDT', name: 'Optimism', type: 'crypto' },
+      { symbol: 'SUIUSDT', name: 'Sui', type: 'crypto' },
+      { symbol: 'FILUSDT', name: 'Filecoin', type: 'crypto' },
+      { symbol: 'ATOMUSDT', name: 'Cosmos', type: 'crypto' },
+      { symbol: 'ETCUSDT', name: 'Ethereum Classic', type: 'crypto' },
+      { symbol: 'ICPUSDT', name: 'Internet Computer', type: 'crypto' },
+      { symbol: 'STXUSDT', name: 'Stacks', type: 'crypto' },
+      { symbol: 'INJUSDT', name: 'Injective', type: 'crypto' },
+      { symbol: 'TIAUSDT', name: 'Celestia', type: 'crypto' },
+      { symbol: 'RNDRUSDT', name: 'Render', type: 'crypto' },
+      { symbol: 'ORDIUSDT', name: 'ORDI', type: 'crypto' },
+      { symbol: 'SEIUSDT', name: 'Sei', type: 'crypto' },
+    ];
+
+    const fallbackResults = MAJOR_CRYPTO_LIST.filter(s => 
+      s.symbol.includes(q) || s.name.toUpperCase().includes(q)
+    );
+
     const url = `https://api.bybit.com/v5/market/instruments-info?category=linear`;
-    // We fetch all and filter client-side for better UX in crypto
     try {
       const cacheKey = 'mkt_bybit_symbols';
       let symbols = this.loadCache(cacheKey);
@@ -245,12 +284,17 @@ const MarketService = {
       }
 
       if (symbols) {
-        return symbols
-          .filter(s => s.symbol.includes(query.toUpperCase()))
-          .slice(0, 10);
+        const liveResults = symbols.filter(s => 
+          s.symbol.includes(q) || (s.name && s.name.toUpperCase().includes(q))
+        );
+        // Combine, prioritize fallback, then live, then unique
+        const combined = [...fallbackResults, ...liveResults];
+        const unique = Array.from(new Map(combined.map(item => [item.symbol, item])).values());
+        return unique.slice(0, 10);
       }
     } catch (e) { console.error(e); }
-    return [];
+    
+    return fallbackResults.slice(0, 10);
   },
 
   /**
