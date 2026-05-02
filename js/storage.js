@@ -133,7 +133,8 @@ export function normalizeTrade(t) {
   if (typeof trade.metrics.pnl !== 'number') trade.metrics.pnl = 0;
   if (typeof trade.metrics.r !== 'number') trade.metrics.r = 0;
   
-  return recalcTrade(trade);
+  trade.metrics = recalcTrade(trade);
+  return trade;
 }
 
 export async function hardReset() {

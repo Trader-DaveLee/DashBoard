@@ -2006,7 +2006,7 @@ function handleSubmit(event) {
   try {
     const trade = readForm();
     
-    if (trade.metrics.exitExceeds100) {
+    if (trade?.metrics?.exitExceeds100) {
       showModal({ type: 'ALERT', title: '계산 오류', desc: `청산 비중 합계가 100%를 초과할 수 없습니다.` });
       return;
     }
@@ -2016,7 +2016,7 @@ function handleSubmit(event) {
     }
     
     const checklists = state.db.meta.checklists || [];
-    if (trade.grade === 'S' && trade.checkedRules.length < checklists.length) {
+    if (trade.grade === 'S' && (trade.checkedRules?.length || 0) < checklists.length) {
       showModal({ type: 'ALERT', title: '원칙 위반 경고', desc: 'S등급은 설정한 원칙(체크리스트)을 100% 완벽히 지켰을 때만 부여할 수 있습니다.<br>체크리스트를 확인하거나 등급을 하향 조정하세요.' });
       return;
     }
