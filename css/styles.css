@@ -658,7 +658,7 @@ label span { display: block; margin-bottom: 10px; color: var(--text-muted); font
 /* ✨ 플로팅 액션 바 (화면 하단에 항상 떠있음) */
 .journal-actions-sticky {
   position: sticky; 
-  bottom: 20px; 
+  bottom: 85px; 
   z-index: 100;
   display: flex; 
   gap: 12px; 
