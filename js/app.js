@@ -76,7 +76,8 @@ const ID_LIST = [
   'app-modal','modal-title','modal-desc','modal-input','modal-btn-cancel','modal-btn-confirm',
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',
   'ql-modal','ql-name','ql-url','ql-icon','ql-add','ql-items','ql-close','open-guide-btn','guide-modal','guide-close',
-  'btn-theme-toggle', 'eco-search-input', 'eco-month-filter', 'guide-close-bottom'
+  'btn-theme-toggle', 'eco-search-input', 'eco-month-filter', 'guide-close-bottom',
+  'btn-edit-journal-subtitle', 'journal-subtitle-text'
 ];
 
 window.__desk = {
@@ -978,6 +979,9 @@ function initMeta() {
     try { state.ecoFilters = JSON.parse(savedFilters); } catch(e) {}
   }
 
+  state.db.meta.journalSubtitle = state.db.meta.journalSubtitle || '과거의 매매를 기록하고 성취를 복기하세요.';
+  if (els['journal-subtitle-text']) els['journal-subtitle-text'].innerText = state.db.meta.journalSubtitle;
+
   renderDropdowns();
   renderQuickChips();
   renderAccountBalance();
@@ -1129,6 +1133,26 @@ function bindEvents() {
   if(els['btn-manage-setup-entry']) els['btn-manage-setup-entry'].onclick = () => openListManager('entrySetups', 'Entry Setup', 'upper');
   if(els['btn-manage-setup-exit']) els['btn-manage-setup-exit'].onclick = () => openListManager('exitSetups', 'Exit Setup', 'upper');
   if(els['btn-manage-quick-links']) els['btn-manage-quick-links'].onclick = () => openQuickLinkManager();
+
+  if(els['btn-edit-journal-subtitle']) {
+    els['btn-edit-journal-subtitle'].onclick = () => {
+      showModal({
+        title: '저널 부제목 수정',
+        desc: '저널 상단에 표시될 부제목을 입력하세요 (최대 60자)',
+        placeholder: '부제목 입력...',
+        val: state.db.meta.journalSubtitle || ''
+      }, (newVal) => {
+        if (newVal !== null) {
+          const clean = String(newVal).substring(0, 60).trim();
+          if (!clean) return;
+          state.db.meta.journalSubtitle = clean;
+          saveDB(state.db);
+          if (els['journal-subtitle-text']) els['journal-subtitle-text'].innerText = clean;
+          showToast('부제목이 수정되었습니다.');
+        }
+      });
+    };
+  }
 
 
   if(els['btn-context-structure']) els['btn-context-structure'].onclick = () => appendTemplateToField('context', '시장 구조: \n유동성 위치: \n핵심 변수: ');
