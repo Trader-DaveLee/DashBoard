@@ -2146,6 +2146,35 @@ body.modal-open { overflow: hidden; }
 .economic-timezone { font-size: 10px; opacity: 0.5; font-weight: 600; color: var(--text-muted); }
 
 /* V1.9.4: Minimal & Compact Economic Calendar */
+/* Holding Time Badge */
+.holding-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-nav);
+  color: var(--accent);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-subtle);
+  transition: all 0.2s ease;
+}
+
+.holding-time-badge svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.8;
+}
+
+.holding-time-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--accent);
+}
+
 .overview-economic-card {
   background: var(--bg-panel);
   border: 1px solid var(--border-main);

@@ -309,7 +309,7 @@ export const macroManager = {
     saveDB(state.db);
 
     this.renderCalendar();
-    alert(`${this.selectedDate} 전략이 저장되었습니다.`);
+    alert(`${this.selectedDate} 분석 내용이 저장되었습니다.`);
   }
 };
 

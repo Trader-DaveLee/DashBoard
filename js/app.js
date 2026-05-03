@@ -3070,7 +3070,16 @@ function renderTradeDetail(trade) {
     <div class="kv">
       <div>Ticker</div><div><strong>${escapeHtml(trade.ticker)}</strong> · ${escapeHtml(trade.side)} · ${escapeHtml(trade.status)}</div>
       <div>Setup</div><div>${escapeHtml(trade.setupEntry || '—')} → ${escapeHtml(trade.setupExit || '—')}</div>
-      <div>Open / Close</div><div>${formatDateTime(trade.date)} / ${trade.closedAt ? formatDateTime(trade.closedAt) : '—'}</div>
+      <div>Open / Close</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div>${formatDateTime(trade.date)} / ${trade.closedAt ? formatDateTime(trade.closedAt) : '—'}</div>
+        ${trade.closedAt ? `
+          <div class="holding-time-badge" title="Holding Duration">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>${calculateHoldingTime(trade.date, trade.closedAt) || '—'}</span>
+          </div>
+        ` : ''}
+      </div>
       <div>Grade</div><div><span class="badge ${trade.grade === 'S' || trade.grade === 'A' ? 'badge-good' : ''}">${escapeHtml(trade.grade)}</span></div>
       <div>PnL / R</div><div class="mono ${(trade.metrics?.pnl || 0) > 0 ? 'positive' : (trade.metrics?.pnl || 0) < 0 ? 'negative' : ''}">${money(trade.metrics?.pnl || 0)} / ${Number(trade.metrics?.r || 0).toFixed(2)}R</div>
     </div>
@@ -3640,21 +3649,26 @@ function initCommaInputs() {
   });
 }
 
+function calculateHoldingTime(openIso, exitIso) {
+  if (!openIso || !exitIso) return null;
+  const open = new Date(openIso), exit = new Date(exitIso);
+  if (isNaN(open) || isNaN(exit) || exit <= open) return null;
+  const diffMs = exit - open;
+  const days = Math.floor(diffMs / 86400000);
+  const hours = Math.floor((diffMs % 86400000) / 3600000);
+  const mins = Math.floor((diffMs % 3600000) / 60000);
+  if (days > 0) return `${days}d ${hours}h ${mins}m`;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
+}
+
 function updateHoldingTime() {
   const openVal = getVal('trade-date');
   const exitVal = getVal('trade-end-date');
   const display = els['holding-time-display'];
   if (!display) return;
-  if (!openVal || !exitVal) { display.textContent = '—'; return; }
-  const open = new Date(openVal), exit = new Date(exitVal);
-  if (isNaN(open) || isNaN(exit) || exit <= open) { display.textContent = '—'; return; }
-  const diffMs = exit - open;
-  const days = Math.floor(diffMs / 86400000);
-  const hours = Math.floor((diffMs % 86400000) / 3600000);
-  const mins = Math.floor((diffMs % 3600000) / 60000);
-  if (days > 0) display.textContent = `${days}d ${hours}h ${mins}m`;
-  else if (hours > 0) display.textContent = `${hours}h ${mins}m`;
-  else display.textContent = `${mins}m`;
+  const result = calculateHoldingTime(openVal, exitVal);
+  display.textContent = result || '—';
 }
 
 function setHtml(id, html) {
