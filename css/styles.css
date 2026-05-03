@@ -195,6 +195,7 @@ input:focus, select:focus, textarea:focus {
   width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; 
   background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: #fff; 
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); transition: 0.3s;
+  border: 2.5px solid var(--accent);
 }
 [data-theme='dark'] .brand-mark { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
 .brand-mark:hover { transform: rotate(-5deg) scale(1.05); }
