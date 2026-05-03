@@ -1137,6 +1137,7 @@ function bindEvents() {
   if(els['btn-edit-journal-subtitle']) {
     els['btn-edit-journal-subtitle'].onclick = () => {
       showModal({
+        type: 'PROMPT',
         title: '저널 부제목 수정',
         desc: '저널 상단에 표시될 부제목을 입력하세요 (최대 60자)',
         placeholder: '부제목 입력...',
