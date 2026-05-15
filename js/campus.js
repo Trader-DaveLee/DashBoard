@@ -372,16 +372,16 @@ export const campusManager = {
     // Bind Close button
     const closeBtn = this.getEl('campus-cat-close-btn');
     if (closeBtn) {
-      closeBtn.onclick = () => modal.classList.remove('active');
+      closeBtn.onclick = () => modal.classList.remove('show');
     }
 
     // Close on overlay click
     modal.onclick = (e) => {
-      if (e.target === modal) modal.classList.remove('active');
+      if (e.target === modal) modal.classList.remove('show');
     };
 
     this.renderCategoryModalList();
-    modal.classList.add('active');
+    modal.classList.add('show');   // ← .show (not .active!)
   },
 
   _saveCategories() {
