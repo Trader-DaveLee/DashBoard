@@ -32,27 +32,6 @@ export const campusManager = {
       els['btn-add-campus-chart'].onclick = () => this.addChart();
     }
 
-    // Inline Category Add
-    if (els['btn-add-category-inline']) {
-      els['btn-add-category-inline'].onclick = () => {
-        els['category-add-field'].classList.toggle('hidden');
-        if (!els['category-add-field'].classList.contains('hidden')) {
-          els['input-new-category'].focus();
-        }
-      };
-    }
-
-    if (els['btn-confirm-add-category']) {
-      els['btn-confirm-add-category'].onclick = () => this.addCategoryInline();
-    }
-
-    if (els['input-new-category']) {
-      els['input-new-category'].onkeydown = (e) => {
-        if (e.key === 'Enter') this.addCategoryInline();
-        if (e.key === 'Escape') els['category-add-field'].classList.add('hidden');
-      };
-    }
-
     // Rich Text Toolbar
     const toolbar = document.getElementById('campus-editor-toolbar');
     if (toolbar) {
@@ -75,7 +54,7 @@ export const campusManager = {
       };
     }
 
-    // Manage Categories (Modal fallback)
+    // Manage Categories (Modal)
     if (els['btn-manage-campus-categories']) {
       els['btn-manage-campus-categories'].onclick = () => this.manageCategories();
     }
@@ -100,24 +79,8 @@ export const campusManager = {
     const select = document.getElementById('campus-note-category');
     if (!select) return;
     
-    const categories = state.db.campusCategories || ['General'];
+    const categories = (state.db.campusCategories || ['General']).filter(c => c !== '{divider}');
     select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-  },
-
-  addCategoryInline() {
-    const val = els['input-new-category'].value.trim();
-    if (!val) return;
-
-    if (!state.db.campusCategories) state.db.campusCategories = [];
-    if (!state.db.campusCategories.includes(val)) {
-      state.db.campusCategories.push(val);
-      saveDB(state.db);
-      els['input-new-category'].value = '';
-      els['category-add-field'].classList.add('hidden');
-      this.render();
-    } else {
-      alert('이미 존재하는 카테고리입니다.');
-    }
   },
 
   addChart() {
@@ -202,37 +165,21 @@ export const campusManager = {
     const notes = state.db.campusNotes || [];
 
     container.innerHTML = categories.map(cat => {
+      if (cat === '{divider}') {
+        return `<div class="sidebar-divider"></div>`;
+      }
+
       const count = cat === 'All' 
         ? notes.length 
         : notes.filter(n => n.category === cat).length;
-      
-      const isCustom = cat !== 'All' && cat !== 'General';
 
       return `
         <div class="category-item ${this.activeCategory === cat ? 'active' : ''}" data-category="${cat}">
-          <div class="category-name-wrapper">
-             <span class="cat-icon">${this.getCategoryIcon(cat)}</span>
-             <span>${cat}</span>
-          </div>
-          <div style="display:flex; align-items:center;">
-            <span class="category-count">${count}</span>
-            ${isCustom ? `<span class="btn-delete-category-small" onclick="window.__campus_del_cat_sidebar(event, '${cat}')">✕</span>` : ''}
-          </div>
+          <span>${cat}</span>
+          <span class="category-count">${count}</span>
         </div>
       `;
     }).join('');
-
-    window.__campus_del_cat_sidebar = (e, cat) => {
-      e.stopPropagation();
-      if (confirm(`'${cat}' 카테고리를 삭제하시겠습니까?`)) {
-        state.db.campusCategories = state.db.campusCategories.filter(c => c !== cat);
-        // Reset notes in this category to General? Or leave them? 
-        // Let's just leave them, they will show up in 'All'
-        saveDB(state.db);
-        if (this.activeCategory === cat) this.activeCategory = 'All';
-        this.render();
-      }
-    };
 
     container.querySelectorAll('.category-item').forEach(item => {
       item.onclick = () => {
@@ -240,18 +187,6 @@ export const campusManager = {
         this.render();
       };
     });
-  },
-
-  getCategoryIcon(cat) {
-    const icons = {
-      'All': '📁',
-      'General': '📌',
-      'Strategy': '📊',
-      'Psychology': '🧠',
-      'Market': '🌍',
-      'Knowledge': '📚'
-    };
-    return icons[cat] || '🏷️';
   },
 
   renderFeed() {
@@ -355,7 +290,90 @@ export const campusManager = {
   },
 
   manageCategories() {
-    // Keeping for backward compatibility if needed, but sidebar is more powerful now.
-    alert('사이드바에서 직접 카테고리를 추가하거나 삭제(호버 시 ✕ 버튼)할 수 있습니다.');
+    const listModal = document.getElementById('list-manage-modal');
+    const titleEl = document.getElementById('list-manage-title');
+    const inputEl = document.getElementById('list-manage-input');
+    const addBtn = document.getElementById('list-manage-add');
+    const itemsEl = document.getElementById('list-manage-items');
+    const closeBtn = document.getElementById('list-manage-close');
+
+    titleEl.innerText = 'Manage Categories';
+    inputEl.placeholder = 'Category name...';
+    
+    // Add Divider button
+    let dividerBtn = document.getElementById('btn-add-divider');
+    if (!dividerBtn) {
+      dividerBtn = document.createElement('button');
+      dividerBtn.id = 'btn-add-divider';
+      dividerBtn.type = 'button';
+      dividerBtn.className = 'tool-btn btn-sm secondary-btn';
+      dividerBtn.innerText = '+ Add Divider';
+      dividerBtn.style.marginTop = '10px';
+      addBtn.parentElement.appendChild(dividerBtn);
+    }
+
+    const renderList = () => {
+      const cats = state.db.campusCategories || [];
+      itemsEl.innerHTML = `
+        <div class="category-manage-list">
+          ${cats.map((cat, idx) => {
+            const isDivider = cat === '{divider}';
+            return `
+              <div class="category-manage-item ${isDivider ? 'divider-item' : ''}">
+                <span class="item-label">${isDivider ? '─── Divider ───' : cat}</span>
+                <div class="item-actions">
+                  <span class="btn-move-up" onclick="window.__campus_move_cat(${idx}, -1)">▲</span>
+                  <span class="btn-move-down" onclick="window.__campus_move_cat(${idx}, 1)">▼</span>
+                  <button type="button" class="btn-icon-sm danger-text" onclick="window.__campus_del_cat_modal(${idx})">✕</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    };
+
+    window.__campus_move_cat = (idx, dir) => {
+      const cats = state.db.campusCategories;
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= cats.length) return;
+      const temp = cats[idx];
+      cats[idx] = cats[newIdx];
+      cats[newIdx] = temp;
+      saveDB(state.db);
+      renderList();
+      this.render();
+    };
+
+    window.__campus_del_cat_modal = (idx) => {
+      state.db.campusCategories.splice(idx, 1);
+      saveDB(state.db);
+      renderList();
+      this.render();
+    };
+
+    addBtn.onclick = () => {
+      const val = inputEl.value.trim();
+      if (!val) return;
+      if (!state.db.campusCategories) state.db.campusCategories = [];
+      state.db.campusCategories.push(val);
+      saveDB(state.db);
+      inputEl.value = '';
+      renderList();
+      this.render();
+    };
+
+    dividerBtn.onclick = () => {
+      if (!state.db.campusCategories) state.db.campusCategories = [];
+      state.db.campusCategories.push('{divider}');
+      saveDB(state.db);
+      renderList();
+      this.render();
+    };
+
+    closeBtn.onclick = () => listModal.classList.remove('active');
+    
+    renderList();
+    listModal.classList.add('active');
   }
 };
