@@ -4224,6 +4224,34 @@ body {
   color: var(--accent);
 }
 
+/* Campus 카테고리 관리 모달 버튼 */
+.btn-cat-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border-main);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.15s;
+}
+
+.btn-cat-action:hover {
+  background: rgba(var(--accent-rgb), 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-cat-action.danger:hover {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: var(--red, #dc2626);
+  color: var(--red, #dc2626);
+}
+
 .sidebar-divider {
   height: 1px;
   background: var(--border-subtle);

@@ -324,53 +324,63 @@ export const campusManager = {
     this.render();
   },
 
-  // ── Category Management Modal ──
+  // ── Category Management Modal (dedicated campus modal) ──
 
   manageCategories() {
-    const modal = this.getEl('list-manage-modal');
-    if (!modal) return;
-
-    const titleEl = this.getEl('list-manage-title');
-    const input = this.getEl('list-manage-input');
-    const addBtn = this.getEl('list-manage-add');
-    const closeBtn = this.getEl('list-manage-close');
-
-    if (titleEl) titleEl.innerText = 'Manage Campus Categories';
-
-    // Add Divider button (create once)
-    let divBtn = document.getElementById('btn-add-divider-campus');
-    if (!divBtn) {
-      divBtn = document.createElement('button');
-      divBtn.id = 'btn-add-divider-campus';
-      divBtn.className = 'tool-btn btn-sm secondary-btn';
-      divBtn.innerText = '+ Divider';
-      divBtn.style.marginTop = '10px';
-      if (addBtn && addBtn.parentElement) addBtn.parentElement.appendChild(divBtn);
+    const modal = this.getEl('campus-category-modal');
+    if (!modal) {
+      console.warn('[Campus] campus-category-modal not found in DOM');
+      return;
     }
 
-    this.renderCategoryModalList();
-
+    // Bind Add button
+    const addBtn = this.getEl('campus-cat-add-btn');
+    const input = this.getEl('campus-cat-input');
     if (addBtn) {
       addBtn.onclick = () => {
         const v = input ? input.value.trim() : '';
-        if (v) {
-          state.db.campusCategories.push(v);
-          this._saveCategories();
-          if (input) input.value = '';
-          this.renderCategoryModalList();
-          this.render();
-        }
+        if (!v) return;
+        if (!state.db.campusCategories) state.db.campusCategories = [];
+        state.db.campusCategories.push(v);
+        this._saveCategories();
+        if (input) input.value = '';
+        this.renderCategoryModalList();
+        this.renderCategories();
+        this.updateComposerCategories();
       };
     }
 
-    divBtn.onclick = () => {
-      state.db.campusCategories.push('{divider}');
-      this._saveCategories();
-      this.renderCategoryModalList();
-      this.render();
+    // Enter key on input
+    if (input) {
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); addBtn && addBtn.click(); }
+      };
+    }
+
+    // Bind Divider button
+    const divBtn = this.getEl('campus-cat-divider-btn');
+    if (divBtn) {
+      divBtn.onclick = () => {
+        if (!state.db.campusCategories) state.db.campusCategories = [];
+        state.db.campusCategories.push('{divider}');
+        this._saveCategories();
+        this.renderCategoryModalList();
+        this.renderCategories();
+      };
+    }
+
+    // Bind Close button
+    const closeBtn = this.getEl('campus-cat-close-btn');
+    if (closeBtn) {
+      closeBtn.onclick = () => modal.classList.remove('active');
+    }
+
+    // Close on overlay click
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.classList.remove('active');
     };
 
-    if (closeBtn) closeBtn.onclick = () => modal.classList.remove('active');
+    this.renderCategoryModalList();
     modal.classList.add('active');
   },
 
@@ -380,19 +390,38 @@ export const campusManager = {
   },
 
   renderCategoryModalList() {
-    const list = this.getEl('list-manage-items');
+    const list = this.getEl('campus-cat-list');
     if (!list) return;
     const cats = state.db.campusCategories || [];
-    list.innerHTML = `<div class="category-manage-list">${cats.map((c, i) => `
-      <div class="category-manage-item ${c === '{divider}' ? 'divider-item' : ''}">
-        <span class="item-label">${c === '{divider}' ? '─── Divider ───' : c}</span>
-        <div class="item-actions">
-          <span class="btn-move-up" onclick="window.__campus_move(${i}, -1)">▲</span>
-          <span class="btn-move-down" onclick="window.__campus_move(${i}, 1)">▼</span>
-          <span class="danger-text" onclick="window.__campus_del(${i})">✕</span>
-        </div>
-      </div>
-    `).join('')}</div>`;
+
+    if (cats.length === 0) {
+      list.innerHTML = '<div style="text-align:center; color:var(--muted); padding:24px; font-size:13px;">카테고리가 없습니다.</div>';
+      return;
+    }
+
+    list.innerHTML = cats.map((c, i) => {
+      const isDivider = c === '{divider}';
+      if (isDivider) {
+        return `
+          <div class="category-manage-item divider-item" style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; background:var(--bg-secondary); border:1px dashed var(--border-main);">
+            <span style="flex:1; color:var(--muted); font-size:12px; letter-spacing:2px;">─── 구분선 ───</span>
+            <div style="display:flex; gap:4px;">
+              <button onclick="window.__campus_move(${i}, -1)" class="btn-cat-action" title="위로">▲</button>
+              <button onclick="window.__campus_move(${i}, 1)"  class="btn-cat-action" title="아래로">▼</button>
+              <button onclick="window.__campus_del(${i})"      class="btn-cat-action danger" title="삭제">✕</button>
+            </div>
+          </div>`;
+      }
+      return `
+        <div class="category-manage-item" style="display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:8px; background:var(--bg-panel); border:1px solid var(--border-main);">
+          <span style="flex:1; font-size:13px; font-weight:600; color:var(--text-main);">${c}</span>
+          <div style="display:flex; gap:4px;">
+            <button onclick="window.__campus_move(${i}, -1)" class="btn-cat-action" title="위로">▲</button>
+            <button onclick="window.__campus_move(${i}, 1)"  class="btn-cat-action" title="아래로">▼</button>
+            <button onclick="window.__campus_del(${i})"      class="btn-cat-action danger" title="삭제">✕</button>
+          </div>
+        </div>`;
+    }).join('');
   },
 
   moveCategory(idx, dir) {

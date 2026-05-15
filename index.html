@@ -981,6 +981,35 @@
     </div>
   </div>
 
+  <!-- Campus 전용 카테고리 관리 모달 -->
+  <div id="campus-category-modal" class="modal-overlay">
+    <div class="modal-card" style="width: 520px; max-width: 95vw;">
+      <div class="modal-title" style="margin-bottom: 20px;">
+        📁 카테고리 관리
+      </div>
+
+      <!-- 카테고리 추가 -->
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <input type="text" id="campus-cat-input" placeholder="새 카테고리 이름..." style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border-main); background:var(--bg-input); color:var(--text-main); font-size:13px;" />
+        <button type="button" id="campus-cat-add-btn" class="tool-btn primary-btn" style="white-space:nowrap;">+ 추가</button>
+      </div>
+
+      <!-- 구분선 추가 -->
+      <div style="margin-bottom:20px;">
+        <button type="button" id="campus-cat-divider-btn" class="tool-btn btn-sm secondary-btn" style="width:100%; color:var(--muted);">
+          ── 구분선 추가 ──
+        </button>
+      </div>
+
+      <!-- 카테고리 목록 -->
+      <div id="campus-cat-list" class="stack" style="max-height:360px; overflow-y:auto; gap:6px; padding-right:4px;"></div>
+
+      <div class="modal-actions" style="margin-top:24px;">
+        <button id="campus-cat-close-btn" class="tool-btn primary-btn">완료</button>
+      </div>
+    </div>
+  </div>
+
   <div id="ql-modal" class="modal-overlay">
     <div class="modal-card" style="width: 640px; max-width: 95vw;">
       <div class="modal-title">Quick Launch 관리</div>
