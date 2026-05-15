@@ -62,11 +62,21 @@ export function loadDB() {
 }
 
 export async function hydrateDBFromIndexedDB() {
-  const data = await idbGet(IDB_DB_KEY);
-  if (data) {
-    return migrateDB(data);
+  const [idbData, localData] = await Promise.all([
+    idbGet(IDB_DB_KEY),
+    Promise.resolve(loadDB())
+  ]);
+
+  // Priority: Use the one with more notes/trades if they differ significantly, 
+  // or just pick the most recent if we had timestamps. 
+  // For now, if localData is present and idbData is missing, localData is used.
+  // If both present, we currently trust IndexedDB but let's be safer.
+  if (idbData && localData) {
+    const idbLen = (idbData.trades?.length || 0) + (idbData.campusNotes?.length || 0);
+    const localLen = (localData.trades?.length || 0) + (localData.campusNotes?.length || 0);
+    return migrateDB(idbLen >= localLen ? idbData : localData);
   }
-  return loadDB();
+  return migrateDB(idbData || localData || createEmptyDB());
 }
 
 export function saveDB(dbData) {
@@ -200,9 +210,11 @@ export function normalizeMemo(m) {
 
 export function normalizeCampusNote(n) {
   if (!n || typeof n !== 'object') return null;
-  // Ensure content exists, otherwise it's a useless note
   const content = n.content || '';
-  if (!content || content === '<br>') return null;
+  const charts = Array.isArray(n.charts) ? n.charts : (Array.isArray(n.attachments) ? n.attachments : []);
+  
+  // Allow note if it has either content OR charts
+  if ((!content || content === '<br>') && charts.length === 0) return null;
 
   return {
     id: n.id || 'cn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
@@ -211,7 +223,7 @@ export function normalizeCampusNote(n) {
     content: content,
     category: n.category || 'General',
     tags: Array.isArray(n.tags) ? n.tags : [],
-    charts: Array.isArray(n.charts) ? n.charts : (Array.isArray(n.attachments) ? n.attachments : [])
+    charts: charts
   };
 }
 
