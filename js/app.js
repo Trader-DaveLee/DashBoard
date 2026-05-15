@@ -15,7 +15,7 @@ import {
 import {
   loadDB, saveDB, exportDB, parseImport, normalizeTrade, sanitizeUrl,
   loadDraft, saveDraft, clearDraft, hydrateDBFromIndexedDB, hydrateDraftFromIndexedDB,
-  compressImage, hardReset
+  compressImage, hardReset, loadCampusNotes, loadCampusCategories
 } from './storage.js';
 import { runMonteCarlo } from './simulation.js';
 import { macroManager } from './macro.js';
@@ -153,10 +153,14 @@ function bootstrap() {
     // Post-boot hydration & Final Render
     hydratePersistentState().then(() => {
       initOverviewDateFilter();
-      render(); 
+      render();
+      // Step 3 & 4 Fix: Init campus AFTER hydration is complete
+      // This guarantees campusManager reads the latest data
+      campusManager.init();
     }).catch(error => {
       console.error('[post-bootstrap hydration]', error);
-      render(); 
+      render();
+      campusManager.init(); // Init even on error, uses dedicated storage
     });
   } catch (error) {
     console.error('[bootstrap Error]', error);
@@ -1409,23 +1413,10 @@ function bindEvents() {
   // V1.8.5+ Settings & Economic
   bindV18Events();
 
-  // Campus Tab Initialization
-  if (typeof campusManager !== 'undefined' && campusManager.init) {
-    campusManager.init();
-  }
+  // Campus Tab Initialization is now handled in hydratePersistentState().then()
+  // Do NOT call campusManager.init() here - timing issue!
 
-  // Campus Subtitle Edit
-  if (els['btn-edit-campus-subtitle']) {
-    els['btn-edit-campus-subtitle'].onclick = () => {
-      const current = els['campus-subtitle-text'].innerText;
-      const newVal = prompt('Campus 부제목을 수정하세요:', current);
-      if (newVal !== null) {
-        state.db.campusSubtitle = newVal.trim();
-        els['campus-subtitle-text'].innerText = state.db.campusSubtitle;
-        saveDB(state.db);
-      }
-    };
-  }
+  // Campus Subtitle Edit is now handled inside campusManager.bindEvents()
 }
 
 function handleFormMutation() {

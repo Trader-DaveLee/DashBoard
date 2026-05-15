@@ -10,6 +10,71 @@ export const DRAFT_KEY = 'trading_desk_dashboard_v3_draft';
 const IDB_DB_KEY = 'main-db';
 const IDB_DRAFT_KEY = 'draft';
 
+// ─── Campus 전용 독립 저장소 (메인 DB 파이프라인과 완전히 분리) ───
+const CAMPUS_NOTES_KEY = 'campus_notes_v1';
+const CAMPUS_CATEGORIES_KEY = 'campus_categories_v1';
+const CAMPUS_SUBTITLE_KEY = 'campus_subtitle_v1';
+
+/**
+ * Campus 노트 저장 (동기적, 즉각 반영)
+ */
+export function saveCampusNotes(notes) {
+  if (!Array.isArray(notes)) return;
+  try {
+    localStorage.setItem(CAMPUS_NOTES_KEY, JSON.stringify(notes));
+    console.log(`[Campus Storage] Saved ${notes.length} notes`);
+  } catch (e) {
+    console.error('[Campus Storage] Failed to save notes:', e);
+  }
+}
+
+/**
+ * Campus 노트 로드 (동기적, 항상 최신 반환)
+ */
+export function loadCampusNotes() {
+  try {
+    const json = localStorage.getItem(CAMPUS_NOTES_KEY);
+    if (!json) return null; // null = 데이터 없음 (메인 DB 폴백 필요)
+    const notes = JSON.parse(json);
+    console.log(`[Campus Storage] Loaded ${notes.length} notes`);
+    return Array.isArray(notes) ? notes : null;
+  } catch (e) {
+    console.error('[Campus Storage] Failed to load notes:', e);
+    return null;
+  }
+}
+
+/**
+ * Campus 카테고리 저장
+ */
+export function saveCampusCategories(categories) {
+  if (!Array.isArray(categories)) return;
+  localStorage.setItem(CAMPUS_CATEGORIES_KEY, JSON.stringify(categories));
+}
+
+/**
+ * Campus 카테고리 로드
+ */
+export function loadCampusCategories() {
+  try {
+    const json = localStorage.getItem(CAMPUS_CATEGORIES_KEY);
+    return json ? JSON.parse(json) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Campus 부제목 저장/로드
+ */
+export function saveCampusSubtitle(text) {
+  localStorage.setItem(CAMPUS_SUBTITLE_KEY, text || '');
+}
+
+export function loadCampusSubtitle() {
+  return localStorage.getItem(CAMPUS_SUBTITLE_KEY) || null;
+}
+
 const DEFAULT_CONTEXT_PROMPTS = {
   structure: '시장 구조: \n유동성 위치: \n상위 타임프레임 방향: \n세션 성격: ',
   catalyst: '촉매 / 뉴스: \n시장 테마: \n주의해야 할 이벤트: '

@@ -1,7 +1,7 @@
 import { state } from './app.js';
-import { saveDB } from './storage.js';
+import { saveDB, saveCampusNotes, loadCampusNotes, saveCampusCategories, loadCampusCategories, saveCampusSubtitle, loadCampusSubtitle, normalizeCampusNote } from './storage.js';
 
-// Top-level global assignment for modal actions to avoid scoping issues
+// Top-level global assignments for inline HTML onclick handlers
 window.__campus_move = (idx, dir) => campusManager.moveCategory(idx, dir);
 window.__campus_del = (idx) => campusManager.deleteCategoryModal(idx);
 window.__campus_update_chart = (idx, val) => campusManager.updateChartUrl(idx, val);
@@ -13,17 +13,38 @@ export const campusManager = {
   editingId: null,
   currentCharts: [],
 
+  /**
+   * Step 4 Fix: init() now reads DIRECTLY from dedicated storage.
+   * It does NOT rely on state.db being fully hydrated yet.
+   */
   init() {
-    console.log('[Campus] Starting Comprehensive Initialization...');
-    
-    // Ensure data structures exist
-    if (!state.db.campusNotes) state.db.campusNotes = [];
-    if (!state.db.campusCategories || state.db.campusCategories.length === 0) {
+    console.log('[Campus] Initializing with dedicated storage...');
+
+    // ── LOAD from dedicated storage (synchronous, always latest) ──
+    const savedNotes = loadCampusNotes();
+    const savedCategories = loadCampusCategories();
+    const savedSubtitle = loadCampusSubtitle();
+
+    // Populate state.db from dedicated storage (source of truth)
+    if (savedNotes !== null) {
+      state.db.campusNotes = savedNotes;
+    } else if (!Array.isArray(state.db.campusNotes)) {
+      state.db.campusNotes = [];
+    }
+
+    if (savedCategories !== null) {
+      state.db.campusCategories = savedCategories;
+    } else if (!Array.isArray(state.db.campusCategories) || state.db.campusCategories.length === 0) {
       state.db.campusCategories = ['General', 'Strategy', 'Psychology', 'Market', 'Knowledge'];
+    }
+
+    if (savedSubtitle !== null) {
+      state.db.campusSubtitle = savedSubtitle;
     }
 
     this.bindEvents();
     this.render();
+    console.log(`[Campus] Ready. ${state.db.campusNotes.length} notes loaded.`);
   },
 
   getEl(id) {
@@ -31,62 +52,52 @@ export const campusManager = {
   },
 
   bindEvents() {
-    // 1. Composer Header
     const header = this.getEl('campus-composer-header');
-    if (header) {
-      header.onclick = (e) => {
-        e.stopPropagation();
-        this.expandComposer();
-      };
-    }
+    if (header) header.onclick = (e) => { e.stopPropagation(); this.expandComposer(); };
 
-    // 2. Save/Cancel
     const btnSave = this.getEl('btn-save-note');
     if (btnSave) btnSave.onclick = (e) => { e.preventDefault(); this.saveNote(); };
 
     const btnCancel = this.getEl('btn-cancel-note');
     if (btnCancel) btnCancel.onclick = (e) => { e.preventDefault(); this.resetComposer(); };
 
-    // 3. Add Chart
     const btnAddChart = this.getEl('btn-add-campus-chart');
     if (btnAddChart) btnAddChart.onclick = () => this.addChart();
 
-    // 4. Manage Categories
     const btnManage = this.getEl('btn-manage-campus-categories');
     if (btnManage) btnManage.onclick = () => this.manageCategories();
 
-    // 5. Search
     const searchInput = this.getEl('campus-search');
     if (searchInput) {
       searchInput.oninput = (e) => {
         this.searchQuery = e.target.value.toLowerCase();
-        this.render();
+        this.renderFeed();
       };
     }
 
-    // 6. Subtitle
     const btnEditSubtitle = this.getEl('btn-edit-campus-subtitle');
     if (btnEditSubtitle) {
       btnEditSubtitle.onclick = () => {
         const textEl = this.getEl('campus-subtitle-text');
-        const newVal = prompt('부제목 수정:', textEl ? textEl.innerText : '');
+        const current = textEl ? textEl.innerText : '';
+        const newVal = prompt('부제목 수정:', current);
         if (newVal !== null) {
-          state.db.campusSubtitle = newVal.trim();
-          saveDB(state.db);
+          const trimmed = newVal.trim();
+          state.db.campusSubtitle = trimmed;
+          saveCampusSubtitle(trimmed); // dedicated save
+          saveDB(state.db);            // main DB backup
           this.render();
         }
       };
     }
 
-    // 7. Rich Text Toolbar
+    // Rich Text Toolbar
     const toolbar = this.getEl('campus-editor-toolbar');
     if (toolbar) {
       toolbar.querySelectorAll('button[data-command]').forEach(btn => {
         btn.onclick = (e) => {
           e.preventDefault();
-          const cmd = btn.dataset.command;
-          const val = btn.dataset.value || null;
-          document.execCommand(cmd, false, val);
+          document.execCommand(btn.dataset.command, false, btn.dataset.value || null);
           const editor = this.getEl('campus-note-content');
           if (editor) editor.focus();
         };
@@ -113,7 +124,6 @@ export const campusManager = {
     if (content) content.innerHTML = '';
     if (tags) tags.value = '';
     this.renderCharts();
-    
     const expanded = this.getEl('composer-expanded');
     const header = this.getEl('campus-composer-header');
     if (expanded) expanded.classList.add('hidden');
@@ -148,7 +158,7 @@ export const campusManager = {
     `).join('');
   },
 
-  async saveNote() {
+  saveNote() {
     const contentEl = this.getEl('campus-note-content');
     const categoryEl = this.getEl('campus-note-category');
     const tagsEl = this.getEl('campus-note-tags');
@@ -158,7 +168,6 @@ export const campusManager = {
     const tags = (tagsEl ? tagsEl.value : '').split(',').map(t => t.trim()).filter(t => t);
     const charts = this.currentCharts.filter(c => c.trim());
 
-    // BUG FIX: Allow saving if either content exists OR charts exist
     const hasContent = content && content !== '<br>';
     const hasCharts = charts.length > 0;
 
@@ -168,7 +177,7 @@ export const campusManager = {
     }
 
     const noteData = {
-      content: hasContent ? content : '', // Ensure content is at least empty string
+      content: hasContent ? content : '',
       category,
       tags,
       charts,
@@ -177,14 +186,21 @@ export const campusManager = {
 
     if (this.editingId) {
       const idx = state.db.campusNotes.findIndex(n => n.id === this.editingId);
-      if (idx !== -1) state.db.campusNotes[idx] = { ...state.db.campusNotes[idx], ...noteData };
+      if (idx !== -1) {
+        state.db.campusNotes[idx] = { ...state.db.campusNotes[idx], ...noteData };
+      }
     } else {
-      state.db.campusNotes.push({ id: 'cn-' + Date.now(), date: new Date().toISOString(), ...noteData });
+      state.db.campusNotes.unshift({
+        id: 'cn-' + Date.now(),
+        date: new Date().toISOString(),
+        ...noteData
+      });
     }
 
-    // STRONG SAVE: Wait for both LocalStorage and IndexedDB completion
-    await saveDB(state.db);
-    
+    // ── DUAL SAVE: dedicated storage (primary) + main DB (backup) ──
+    saveCampusNotes(state.db.campusNotes);   // synchronous, immediate
+    saveDB(state.db);                         // async backup to IDB
+
     this.resetComposer();
     this.render();
     if (window.showToast) window.showToast('성공적으로 기록되었습니다.');
@@ -203,7 +219,6 @@ export const campusManager = {
     if (!container) return;
     const cats = ['All', ...(state.db.campusCategories || [])];
     const notes = state.db.campusNotes || [];
-
     container.innerHTML = cats.map(cat => {
       if (cat === '{divider}') return `<div class="sidebar-divider"></div>`;
       const count = cat === 'All' ? notes.length : notes.filter(n => n.category === cat).length;
@@ -212,9 +227,8 @@ export const campusManager = {
         <span class="category-count">${count}</span>
       </div>`;
     }).join('');
-
     container.querySelectorAll('.category-item').forEach(item => {
-      item.onclick = () => { this.activeCategory = item.dataset.category; this.render(); };
+      item.onclick = () => { this.activeCategory = item.dataset.category; this.renderCategories(); this.renderFeed(); };
     });
   },
 
@@ -232,9 +246,11 @@ export const campusManager = {
     let notes = state.db.campusNotes || [];
     if (this.activeCategory !== 'All') notes = notes.filter(n => n.category === this.activeCategory);
     if (this.searchQuery) {
-      notes = notes.filter(n => (n.content && n.content.toLowerCase().includes(this.searchQuery)) || (n.tags && n.tags.some(t => t.toLowerCase().includes(this.searchQuery))));
+      notes = notes.filter(n =>
+        (n.content && n.content.toLowerCase().includes(this.searchQuery)) ||
+        (n.tags && n.tags.some(t => t.toLowerCase().includes(this.searchQuery)))
+      );
     }
-    notes.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (notes.length === 0) {
       container.innerHTML = '<div class="empty-placeholder">기록이 없습니다.</div>';
@@ -275,7 +291,10 @@ export const campusManager = {
       const id = card.dataset.id;
       card.querySelector('.btn-edit-note').onclick = (e) => { e.stopPropagation(); this.editNote(id); };
       card.querySelector('.btn-delete-note').onclick = (e) => { e.stopPropagation(); this.deleteNote(id); };
-      card.onclick = () => card.querySelector('.campus-note-content').classList.toggle('expanded');
+      card.onclick = () => {
+        const c = card.querySelector('.campus-note-content');
+        if (c) c.classList.toggle('expanded');
+      };
     });
   },
 
@@ -298,24 +317,27 @@ export const campusManager = {
   },
 
   deleteNote(id) {
-    if (confirm('삭제하시겠습니까?')) {
-      state.db.campusNotes = state.db.campusNotes.filter(n => n.id !== id);
-      saveDB(state.db); this.render();
-    }
+    if (!confirm('삭제하시겠습니까?')) return;
+    state.db.campusNotes = state.db.campusNotes.filter(n => n.id !== id);
+    saveCampusNotes(state.db.campusNotes); // dedicated save
+    saveDB(state.db);                       // main DB backup
+    this.render();
   },
 
-  // CATEGORY MODAL LOGIC (OVERHAULED)
+  // ── Category Management Modal ──
+
   manageCategories() {
     const modal = this.getEl('list-manage-modal');
     if (!modal) return;
 
-    this.getEl('list-manage-title').innerText = 'Manage Campus Categories';
+    const titleEl = this.getEl('list-manage-title');
     const input = this.getEl('list-manage-input');
     const addBtn = this.getEl('list-manage-add');
-    const list = this.getEl('list-manage-items');
     const closeBtn = this.getEl('list-manage-close');
 
-    // Add Divider button securely
+    if (titleEl) titleEl.innerText = 'Manage Campus Categories';
+
+    // Add Divider button (create once)
     let divBtn = document.getElementById('btn-add-divider-campus');
     if (!divBtn) {
       divBtn = document.createElement('button');
@@ -323,26 +345,38 @@ export const campusManager = {
       divBtn.className = 'tool-btn btn-sm secondary-btn';
       divBtn.innerText = '+ Divider';
       divBtn.style.marginTop = '10px';
-      addBtn.parentElement.appendChild(divBtn);
+      if (addBtn && addBtn.parentElement) addBtn.parentElement.appendChild(divBtn);
     }
 
     this.renderCategoryModalList();
 
-    addBtn.onclick = () => {
-      const v = input.value.trim();
-      if (v) {
-        state.db.campusCategories.push(v);
-        saveDB(state.db); input.value = ''; this.renderCategoryModalList(); this.render();
-      }
-    };
+    if (addBtn) {
+      addBtn.onclick = () => {
+        const v = input ? input.value.trim() : '';
+        if (v) {
+          state.db.campusCategories.push(v);
+          this._saveCategories();
+          if (input) input.value = '';
+          this.renderCategoryModalList();
+          this.render();
+        }
+      };
+    }
 
     divBtn.onclick = () => {
       state.db.campusCategories.push('{divider}');
-      saveDB(state.db); this.renderCategoryModalList(); this.render();
+      this._saveCategories();
+      this.renderCategoryModalList();
+      this.render();
     };
 
-    closeBtn.onclick = () => modal.classList.remove('active');
+    if (closeBtn) closeBtn.onclick = () => modal.classList.remove('active');
     modal.classList.add('active');
+  },
+
+  _saveCategories() {
+    saveCampusCategories(state.db.campusCategories); // dedicated save
+    saveDB(state.db);                                 // main DB backup
   },
 
   renderCategoryModalList() {
@@ -366,12 +400,16 @@ export const campusManager = {
     const n = idx + dir;
     if (n >= 0 && n < cats.length) {
       [cats[idx], cats[n]] = [cats[n], cats[idx]];
-      saveDB(state.db); this.renderCategoryModalList(); this.render();
+      this._saveCategories();
+      this.renderCategoryModalList();
+      this.renderCategories();
     }
   },
 
   deleteCategoryModal(idx) {
     state.db.campusCategories.splice(idx, 1);
-    saveDB(state.db); this.renderCategoryModalList(); this.render();
+    this._saveCategories();
+    this.renderCategoryModalList();
+    this.render();
   }
 };
