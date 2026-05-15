@@ -11,10 +11,10 @@ export const campusManager = {
     console.log('[Campus] Initializing...');
 
     // Composer Toggle
-    if (els['composer-trigger']) {
-      els['composer-trigger'].onclick = () => {
+    if (els['campus-composer-header']) {
+      els['campus-composer-header'].onclick = () => {
         els['composer-expanded'].classList.remove('hidden');
-        els['composer-trigger'].parentElement.classList.add('hidden');
+        els['campus-composer-header'].classList.add('hidden');
         els['campus-note-content'].focus();
       };
     }
@@ -30,6 +30,27 @@ export const campusManager = {
     // Chart Links
     if (els['btn-add-campus-chart']) {
       els['btn-add-campus-chart'].onclick = () => this.addChart();
+    }
+
+    // Inline Category Add
+    if (els['btn-add-category-inline']) {
+      els['btn-add-category-inline'].onclick = () => {
+        els['category-add-field'].classList.toggle('hidden');
+        if (!els['category-add-field'].classList.contains('hidden')) {
+          els['input-new-category'].focus();
+        }
+      };
+    }
+
+    if (els['btn-confirm-add-category']) {
+      els['btn-confirm-add-category'].onclick = () => this.addCategoryInline();
+    }
+
+    if (els['input-new-category']) {
+      els['input-new-category'].onkeydown = (e) => {
+        if (e.key === 'Enter') this.addCategoryInline();
+        if (e.key === 'Escape') els['category-add-field'].classList.add('hidden');
+      };
     }
 
     // Rich Text Toolbar
@@ -54,12 +75,11 @@ export const campusManager = {
       };
     }
 
-    // Manage Categories
+    // Manage Categories (Modal fallback)
     if (els['btn-manage-campus-categories']) {
       els['btn-manage-campus-categories'].onclick = () => this.manageCategories();
     }
 
-    // Initialize category dropdown in composer
     this.updateComposerCategories();
   },
 
@@ -71,7 +91,7 @@ export const campusManager = {
     this.renderCharts();
     
     if (els['composer-expanded']) els['composer-expanded'].classList.add('hidden');
-    if (els['composer-trigger']) els['composer-trigger'].parentElement.classList.remove('hidden');
+    if (els['campus-composer-header']) els['campus-composer-header'].classList.remove('hidden');
     
     if (els['btn-save-note']) els['btn-save-note'].innerText = 'Post';
   },
@@ -82,6 +102,22 @@ export const campusManager = {
     
     const categories = state.db.campusCategories || ['General'];
     select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+  },
+
+  addCategoryInline() {
+    const val = els['input-new-category'].value.trim();
+    if (!val) return;
+
+    if (!state.db.campusCategories) state.db.campusCategories = [];
+    if (!state.db.campusCategories.includes(val)) {
+      state.db.campusCategories.push(val);
+      saveDB(state.db);
+      els['input-new-category'].value = '';
+      els['category-add-field'].classList.add('hidden');
+      this.render();
+    } else {
+      alert('이미 존재하는 카테고리입니다.');
+    }
   },
 
   addChart() {
@@ -149,7 +185,7 @@ export const campusManager = {
     saveDB(state.db);
     this.resetComposer();
     this.render();
-    if (window.showToast) window.showToast('생각이 저장되었습니다.');
+    if (window.showToast) window.showToast('기록되었습니다.');
   },
 
   render() {
@@ -170,13 +206,33 @@ export const campusManager = {
         ? notes.length 
         : notes.filter(n => n.category === cat).length;
       
+      const isCustom = cat !== 'All' && cat !== 'General';
+
       return `
         <div class="category-item ${this.activeCategory === cat ? 'active' : ''}" data-category="${cat}">
-          <span>${cat}</span>
-          <span class="category-count">${count}</span>
+          <div class="category-name-wrapper">
+             <span class="cat-icon">${this.getCategoryIcon(cat)}</span>
+             <span>${cat}</span>
+          </div>
+          <div style="display:flex; align-items:center;">
+            <span class="category-count">${count}</span>
+            ${isCustom ? `<span class="btn-delete-category-small" onclick="window.__campus_del_cat_sidebar(event, '${cat}')">✕</span>` : ''}
+          </div>
         </div>
       `;
     }).join('');
+
+    window.__campus_del_cat_sidebar = (e, cat) => {
+      e.stopPropagation();
+      if (confirm(`'${cat}' 카테고리를 삭제하시겠습니까?`)) {
+        state.db.campusCategories = state.db.campusCategories.filter(c => c !== cat);
+        // Reset notes in this category to General? Or leave them? 
+        // Let's just leave them, they will show up in 'All'
+        saveDB(state.db);
+        if (this.activeCategory === cat) this.activeCategory = 'All';
+        this.render();
+      }
+    };
 
     container.querySelectorAll('.category-item').forEach(item => {
       item.onclick = () => {
@@ -184,6 +240,18 @@ export const campusManager = {
         this.render();
       };
     });
+  },
+
+  getCategoryIcon(cat) {
+    const icons = {
+      'All': '📁',
+      'General': '📌',
+      'Strategy': '📊',
+      'Psychology': '🧠',
+      'Market': '🌍',
+      'Knowledge': '📚'
+    };
+    return icons[cat] || '🏷️';
   },
 
   renderFeed() {
@@ -206,7 +274,7 @@ export const campusManager = {
     notes.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (notes.length === 0) {
-      container.innerHTML = '<div class="empty-placeholder">조건에 맞는 생각이 없습니다.</div>';
+      container.innerHTML = '<div class="empty-placeholder">기록이 없습니다.</div>';
       return;
     }
 
@@ -222,7 +290,7 @@ export const campusManager = {
           <div class="campus-note-charts">
             ${note.charts.map(url => `
               <div class="campus-chart-preview">
-                <img src="${url}" alt="Chart" onerror="this.parentElement.innerHTML='<a href=\'${url}\' target=\'_blank\' class=\'chart-link-fallback\'>🔗 View External Chart</a>'" />
+                <img src="${url}" alt="Chart" onerror="this.parentElement.innerHTML='<a href=\'${url}\' target=\'_blank\' class=\'chart-link-fallback\'>🔗 View Chart</a>'" />
               </div>
             `).join('')}
           </div>
@@ -272,7 +340,7 @@ export const campusManager = {
 
     this.renderCharts();
     els['composer-expanded'].classList.remove('hidden');
-    els['composer-trigger'].parentElement.classList.add('hidden');
+    els['campus-composer-header'].classList.add('hidden');
     els['btn-save-note'].innerText = 'Update';
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -287,48 +355,7 @@ export const campusManager = {
   },
 
   manageCategories() {
-    const listModal = document.getElementById('list-manage-modal');
-    const titleEl = document.getElementById('list-manage-title');
-    const inputEl = document.getElementById('list-manage-input');
-    const addBtn = document.getElementById('list-manage-add');
-    const itemsEl = document.getElementById('list-manage-items');
-    const closeBtn = document.getElementById('list-manage-close');
-
-    titleEl.innerText = 'Campus Categories';
-    
-    const renderList = () => {
-      itemsEl.innerHTML = (state.db.campusCategories || []).map((cat, idx) => `
-        <div class="list-manage-row" style="background:var(--bg-panel); border:1px solid var(--border-main); padding:10px 12px; border-radius:12px; margin-bottom:8px; display:flex; align-items:center;">
-          <span style="font-size:12px; font-weight:800; flex:1; color:var(--text-main);">${cat}</span>
-          <div class="row-actions">
-            <button type="button" class="btn-icon-sm danger-text" onclick="window.__campus_del_cat(${idx})">✕</button>
-          </div>
-        </div>
-      `).join('');
-    };
-
-    window.__campus_del_cat = (idx) => {
-      state.db.campusCategories.splice(idx, 1);
-      saveDB(state.db);
-      renderList();
-      this.render();
-    };
-
-    addBtn.onclick = () => {
-      const val = inputEl.value.trim();
-      if (!val) return;
-      if (!state.db.campusCategories.includes(val)) {
-        state.db.campusCategories.push(val);
-        saveDB(state.db);
-        inputEl.value = '';
-        renderList();
-        this.render();
-      }
-    };
-
-    closeBtn.onclick = () => listModal.classList.remove('active');
-    
-    renderList();
-    listModal.classList.add('active');
+    // Keeping for backward compatibility if needed, but sidebar is more powerful now.
+    alert('사이드바에서 직접 카테고리를 추가하거나 삭제(호버 시 ✕ 버튼)할 수 있습니다.');
   }
 };

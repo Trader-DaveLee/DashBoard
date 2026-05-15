@@ -80,8 +80,9 @@ const ID_LIST = [
   'btn-theme-toggle', 'eco-search-input', 'eco-month-filter', 'guide-close-bottom',
   'btn-edit-journal-subtitle', 'journal-subtitle-text',
   'view-campus', 'campus-search', 'campus-categories', 'btn-manage-campus-categories', 'campus-feed-container',
-  'composer-trigger', 'composer-expanded', 'campus-note-content', 'campus-note-category', 'campus-note-tags', 'btn-save-note', 'btn-cancel-note', 'campus-editor-toolbar',
-  'btn-add-campus-chart', 'campus-chart-list', 'btn-edit-campus-subtitle', 'campus-subtitle-text'
+  'campus-composer-header', 'composer-expanded', 'campus-note-content', 'campus-note-category', 'campus-note-tags', 'btn-save-note', 'btn-cancel-note', 'campus-editor-toolbar',
+  'btn-add-campus-chart', 'campus-chart-list', 'btn-edit-campus-subtitle', 'campus-subtitle-text',
+  'btn-add-category-inline', 'category-add-field', 'input-new-category', 'btn-confirm-add-category'
 ];
 
 window.__desk = {

@@ -4032,3 +4032,135 @@ body {
 .chart-link-fallback:hover {
   text-decoration: underline;
 }
+
+/* ==========================================================================
+   Campus Composer Header Polish
+   ========================================================================== */
+.composer-header {
+  transition: all 0.2s ease;
+  border-radius: 20px;
+}
+
+.composer-header:hover {
+  background: rgba(var(--accent-rgb), 0.05);
+  transform: translateY(-1px);
+}
+
+.composer-header:active {
+  transform: translateY(0);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+.composer-placeholder-trigger {
+  pointer-events: none; /* Let the header handle clicks */
+  flex: 1;
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Campus Category Sidebar Enhancements
+   ========================================================================== */
+.category-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.category-card-header h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.category-add-field {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px;
+  background: var(--bg-input);
+  border-radius: 12px;
+  border: 1px solid var(--accent);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.category-add-field input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  outline: none;
+}
+
+.category-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+}
+
+.category-item:hover {
+  background: rgba(var(--accent-rgb), 0.05);
+  border-color: var(--border-subtle);
+}
+
+.category-item.active {
+  background: var(--accent);
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.25);
+}
+
+.category-item.active .category-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.category-item .category-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.category-count {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+
+.btn-delete-category-small {
+  opacity: 0;
+  transform: translateX(5px);
+  transition: all 0.2s;
+  color: var(--red);
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.category-item:hover .btn-delete-category-small {
+  opacity: 0.6;
+  transform: translateX(0);
+}
+
+.btn-delete-category-small:hover {
+  opacity: 1 !important;
+}
+
+.category-item.active .btn-delete-category-small {
+  color: #fff;
+}
