@@ -148,7 +148,7 @@ export const campusManager = {
     `).join('');
   },
 
-  saveNote() {
+  async saveNote() {
     const contentEl = this.getEl('campus-note-content');
     const categoryEl = this.getEl('campus-note-category');
     const tagsEl = this.getEl('campus-note-tags');
@@ -182,7 +182,9 @@ export const campusManager = {
       state.db.campusNotes.push({ id: 'cn-' + Date.now(), date: new Date().toISOString(), ...noteData });
     }
 
-    saveDB(state.db);
+    // STRONG SAVE: Wait for both LocalStorage and IndexedDB completion
+    await saveDB(state.db);
+    
     this.resetComposer();
     this.render();
     if (window.showToast) window.showToast('성공적으로 기록되었습니다.');

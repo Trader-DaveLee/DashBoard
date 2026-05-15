@@ -67,23 +67,31 @@ export async function hydrateDBFromIndexedDB() {
     Promise.resolve(loadDB())
   ]);
 
-  // Priority: Use the one with more notes/trades if they differ significantly, 
-  // or just pick the most recent if we had timestamps. 
-  // For now, if localData is present and idbData is missing, localData is used.
-  // If both present, we currently trust IndexedDB but let's be safer.
-  if (idbData && localData) {
-    const idbLen = (idbData.trades?.length || 0) + (idbData.campusNotes?.length || 0);
-    const localLen = (localData.trades?.length || 0) + (localData.campusNotes?.length || 0);
-    return migrateDB(idbLen >= localLen ? idbData : localData);
-  }
-  return migrateDB(idbData || localData || createEmptyDB());
+  const idbTime = idbData?.lastModified || 0;
+  const localTime = localData?.lastModified || 0;
+
+  console.log(`[Storage] Hydrating: IDB(${idbTime}) vs Local(${localTime})`);
+
+  // Pick the one with the later timestamp
+  const winner = (idbTime >= localTime) ? idbData : localData;
+  return migrateDB(winner || createEmptyDB());
 }
 
-export function saveDB(dbData) {
+export async function saveDB(dbData) {
   if (!dbData) return;
+  
+  // Add timestamp for strong versioning
+  dbData.lastModified = Date.now();
+  
   const json = JSON.stringify(dbData);
   localStorage.setItem(STORAGE_KEY, json);
-  idbSet(IDB_DB_KEY, dbData).catch(e => console.error('IndexedDB save error:', e));
+  
+  try {
+    await idbSet(IDB_DB_KEY, dbData);
+    console.log('[Storage] Strong save completed at', dbData.lastModified);
+  } catch (e) {
+    console.error('IndexedDB save error:', e);
+  }
 }
 
 export function exportDB(dbData) {
