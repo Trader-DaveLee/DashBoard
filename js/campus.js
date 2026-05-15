@@ -1,4 +1,4 @@
-import { state, els } from './app.js';
+import { state } from './app.js';
 import { saveDB } from './storage.js';
 
 export const campusManager = {
@@ -10,30 +10,32 @@ export const campusManager = {
   init() {
     console.log('[Campus] Initializing...');
 
+    const getEl = (id) => document.getElementById(id);
+
     // Composer Toggle
-    if (els['campus-composer-header']) {
-      els['campus-composer-header'].onclick = () => {
-        els['composer-expanded'].classList.remove('hidden');
-        els['campus-composer-header'].classList.add('hidden');
-        els['campus-note-content'].focus();
+    const header = getEl('campus-composer-header');
+    const expanded = getEl('composer-expanded');
+    const content = getEl('campus-note-content');
+    
+    if (header && expanded && content) {
+      header.onclick = () => {
+        expanded.classList.remove('hidden');
+        header.classList.add('hidden');
+        content.focus();
       };
     }
 
-    if (els['btn-cancel-note']) {
-      els['btn-cancel-note'].onclick = () => this.resetComposer();
-    }
+    const btnCancel = getEl('btn-cancel-note');
+    if (btnCancel) btnCancel.onclick = () => this.resetComposer();
 
-    if (els['btn-save-note']) {
-      els['btn-save-note'].onclick = () => this.saveNote();
-    }
+    const btnSave = getEl('btn-save-note');
+    if (btnSave) btnSave.onclick = () => this.saveNote();
 
-    // Chart Links
-    if (els['btn-add-campus-chart']) {
-      els['btn-add-campus-chart'].onclick = () => this.addChart();
-    }
+    const btnAddChart = getEl('btn-add-campus-chart');
+    if (btnAddChart) btnAddChart.onclick = () => this.addChart();
 
     // Rich Text Toolbar
-    const toolbar = document.getElementById('campus-editor-toolbar');
+    const toolbar = getEl('campus-editor-toolbar');
     if (toolbar) {
       toolbar.querySelectorAll('button[data-command]').forEach(btn => {
         btn.onclick = (e) => {
@@ -41,38 +43,64 @@ export const campusManager = {
           const cmd = btn.dataset.command;
           const val = btn.dataset.value || null;
           document.execCommand(cmd, false, val);
-          els['campus-note-content'].focus();
+          const editor = getEl('campus-note-content');
+          if (editor) editor.focus();
         };
       });
     }
 
     // Search
-    if (els['campus-search']) {
-      els['campus-search'].oninput = (e) => {
+    const search = getEl('campus-search');
+    if (search) {
+      search.oninput = (e) => {
         this.searchQuery = e.target.value.toLowerCase();
         this.render();
       };
     }
 
     // Manage Categories (Modal)
-    if (els['btn-manage-campus-categories']) {
-      els['btn-manage-campus-categories'].onclick = () => this.manageCategories();
+    const btnManage = getEl('btn-manage-campus-categories');
+    if (btnManage) {
+      btnManage.onclick = () => this.manageCategories();
+    }
+
+    // Subtitle Edit (Moving logic here to ensure it works)
+    const btnEditSubtitle = getEl('btn-edit-campus-subtitle');
+    if (btnEditSubtitle) {
+      btnEditSubtitle.onclick = () => {
+        const textEl = getEl('campus-subtitle-text');
+        const current = textEl ? textEl.innerText : '';
+        const newVal = prompt('Campus 부제목을 수정하세요:', current);
+        if (newVal !== null) {
+          state.db.campusSubtitle = newVal.trim();
+          if (textEl) textEl.innerText = state.db.campusSubtitle;
+          saveDB(state.db);
+        }
+      };
     }
 
     this.updateComposerCategories();
+    this.render();
   },
 
   resetComposer() {
+    const getEl = (id) => document.getElementById(id);
     this.editingId = null;
     this.currentCharts = [];
-    if (els['campus-note-content']) els['campus-note-content'].innerHTML = '';
-    if (els['campus-note-tags']) els['campus-note-tags'].value = '';
+    
+    const content = getEl('campus-note-content');
+    const tags = getEl('campus-note-tags');
+    const expanded = getEl('composer-expanded');
+    const header = getEl('campus-composer-header');
+    const btnSave = getEl('btn-save-note');
+
+    if (content) content.innerHTML = '';
+    if (tags) tags.value = '';
     this.renderCharts();
     
-    if (els['composer-expanded']) els['composer-expanded'].classList.add('hidden');
-    if (els['campus-composer-header']) els['campus-composer-header'].classList.remove('hidden');
-    
-    if (els['btn-save-note']) els['btn-save-note'].innerText = 'Post';
+    if (expanded) expanded.classList.add('hidden');
+    if (header) header.classList.remove('hidden');
+    if (btnSave) btnSave.innerText = 'Post';
   },
 
   updateComposerCategories() {
@@ -94,7 +122,7 @@ export const campusManager = {
   },
 
   renderCharts() {
-    const container = els['campus-chart-list'];
+    const container = document.getElementById('campus-chart-list');
     if (!container) return;
 
     container.innerHTML = this.currentCharts.map((url, idx) => `
@@ -114,9 +142,10 @@ export const campusManager = {
   },
 
   saveNote() {
-    const content = els['campus-note-content'].innerHTML.trim();
-    const category = els['campus-note-category'].value;
-    const tags = els['campus-note-tags'].value.split(',').map(t => t.trim()).filter(t => t);
+    const getEl = (id) => document.getElementById(id);
+    const content = getEl('campus-note-content').innerHTML.trim();
+    const category = getEl('campus-note-category').value;
+    const tags = getEl('campus-note-tags').value.split(',').map(t => t.trim()).filter(t => t);
     const charts = this.currentCharts.filter(c => c);
 
     if (!content || content === '<br>') {
@@ -155,6 +184,12 @@ export const campusManager = {
     this.renderCategories();
     this.renderFeed();
     this.updateComposerCategories();
+    
+    // Update Subtitle Display
+    const textEl = document.getElementById('campus-subtitle-text');
+    if (textEl && state.db.campusSubtitle) {
+      textEl.innerText = state.db.campusSubtitle;
+    }
   },
 
   renderCategories() {
@@ -264,29 +299,31 @@ export const campusManager = {
   },
 
   editNote(id) {
+    const getEl = (id) => document.getElementById(id);
     const note = state.db.campusNotes.find(n => n.id === id);
     if (!note) return;
 
     this.editingId = id;
     this.currentCharts = [...(note.charts || [])];
-    els['campus-note-content'].innerHTML = note.content || '';
-    els['campus-note-category'].value = note.category;
-    els['campus-note-tags'].value = (note.tags || []).join(', ');
+    
+    const content = getEl('campus-note-content');
+    const category = getEl('campus-note-category');
+    const tags = getEl('campus-note-tags');
+    const expanded = getEl('composer-expanded');
+    const header = getEl('campus-composer-header');
+    const btnSave = getEl('btn-save-note');
+
+    if (content) content.innerHTML = note.content || '';
+    if (category) category.value = note.category;
+    if (tags) tags.value = (note.tags || []).join(', ');
 
     this.renderCharts();
-    els['composer-expanded'].classList.remove('hidden');
-    els['campus-composer-header'].classList.add('hidden');
-    els['btn-save-note'].innerText = 'Update';
+    if (expanded) expanded.classList.remove('hidden');
+    if (header) header.classList.add('hidden');
+    if (btnSave) btnSave.innerText = 'Update';
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    els['campus-note-content'].focus();
-  },
-
-  deleteNote(id) {
-    if (!confirm('정말로 이 기록을 삭제하시겠습니까?')) return;
-    state.db.campusNotes = state.db.campusNotes.filter(n => n.id !== id);
-    saveDB(state.db);
-    this.render();
+    if (content) content.focus();
   },
 
   manageCategories() {
@@ -297,10 +334,12 @@ export const campusManager = {
     const itemsEl = document.getElementById('list-manage-items');
     const closeBtn = document.getElementById('list-manage-close');
 
+    if (!listModal || !addBtn) return;
+
     titleEl.innerText = 'Manage Categories';
     inputEl.placeholder = 'Category name...';
     
-    // Add Divider button
+    // Add Divider button inside the modal control area
     let dividerBtn = document.getElementById('btn-add-divider');
     if (!dividerBtn) {
       dividerBtn = document.createElement('button');

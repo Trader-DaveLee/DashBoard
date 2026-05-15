@@ -113,6 +113,7 @@ function migrateDB(db) {
   db.memos = (db.memos || []).map(normalizeMemo).filter(m => m !== null);
   db.campusNotes = (db.campusNotes || []).map(normalizeCampusNote).filter(n => n !== null);
   if (!db.campusCategories) db.campusCategories = ['General', 'Strategy', 'Psychology', 'Market', 'Knowledge'];
+  if (!db.campusSubtitle) db.campusSubtitle = '당신의 트레이딩 지식과 생각을 기록하세요.';
   db.schemaVersion = 5;
   return db;
 }
@@ -194,11 +195,11 @@ export function normalizeCampusNote(n) {
   return {
     id: n.id || 'cn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
     date: n.date || new Date().toISOString(),
-    title: n.title || 'Untitled Thought',
+    updatedAt: n.updatedAt || n.date || new Date().toISOString(),
     content: n.content || '',
     category: n.category || 'General',
     tags: Array.isArray(n.tags) ? n.tags : [],
-    attachments: Array.isArray(n.attachments) ? n.attachments : []
+    charts: Array.isArray(n.charts) ? n.charts : (Array.isArray(n.attachments) ? n.attachments : [])
   };
 }
 
