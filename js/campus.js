@@ -64,8 +64,8 @@ export const campusManager = {
     const btnAddChart = this.getEl('btn-add-campus-chart');
     if (btnAddChart) btnAddChart.onclick = () => this.addChart();
 
-    const btnManage = this.getEl('btn-manage-campus-categories');
-    if (btnManage) btnManage.onclick = () => this.manageCategories();
+    // NOTE: btn-open-campus-cat-modal uses inline onclick="window.campusManager.manageCategories()"
+    // No need to bind here - avoids timing issues.
 
     const searchInput = this.getEl('campus-search');
     if (searchInput) {
@@ -442,3 +442,6 @@ export const campusManager = {
     this.render();
   }
 };
+
+// CRITICAL: Expose to window so HTML inline onclick="window.campusManager.manageCategories()" works
+window.campusManager = campusManager;

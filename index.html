@@ -883,7 +883,13 @@
             <div id="campus-categories" class="campus-category-list">
               <!-- Categories will be rendered here -->
             </div>
-            <button type="button" id="btn-manage-campus-categories" class="tool-btn btn-sm secondary-btn" style="width: 100%; margin-top: 16px;">
+            <button
+              type="button"
+              id="btn-open-campus-cat-modal"
+              class="tool-btn btn-sm secondary-btn"
+              style="width: 100%; margin-top: 16px;"
+              onclick="if(window.campusManager) window.campusManager.manageCategories(); else alert('Campus가 아직 초기화 중입니다. 잠시 후 다시 시도해주세요.');"
+            >
               Manage Categories
             </button>
           </div>
