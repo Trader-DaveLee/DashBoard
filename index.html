@@ -894,7 +894,7 @@
             
             <div id="composer-expanded" class="composer-expanded hidden">
               <div class="briefing-toolbar campus-editor-toolbar" id="campus-editor-toolbar">
-                <div class="toolbar-group">
+                <div class="toolbar-group-left">
                   <button type="button" class="tool-btn btn-sm" data-command="bold" title="굵게"><b>B</b></button>
                   <button type="button" class="tool-btn btn-sm" data-command="underline" title="밑줄"><u>U</u></button>
                   <div class="toolbar-divider"></div>
@@ -903,14 +903,14 @@
                   <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="2" title="작게">A-</button>
                 </div>
 
-                <div class="toolbar-spacer"></div>
-
-                <div class="toolbar-group">
+                <div class="toolbar-group-right">
                   <select id="campus-note-category" class="composer-select-mini">
                     <!-- Categories rendered dynamically -->
                   </select>
-                  <button type="button" id="btn-cancel-note" class="tool-btn btn-sm">취소</button>
-                  <button type="button" id="btn-save-note" class="tool-btn primary-btn btn-sm">Post</button>
+                  <div class="toolbar-actions">
+                    <button type="button" id="btn-cancel-note" class="tool-btn btn-sm">취소</button>
+                    <button type="button" id="btn-save-note" class="tool-btn primary-btn btn-sm">Post</button>
+                  </div>
                 </div>
               </div>
 
@@ -918,8 +918,20 @@
                 <div id="campus-note-content" class="modern-briefing-editor rich-editor" contenteditable="true" placeholder="생각을 자유롭게 기록하세요..."></div>
               </div>
 
-              <div class="composer-tags-wrapper">
-                <input type="text" id="campus-note-tags" class="composer-input-tags-mini" placeholder="#태그 (쉼표로 구분하여 입력)" />
+              <div class="composer-extra-sections">
+                <!-- Chart Links Section -->
+                <div class="composer-section chart-links-section">
+                  <div class="section-label">CHART ANALYSIS</div>
+                  <div id="campus-chart-list" class="campus-chart-grid">
+                    <!-- Chart links will appear here -->
+                  </div>
+                  <button type="button" id="btn-add-campus-chart" class="tool-btn btn-sm accent-text">+ Add TradingView Link</button>
+                </div>
+
+                <!-- Tags Section -->
+                <div class="composer-section tags-section">
+                  <input type="text" id="campus-note-tags" class="composer-input-tags-mini" placeholder="#태그 (쉼표로 구분하여 입력)" />
+                </div>
               </div>
             </div>
           </article>

@@ -5,6 +5,7 @@ export const campusManager = {
   activeCategory: 'All',
   searchQuery: '',
   editingId: null,
+  currentCharts: [],
 
   init() {
     console.log('[Campus] Initializing...');
@@ -24,6 +25,11 @@ export const campusManager = {
 
     if (els['btn-save-note']) {
       els['btn-save-note'].onclick = () => this.saveNote();
+    }
+
+    // Chart Links
+    if (els['btn-add-campus-chart']) {
+      els['btn-add-campus-chart'].onclick = () => this.addChart();
     }
 
     // Rich Text Toolbar
@@ -59,8 +65,10 @@ export const campusManager = {
 
   resetComposer() {
     this.editingId = null;
+    this.currentCharts = [];
     if (els['campus-note-content']) els['campus-note-content'].innerHTML = '';
     if (els['campus-note-tags']) els['campus-note-tags'].value = '';
+    this.renderCharts();
     
     if (els['composer-expanded']) els['composer-expanded'].classList.add('hidden');
     if (els['composer-trigger']) els['composer-trigger'].parentElement.classList.remove('hidden');
@@ -76,42 +84,71 @@ export const campusManager = {
     select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
   },
 
+  addChart() {
+    this.currentCharts.push('');
+    this.renderCharts();
+  },
+
+  removeChart(index) {
+    this.currentCharts.splice(index, 1);
+    this.renderCharts();
+  },
+
+  renderCharts() {
+    const container = els['campus-chart-list'];
+    if (!container) return;
+
+    container.innerHTML = this.currentCharts.map((url, idx) => `
+      <div class="campus-chart-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        <input type="text" placeholder="TradingView Image URL (https://...)" value="${url}" oninput="window.__campus_update_chart(${idx}, this.value)" />
+        <span class="btn-remove-chart" onclick="window.__campus_remove_chart(${idx})">✕</span>
+      </div>
+    `).join('');
+
+    window.__campus_update_chart = (idx, val) => {
+      this.currentCharts[idx] = val.trim();
+    };
+    window.__campus_remove_chart = (idx) => {
+      this.removeChart(idx);
+    };
+  },
+
   saveNote() {
     const content = els['campus-note-content'].innerHTML.trim();
     const category = els['campus-note-category'].value;
     const tags = els['campus-note-tags'].value.split(',').map(t => t.trim()).filter(t => t);
+    const charts = this.currentCharts.filter(c => c);
 
     if (!content || content === '<br>') {
       alert('내용을 입력해주세요.');
       return;
     }
 
+    const noteData = {
+      content,
+      category,
+      tags,
+      charts,
+      updatedAt: new Date().toISOString()
+    };
+
     if (this.editingId) {
       const idx = state.db.campusNotes.findIndex(n => n.id === this.editingId);
       if (idx !== -1) {
-        state.db.campusNotes[idx] = { 
-          ...state.db.campusNotes[idx], 
-          content, 
-          category, 
-          tags,
-          updatedAt: new Date().toISOString()
-        };
+        state.db.campusNotes[idx] = { ...state.db.campusNotes[idx], ...noteData };
       }
     } else {
       state.db.campusNotes.push({
         id: 'cn-' + Date.now(),
         date: new Date().toISOString(),
-        content,
-        category,
-        tags
+        ...noteData
       });
     }
 
     saveDB(state.db);
     this.resetComposer();
     this.render();
-    
-    // Toast notification if available
     if (window.showToast) window.showToast('생각이 저장되었습니다.');
   },
 
@@ -155,21 +192,17 @@ export const campusManager = {
 
     let notes = state.db.campusNotes || [];
 
-    // Filter by category
     if (this.activeCategory !== 'All') {
       notes = notes.filter(n => n.category === this.activeCategory);
     }
 
-    // Search query
     if (this.searchQuery) {
       notes = notes.filter(n => 
-        (n.title && n.title.toLowerCase().includes(this.searchQuery)) || 
         (n.content && n.content.toLowerCase().includes(this.searchQuery)) ||
         (n.tags && n.tags.some(t => t.toLowerCase().includes(this.searchQuery)))
       );
     }
 
-    // Sort by newest
     notes.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (notes.length === 0) {
@@ -184,6 +217,17 @@ export const campusManager = {
           <span class="campus-note-date">${new Date(note.date).toLocaleDateString()}</span>
         </div>
         <div class="campus-note-content">${note.content}</div>
+        
+        ${(note.charts && note.charts.length > 0) ? `
+          <div class="campus-note-charts">
+            ${note.charts.map(url => `
+              <div class="campus-chart-preview">
+                <img src="${url}" alt="Chart" onerror="this.parentElement.innerHTML='<a href=\'${url}\' target=\'_blank\' class=\'chart-link-fallback\'>🔗 View External Chart</a>'" />
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
         <div class="campus-note-footer">
           <div class="campus-note-tags">
             ${(note.tags || []).map(tag => `<span class="campus-tag">#${tag}</span>`).join('')}
@@ -200,7 +244,6 @@ export const campusManager = {
       </article>
     `).join('');
 
-    // Bind actions
     container.querySelectorAll('.campus-note-card').forEach(card => {
       const id = card.dataset.id;
       card.querySelector('.btn-edit-note').onclick = (e) => {
@@ -222,15 +265,16 @@ export const campusManager = {
     if (!note) return;
 
     this.editingId = id;
+    this.currentCharts = [...(note.charts || [])];
     els['campus-note-content'].innerHTML = note.content || '';
     els['campus-note-category'].value = note.category;
     els['campus-note-tags'].value = (note.tags || []).join(', ');
 
+    this.renderCharts();
     els['composer-expanded'].classList.remove('hidden');
     els['composer-trigger'].parentElement.classList.add('hidden');
     els['btn-save-note'].innerText = 'Update';
     
-    // Scroll to top to see composer
     window.scrollTo({ top: 0, behavior: 'smooth' });
     els['campus-note-content'].focus();
   },
@@ -286,12 +330,5 @@ export const campusManager = {
     
     renderList();
     listModal.classList.add('active');
-  },
-
-  escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
   }
 };

@@ -3879,3 +3879,155 @@ body {
   opacity: 0.5;
   font-weight: 500;
 }
+
+/* ==========================================================================
+   Campus Tab Design Polish
+   ========================================================================== */
+.modern-briefing-editor.rich-editor, 
+.campus-note-content {
+  color: #000 !important; /* Force deep black for better readability */
+}
+
+.campus-editor-toolbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 8px 16px !important;
+  gap: 12px;
+  flex-wrap: nowrap !important;
+}
+
+.toolbar-group-left, .toolbar-group-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-group-right {
+  flex-shrink: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.composer-extra-sections {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.composer-section {
+  padding: 12px;
+  background: var(--bg-input);
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+
+.campus-chart-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.campus-chart-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+  border-radius: 8px;
+}
+
+.campus-chart-item input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.campus-chart-item .btn-remove-chart {
+  color: var(--red);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Fix for overlapping buttons in toolbar */
+.composer-select-mini {
+  max-width: 140px;
+}
+
+/* Ensure Feed cards also have dark text */
+.campus-note-content p, 
+.campus-note-content li, 
+.campus-note-content div {
+  color: #000 !important;
+}
+
+/* Dark mode adjustment if needed */
+[data-theme='dark'] .modern-briefing-editor.rich-editor,
+[data-theme='dark'] .campus-note-content,
+[data-theme='dark'] .campus-note-content p,
+[data-theme='dark'] .campus-note-content li,
+[data-theme='dark'] .campus-note-content div {
+  color: #fff !important;
+}
+
+/* ==========================================================================
+   Campus Feed Chart Display
+   ========================================================================== */
+.campus-note-charts {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.campus-chart-preview {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-main);
+  background: var(--bg-input);
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.campus-chart-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.campus-chart-preview:hover img {
+  transform: scale(1.05);
+}
+
+.chart-link-fallback {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.chart-link-fallback:hover {
+  text-decoration: underline;
+}
