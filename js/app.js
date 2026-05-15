@@ -814,11 +814,13 @@ async function hydratePersistentState() {
   try {
     const localDraft = loadDraft();
     const [hydratedDb, hydratedDraft] = await Promise.all([
-      hydrateDBFromIndexedDB(state.db),
+      hydrateDBFromIndexedDB(),
       hydrateDraftFromIndexedDB(localDraft)
     ]);
 
-    if (hydratedDb && JSON.stringify(hydratedDb) !== JSON.stringify(state.db)) {
+    // CRITICAL FIX: Always apply the hydrated DB (best available data)
+    // Do NOT skip with JSON.stringify comparison - that can miss new saves
+    if (hydratedDb) {
       state.db = hydratedDb;
       initMeta();
       render();
@@ -826,9 +828,8 @@ async function hydratePersistentState() {
       refreshJournalStatus('저장소 동기화 완료');
     }
 
-    if (hydratedDraft?.trade && JSON.stringify(hydratedDraft) !== JSON.stringify(localDraft)) {
+    if (hydratedDraft?.trade) {
       applyTradeToForm(hydratedDraft.trade, { keepId: Boolean(hydratedDraft.trade.id) });
-      // if (hydratedDraft.savedAt) setHtml('draft-saved-at', `Draft ${formatDateTime(hydratedDraft.savedAt)} 저장`);
       updatePreview();
     }
   } catch (error) {
