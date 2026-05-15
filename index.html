@@ -893,32 +893,33 @@
             </div>
             
             <div id="composer-expanded" class="composer-expanded hidden">
-              <input type="text" id="campus-note-title" class="campus-input-title-mini" placeholder="제목 (선택 사항)" />
-              
               <div class="briefing-toolbar campus-editor-toolbar" id="campus-editor-toolbar">
-                <button type="button" class="tool-btn btn-sm" data-command="bold" title="굵게"><b>B</b></button>
-                <button type="button" class="tool-btn btn-sm" data-command="underline" title="밑줄"><u>U</u></button>
-                <div class="toolbar-divider"></div>
-                <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="5" title="크게">A+</button>
-                <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="3" title="보통">A</button>
-                <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="2" title="작게">A-</button>
+                <div class="toolbar-group">
+                  <button type="button" class="tool-btn btn-sm" data-command="bold" title="굵게"><b>B</b></button>
+                  <button type="button" class="tool-btn btn-sm" data-command="underline" title="밑줄"><u>U</u></button>
+                  <div class="toolbar-divider"></div>
+                  <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="5" title="크게">A+</button>
+                  <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="3" title="보통">A</button>
+                  <button type="button" class="tool-btn btn-sm" data-command="fontSize" data-value="2" title="작게">A-</button>
+                </div>
+
+                <div class="toolbar-spacer"></div>
+
+                <div class="toolbar-group">
+                  <select id="campus-note-category" class="composer-select-mini">
+                    <!-- Categories rendered dynamically -->
+                  </select>
+                  <button type="button" id="btn-cancel-note" class="tool-btn btn-sm">취소</button>
+                  <button type="button" id="btn-save-note" class="tool-btn primary-btn btn-sm">Post</button>
+                </div>
               </div>
 
               <div class="composer-editor-wrapper">
                 <div id="campus-note-content" class="modern-briefing-editor rich-editor" contenteditable="true" placeholder="생각을 자유롭게 기록하세요..."></div>
               </div>
 
-              <div class="composer-footer">
-                <div class="composer-meta-inputs">
-                  <select id="campus-note-category" class="composer-select">
-                    <!-- Categories rendered dynamically -->
-                  </select>
-                  <input type="text" id="campus-note-tags" class="composer-input-tags" placeholder="태그 (쉼표 구분)" />
-                </div>
-                <div class="composer-actions">
-                  <button type="button" id="btn-cancel-note" class="tool-btn">취소</button>
-                  <button type="button" id="btn-save-note" class="tool-btn primary-btn">Post</button>
-                </div>
+              <div class="composer-tags-wrapper">
+                <input type="text" id="campus-note-tags" class="composer-input-tags-mini" placeholder="#태그 (쉼표로 구분하여 입력)" />
               </div>
             </div>
           </article>

@@ -59,7 +59,6 @@ export const campusManager = {
 
   resetComposer() {
     this.editingId = null;
-    if (els['campus-note-title']) els['campus-note-title'].value = '';
     if (els['campus-note-content']) els['campus-note-content'].innerHTML = '';
     if (els['campus-note-tags']) els['campus-note-tags'].value = '';
     
@@ -78,7 +77,6 @@ export const campusManager = {
   },
 
   saveNote() {
-    const title = els['campus-note-title'].value.trim();
     const content = els['campus-note-content'].innerHTML.trim();
     const category = els['campus-note-category'].value;
     const tags = els['campus-note-tags'].value.split(',').map(t => t.trim()).filter(t => t);
@@ -93,7 +91,6 @@ export const campusManager = {
       if (idx !== -1) {
         state.db.campusNotes[idx] = { 
           ...state.db.campusNotes[idx], 
-          title, 
           content, 
           category, 
           tags,
@@ -104,7 +101,6 @@ export const campusManager = {
       state.db.campusNotes.push({
         id: 'cn-' + Date.now(),
         date: new Date().toISOString(),
-        title,
         content,
         category,
         tags
@@ -187,7 +183,6 @@ export const campusManager = {
           <span class="campus-note-category">${note.category}</span>
           <span class="campus-note-date">${new Date(note.date).toLocaleDateString()}</span>
         </div>
-        ${note.title ? `<h3 class="campus-note-title">${this.escapeHtml(note.title)}</h3>` : ''}
         <div class="campus-note-content">${note.content}</div>
         <div class="campus-note-footer">
           <div class="campus-note-tags">
@@ -227,7 +222,6 @@ export const campusManager = {
     if (!note) return;
 
     this.editingId = id;
-    els['campus-note-title'].value = note.title || '';
     els['campus-note-content'].innerHTML = note.content || '';
     els['campus-note-category'].value = note.category;
     els['campus-note-tags'].value = (note.tags || []).join(', ');

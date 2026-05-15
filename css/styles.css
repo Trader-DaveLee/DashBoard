@@ -3759,16 +3759,17 @@ body {
 
 .composer-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 .composer-meta-inputs {
   display: flex;
   gap: 12px;
-  flex: 1;
+  align-items: center;
 }
 
 .composer-select {
@@ -3778,16 +3779,17 @@ body {
   border: 1px solid var(--border-main);
   font-size: 13px;
   color: var(--text-main);
+  min-width: 120px;
 }
 
 .composer-input-tags {
-  flex: 1;
   padding: 8px 12px;
   border-radius: 10px;
   background: var(--bg-input);
   border: 1px solid var(--border-main);
   font-size: 13px;
   color: var(--text-main);
+  width: 200px;
 }
 
 .composer-actions {
@@ -3815,5 +3817,65 @@ body {
 
 .campus-note-content b, .campus-note-content strong {
   font-weight: 800;
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   Campus Composer Refined Toolbar
+   ========================================================================== */
+.campus-editor-toolbar {
+  justify-content: space-between !important;
+  padding: 6px 12px !important;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.composer-select-mini {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  font-size: 12px;
+  color: var(--text-main);
+  min-width: 100px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.composer-select-mini:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.composer-tags-wrapper {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.composer-input-tags-mini {
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-size: 13px;
   color: var(--accent);
+  font-weight: 600;
+}
+
+.composer-input-tags-mini:focus {
+  outline: none;
+}
+
+.composer-input-tags-mini::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+  font-weight: 500;
 }
