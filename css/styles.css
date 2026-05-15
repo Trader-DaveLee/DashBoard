@@ -3405,13 +3405,16 @@ body {
 
 .search-box-v2:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+  background: var(--bg-panel);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.1);
 }
 
 .search-box-v2 input {
-  background: transparent;
-  border: none;
-  height: 40px;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  height: 38px;
   padding: 0 8px;
   font-size: 14px;
   color: var(--text-main);
@@ -3662,139 +3665,137 @@ body {
 /* ==========================================================================
    Campus Composer Styles
    ========================================================================== */
+/* ==========================================================================
+   Campus Composer Refined Styling (Premium)
+   ========================================================================== */
 .campus-composer-card {
-  padding: 16px !important;
+  padding: 0 !important; /* Move padding to internal sections */
   margin-bottom: 24px;
   background: var(--bg-panel);
   border: 1px solid var(--border-main);
   border-radius: 20px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  overflow: hidden; /* Ensure toolbar border doesn't clip */
   transition: all 0.3s ease;
 }
 
 .composer-header {
+  padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   cursor: pointer;
 }
 
-.composer-user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--bg-input);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.composer-placeholder-trigger {
-  flex: 1;
-  background: var(--bg-input);
-  border-radius: 20px;
-  padding: 10px 16px;
-  color: var(--text-muted);
-  font-size: 15px;
-  transition: background 0.2s;
-}
-
-.composer-header:hover .composer-placeholder-trigger {
-  background: rgba(var(--accent-rgb), 0.05);
-}
-
 .composer-expanded {
-  margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
   animation: fadeInDown 0.3s ease-out;
 }
 
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.campus-editor-toolbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 12px 20px !important;
+  background: rgba(var(--accent-rgb), 0.03);
+  border-bottom: 1px solid var(--border-main) !important;
+  gap: 20px;
 }
 
-.campus-input-title-mini {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 16px;
-  font-weight: 700;
-  padding: 8px 0;
+.toolbar-group-left, .toolbar-group-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.composer-select-mini {
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-main);
-  width: 100%;
+  min-width: 140px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.campus-input-title-mini:focus {
-  outline: none;
+.composer-select-mini:hover {
   border-color: var(--accent);
 }
 
-.campus-editor-toolbar {
-  padding: 8px;
-  background: var(--bg-input);
-  border-radius: 10px;
+.toolbar-actions {
   display: flex;
-  gap: 4px;
+  gap: 10px;
+}
+
+.toolbar-actions .tool-btn {
+  padding: 8px 18px !important;
+  height: auto !important;
+  min-width: 80px;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolbar-actions #btn-save-note {
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.2);
+}
+
+.toolbar-actions #btn-save-note:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.3);
 }
 
 .composer-editor-wrapper {
-  min-height: 120px;
-  max-height: 400px;
-  overflow-y: auto;
-  border: 1px solid var(--border-main);
-  border-radius: 12px;
-  background: var(--bg-input);
+  padding: 0;
+  border: none !important;
 }
 
 .modern-briefing-editor.rich-editor {
-  min-height: 120px;
+  min-height: 200px;
+  padding: 24px;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #000 !important;
+}
+
+.composer-extra-sections {
+  padding: 0 24px 24px;
+  background: var(--bg-panel);
+}
+
+.composer-section {
   padding: 16px;
-  font-size: 15px;
-  color: var(--text-main);
-}
-
-.composer-footer {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.composer-meta-inputs {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.composer-select {
-  padding: 8px 12px;
-  border-radius: 10px;
   background: var(--bg-input);
-  border: 1px solid var(--border-main);
-  font-size: 13px;
-  color: var(--text-main);
-  min-width: 120px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  margin-top: 16px;
 }
 
-.composer-input-tags {
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-main);
-  font-size: 13px;
-  color: var(--text-main);
-  width: 200px;
+.section-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
 }
 
-.composer-actions {
-  display: flex;
-  gap: 8px;
+.composer-input-tags-mini {
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 600;
+  padding: 4px 0;
 }
 
 .campus-note-content {

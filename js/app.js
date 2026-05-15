@@ -81,7 +81,7 @@ const ID_LIST = [
   'btn-edit-journal-subtitle', 'journal-subtitle-text',
   'view-campus', 'campus-search', 'campus-categories', 'btn-manage-campus-categories', 'campus-feed-container',
   'composer-trigger', 'composer-expanded', 'campus-note-content', 'campus-note-category', 'campus-note-tags', 'btn-save-note', 'btn-cancel-note', 'campus-editor-toolbar',
-  'btn-add-campus-chart', 'campus-chart-list'
+  'btn-add-campus-chart', 'campus-chart-list', 'btn-edit-campus-subtitle', 'campus-subtitle-text'
 ];
 
 window.__desk = {
@@ -1411,6 +1411,19 @@ function bindEvents() {
   if (typeof campusManager !== 'undefined' && campusManager.init) {
     campusManager.init();
   }
+
+  // Campus Subtitle Edit
+  if (els['btn-edit-campus-subtitle']) {
+    els['btn-edit-campus-subtitle'].onclick = () => {
+      const current = els['campus-subtitle-text'].innerText;
+      const newVal = prompt('Campus 부제목을 수정하세요:', current);
+      if (newVal !== null) {
+        state.db.campusSubtitle = newVal.trim();
+        els['campus-subtitle-text'].innerText = state.db.campusSubtitle;
+        saveDB(state.db);
+      }
+    };
+  }
 }
 
 function handleFormMutation() {
@@ -1599,6 +1612,9 @@ export function renderViews() {
     safeCall('macroManager.render()', () => macroManager.render());
   }
   if (state.view === 'campus') {
+    if (els['campus-subtitle-text'] && state.db.campusSubtitle) {
+      els['campus-subtitle-text'].innerText = state.db.campusSubtitle;
+    }
     safeCall('campusManager.render()', () => campusManager.render());
   }
 }
