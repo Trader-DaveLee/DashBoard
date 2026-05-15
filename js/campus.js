@@ -8,34 +8,74 @@ export const campusManager = {
   currentCharts: [],
 
   init() {
-    console.log('[Campus] Initializing...');
-
-    const getEl = (id) => document.getElementById(id);
-
-    // Composer Toggle
-    const header = getEl('campus-composer-header');
-    const expanded = getEl('composer-expanded');
-    const content = getEl('campus-note-content');
+    console.log('[Campus] Initializing Manager...');
     
-    if (header && expanded && content) {
-      header.onclick = () => {
-        expanded.classList.remove('hidden');
-        header.classList.add('hidden');
-        content.focus();
+    // One-time emergency cleanup if data is corrupted
+    if (!Array.isArray(state.db.campusNotes)) {
+      console.warn('[Campus] campusNotes was not an array. Resetting.');
+      state.db.campusNotes = [];
+    }
+    if (!Array.isArray(state.db.campusCategories)) {
+      console.warn('[Campus] campusCategories was not an array. Resetting.');
+      state.db.campusCategories = ['General', 'Strategy', 'Psychology', 'Market', 'Knowledge'];
+    }
+
+    this.bindEvents();
+    this.render();
+  },
+
+  getEl(id) {
+    return document.getElementById(id);
+  },
+
+  bindEvents() {
+    console.log('[Campus] Binding events...');
+    
+    // Use event delegation for buttons that might be dynamic or to ensure reliability
+    const header = this.getEl('campus-composer-header');
+    if (header) {
+      header.onclick = (e) => {
+        e.stopPropagation();
+        this.expandComposer();
       };
     }
 
-    const btnCancel = getEl('btn-cancel-note');
-    if (btnCancel) btnCancel.onclick = () => this.resetComposer();
+    const btnSave = this.getEl('btn-save-note');
+    if (btnSave) btnSave.onclick = (e) => { e.preventDefault(); this.saveNote(); };
 
-    const btnSave = getEl('btn-save-note');
-    if (btnSave) btnSave.onclick = () => this.saveNote();
+    const btnCancel = this.getEl('btn-cancel-note');
+    if (btnCancel) btnCancel.onclick = (e) => { e.preventDefault(); this.resetComposer(); };
 
-    const btnAddChart = getEl('btn-add-campus-chart');
+    const btnAddChart = this.getEl('btn-add-campus-chart');
     if (btnAddChart) btnAddChart.onclick = () => this.addChart();
 
+    const btnManage = this.getEl('btn-manage-campus-categories');
+    if (btnManage) btnManage.onclick = () => this.manageCategories();
+
+    const searchInput = this.getEl('campus-search');
+    if (searchInput) {
+      searchInput.oninput = (e) => {
+        this.searchQuery = e.target.value.toLowerCase();
+        this.render();
+      };
+    }
+
+    const btnEditSubtitle = this.getEl('btn-edit-campus-subtitle');
+    if (btnEditSubtitle) {
+      btnEditSubtitle.onclick = () => {
+        const textEl = this.getEl('campus-subtitle-text');
+        const current = textEl ? textEl.innerText : '';
+        const newVal = prompt('Campus 부제목을 수정하세요:', current);
+        if (newVal !== null) {
+          state.db.campusSubtitle = newVal.trim();
+          saveDB(state.db);
+          this.render();
+        }
+      };
+    }
+
     // Rich Text Toolbar
-    const toolbar = getEl('campus-editor-toolbar');
+    const toolbar = this.getEl('campus-editor-toolbar');
     if (toolbar) {
       toolbar.querySelectorAll('button[data-command]').forEach(btn => {
         btn.onclick = (e) => {
@@ -43,56 +83,34 @@ export const campusManager = {
           const cmd = btn.dataset.command;
           const val = btn.dataset.value || null;
           document.execCommand(cmd, false, val);
-          const editor = getEl('campus-note-content');
+          const editor = this.getEl('campus-note-content');
           if (editor) editor.focus();
         };
       });
     }
+  },
 
-    // Search
-    const search = getEl('campus-search');
-    if (search) {
-      search.oninput = (e) => {
-        this.searchQuery = e.target.value.toLowerCase();
-        this.render();
-      };
+  expandComposer() {
+    const expanded = this.getEl('composer-expanded');
+    const header = this.getEl('campus-composer-header');
+    const content = this.getEl('campus-note-content');
+    
+    if (expanded && header) {
+      expanded.classList.remove('hidden');
+      header.classList.add('hidden');
+      if (content) content.focus();
     }
-
-    // Manage Categories (Modal)
-    const btnManage = getEl('btn-manage-campus-categories');
-    if (btnManage) {
-      btnManage.onclick = () => this.manageCategories();
-    }
-
-    // Subtitle Edit (Moving logic here to ensure it works)
-    const btnEditSubtitle = getEl('btn-edit-campus-subtitle');
-    if (btnEditSubtitle) {
-      btnEditSubtitle.onclick = () => {
-        const textEl = getEl('campus-subtitle-text');
-        const current = textEl ? textEl.innerText : '';
-        const newVal = prompt('Campus 부제목을 수정하세요:', current);
-        if (newVal !== null) {
-          state.db.campusSubtitle = newVal.trim();
-          if (textEl) textEl.innerText = state.db.campusSubtitle;
-          saveDB(state.db);
-        }
-      };
-    }
-
-    this.updateComposerCategories();
-    this.render();
   },
 
   resetComposer() {
-    const getEl = (id) => document.getElementById(id);
     this.editingId = null;
     this.currentCharts = [];
     
-    const content = getEl('campus-note-content');
-    const tags = getEl('campus-note-tags');
-    const expanded = getEl('composer-expanded');
-    const header = getEl('campus-composer-header');
-    const btnSave = getEl('btn-save-note');
+    const content = this.getEl('campus-note-content');
+    const tags = this.getEl('campus-note-tags');
+    const expanded = this.getEl('composer-expanded');
+    const header = this.getEl('campus-composer-header');
+    const btnSave = this.getEl('btn-save-note');
 
     if (content) content.innerHTML = '';
     if (tags) tags.value = '';
@@ -103,32 +121,19 @@ export const campusManager = {
     if (btnSave) btnSave.innerText = 'Post';
   },
 
-  updateComposerCategories() {
-    const select = document.getElementById('campus-note-category');
-    if (!select) return;
-    
-    const categories = (state.db.campusCategories || ['General']).filter(c => c !== '{divider}');
-    select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-  },
-
   addChart() {
     this.currentCharts.push('');
     this.renderCharts();
   },
 
-  removeChart(index) {
-    this.currentCharts.splice(index, 1);
-    this.renderCharts();
-  },
-
   renderCharts() {
-    const container = document.getElementById('campus-chart-list');
+    const container = this.getEl('campus-chart-list');
     if (!container) return;
 
     container.innerHTML = this.currentCharts.map((url, idx) => `
       <div class="campus-chart-item">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-        <input type="text" placeholder="TradingView Image URL (https://...)" value="${url}" oninput="window.__campus_update_chart(${idx}, this.value)" />
+        <input type="text" placeholder="TradingView Image URL" value="${url}" oninput="window.__campus_update_chart(${idx}, this.value)" />
         <span class="btn-remove-chart" onclick="window.__campus_remove_chart(${idx})">✕</span>
       </div>
     `).join('');
@@ -137,15 +142,22 @@ export const campusManager = {
       this.currentCharts[idx] = val.trim();
     };
     window.__campus_remove_chart = (idx) => {
-      this.removeChart(idx);
+      this.currentCharts.splice(idx, 1);
+      this.renderCharts();
     };
   },
 
   saveNote() {
-    const getEl = (id) => document.getElementById(id);
-    const content = getEl('campus-note-content').innerHTML.trim();
-    const category = getEl('campus-note-category').value;
-    const tags = getEl('campus-note-tags').value.split(',').map(t => t.trim()).filter(t => t);
+    console.log('[Campus] Attempting to save note...');
+    const contentEl = this.getEl('campus-note-content');
+    const categoryEl = this.getEl('campus-note-category');
+    const tagsEl = this.getEl('campus-note-tags');
+
+    if (!contentEl) return;
+
+    const content = contentEl.innerHTML.trim();
+    const category = categoryEl ? categoryEl.value : 'General';
+    const tags = (tagsEl ? tagsEl.value : '').split(',').map(t => t.trim()).filter(t => t);
     const charts = this.currentCharts.filter(c => c);
 
     if (!content || content === '<br>') {
@@ -161,23 +173,30 @@ export const campusManager = {
       updatedAt: new Date().toISOString()
     };
 
-    if (this.editingId) {
-      const idx = state.db.campusNotes.findIndex(n => n.id === this.editingId);
-      if (idx !== -1) {
-        state.db.campusNotes[idx] = { ...state.db.campusNotes[idx], ...noteData };
+    try {
+      if (this.editingId) {
+        const idx = state.db.campusNotes.findIndex(n => n.id === this.editingId);
+        if (idx !== -1) {
+          state.db.campusNotes[idx] = { ...state.db.campusNotes[idx], ...noteData };
+        }
+      } else {
+        state.db.campusNotes.push({
+          id: 'cn-' + Date.now(),
+          date: new Date().toISOString(),
+          ...noteData
+        });
       }
-    } else {
-      state.db.campusNotes.push({
-        id: 'cn-' + Date.now(),
-        date: new Date().toISOString(),
-        ...noteData
-      });
-    }
 
-    saveDB(state.db);
-    this.resetComposer();
-    this.render();
-    if (window.showToast) window.showToast('기록되었습니다.');
+      saveDB(state.db);
+      console.log('[Campus] Save successful');
+      
+      this.resetComposer();
+      this.render();
+      if (window.showToast) window.showToast('기록이 저장되었습니다.');
+    } catch (e) {
+      console.error('[Campus] Save failed:', e);
+      alert('저장 중 오류가 발생했습니다.');
+    }
   },
 
   render() {
@@ -185,24 +204,21 @@ export const campusManager = {
     this.renderFeed();
     this.updateComposerCategories();
     
-    // Update Subtitle Display
-    const textEl = document.getElementById('campus-subtitle-text');
+    const textEl = this.getEl('campus-subtitle-text');
     if (textEl && state.db.campusSubtitle) {
       textEl.innerText = state.db.campusSubtitle;
     }
   },
 
   renderCategories() {
-    const container = document.getElementById('campus-categories');
+    const container = this.getEl('campus-categories');
     if (!container) return;
 
     const categories = ['All', ...(state.db.campusCategories || [])];
     const notes = state.db.campusNotes || [];
 
     container.innerHTML = categories.map(cat => {
-      if (cat === '{divider}') {
-        return `<div class="sidebar-divider"></div>`;
-      }
+      if (cat === '{divider}') return `<div class="sidebar-divider"></div>`;
 
       const count = cat === 'All' 
         ? notes.length 
@@ -224,12 +240,19 @@ export const campusManager = {
     });
   },
 
+  updateComposerCategories() {
+    const select = this.getEl('campus-note-category');
+    if (!select) return;
+    const cats = (state.db.campusCategories || []).filter(c => c !== '{divider}');
+    if (cats.length === 0) cats.push('General');
+    select.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+  },
+
   renderFeed() {
-    const container = document.getElementById('campus-feed-container');
+    const container = this.getEl('campus-feed-container');
     if (!container) return;
 
     let notes = state.db.campusNotes || [];
-
     if (this.activeCategory !== 'All') {
       notes = notes.filter(n => n.category === this.activeCategory);
     }
@@ -271,12 +294,8 @@ export const campusManager = {
             ${(note.tags || []).map(tag => `<span class="campus-tag">#${tag}</span>`).join('')}
           </div>
           <div class="campus-note-actions">
-            <button class="btn-note-action btn-edit-note" title="수정">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            </button>
-            <button class="btn-note-action danger btn-delete-note" title="삭제">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
+            <button class="btn-note-action btn-edit-note">수정</button>
+            <button class="btn-note-action danger btn-delete-note">삭제</button>
           </div>
         </div>
       </article>
@@ -284,135 +303,103 @@ export const campusManager = {
 
     container.querySelectorAll('.campus-note-card').forEach(card => {
       const id = card.dataset.id;
-      card.querySelector('.btn-edit-note').onclick = (e) => {
-        e.stopPropagation();
-        this.editNote(id);
-      };
-      card.querySelector('.btn-delete-note').onclick = (e) => {
-        e.stopPropagation();
-        this.deleteNote(id);
-      };
-      card.onclick = () => {
-        card.querySelector('.campus-note-content').classList.toggle('expanded');
-      };
+      card.querySelector('.btn-edit-note').onclick = (e) => { e.stopPropagation(); this.editNote(id); };
+      card.querySelector('.btn-delete-note').onclick = (e) => { e.stopPropagation(); this.deleteNote(id); };
+      card.onclick = () => card.querySelector('.campus-note-content').classList.toggle('expanded');
     });
   },
 
   editNote(id) {
-    const getEl = (id) => document.getElementById(id);
     const note = state.db.campusNotes.find(n => n.id === id);
     if (!note) return;
-
     this.editingId = id;
     this.currentCharts = [...(note.charts || [])];
     
-    const content = getEl('campus-note-content');
-    const category = getEl('campus-note-category');
-    const tags = getEl('campus-note-tags');
-    const expanded = getEl('composer-expanded');
-    const header = getEl('campus-composer-header');
-    const btnSave = getEl('btn-save-note');
-
+    const content = this.getEl('campus-note-content');
     if (content) content.innerHTML = note.content || '';
-    if (category) category.value = note.category;
+    const cat = this.getEl('campus-note-category');
+    if (cat) cat.value = note.category;
+    const tags = this.getEl('campus-note-tags');
     if (tags) tags.value = (note.tags || []).join(', ');
 
     this.renderCharts();
-    if (expanded) expanded.classList.remove('hidden');
-    if (header) header.classList.add('hidden');
+    this.expandComposer();
+    const btnSave = this.getEl('btn-save-note');
     if (btnSave) btnSave.innerText = 'Update';
-    
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (content) content.focus();
+  },
+
+  deleteNote(id) {
+    if (!confirm('삭제하시겠습니까?')) return;
+    state.db.campusNotes = state.db.campusNotes.filter(n => n.id !== id);
+    saveDB(state.db);
+    this.render();
   },
 
   manageCategories() {
-    const listModal = document.getElementById('list-manage-modal');
-    const titleEl = document.getElementById('list-manage-title');
-    const inputEl = document.getElementById('list-manage-input');
-    const addBtn = document.getElementById('list-manage-add');
-    const itemsEl = document.getElementById('list-manage-items');
-    const closeBtn = document.getElementById('list-manage-close');
+    const modal = this.getEl('list-manage-modal');
+    const input = this.getEl('list-manage-input');
+    const addBtn = this.getEl('list-manage-add');
+    const list = this.getEl('list-manage-items');
+    const closeBtn = this.getEl('list-manage-close');
 
-    if (!listModal || !addBtn) return;
+    if (!modal || !addBtn) return;
 
-    titleEl.innerText = 'Manage Categories';
-    inputEl.placeholder = 'Category name...';
+    this.getEl('list-manage-title').innerText = 'Manage Categories';
     
-    // Add Divider button inside the modal control area
-    let dividerBtn = document.getElementById('btn-add-divider');
-    if (!dividerBtn) {
-      dividerBtn = document.createElement('button');
-      dividerBtn.id = 'btn-add-divider';
-      dividerBtn.type = 'button';
-      dividerBtn.className = 'tool-btn btn-sm secondary-btn';
-      dividerBtn.innerText = '+ Add Divider';
-      dividerBtn.style.marginTop = '10px';
-      addBtn.parentElement.appendChild(dividerBtn);
+    let divBtn = document.getElementById('btn-add-divider');
+    if (!divBtn) {
+      divBtn = document.createElement('button');
+      divBtn.id = 'btn-add-divider';
+      divBtn.className = 'tool-btn btn-sm secondary-btn';
+      divBtn.innerText = '+ Add Divider';
+      divBtn.style.marginTop = '10px';
+      addBtn.parentElement.appendChild(divBtn);
     }
 
-    const renderList = () => {
+    const render = () => {
       const cats = state.db.campusCategories || [];
-      itemsEl.innerHTML = `
-        <div class="category-manage-list">
-          ${cats.map((cat, idx) => {
-            const isDivider = cat === '{divider}';
-            return `
-              <div class="category-manage-item ${isDivider ? 'divider-item' : ''}">
-                <span class="item-label">${isDivider ? '─── Divider ───' : cat}</span>
-                <div class="item-actions">
-                  <span class="btn-move-up" onclick="window.__campus_move_cat(${idx}, -1)">▲</span>
-                  <span class="btn-move-down" onclick="window.__campus_move_cat(${idx}, 1)">▼</span>
-                  <button type="button" class="btn-icon-sm danger-text" onclick="window.__campus_del_cat_modal(${idx})">✕</button>
-                </div>
-              </div>
-            `;
-          }).join('')}
+      list.innerHTML = `<div class="category-manage-list">${cats.map((c, i) => `
+        <div class="category-manage-item ${c === '{divider}' ? 'divider-item' : ''}">
+          <span class="item-label">${c === '{divider}' ? '─── Divider ───' : c}</span>
+          <div class="item-actions">
+            <span onclick="window.__campus_move(${i}, -1)">▲</span>
+            <span onclick="window.__campus_move(${i}, 1)">▼</span>
+            <span class="danger-text" onclick="window.__campus_del(${i})">✕</span>
+          </div>
         </div>
-      `;
+      `).join('')}</div>`;
     };
 
-    window.__campus_move_cat = (idx, dir) => {
+    window.__campus_move = (idx, dir) => {
       const cats = state.db.campusCategories;
-      const newIdx = idx + dir;
-      if (newIdx < 0 || newIdx >= cats.length) return;
-      const temp = cats[idx];
-      cats[idx] = cats[newIdx];
-      cats[newIdx] = temp;
-      saveDB(state.db);
-      renderList();
-      this.render();
+      const n = idx + dir;
+      if (n >= 0 && n < cats.length) {
+        [cats[idx], cats[n]] = [cats[n], cats[idx]];
+        saveDB(state.db); render(); this.render();
+      }
     };
 
-    window.__campus_del_cat_modal = (idx) => {
+    window.__campus_del = (idx) => {
       state.db.campusCategories.splice(idx, 1);
-      saveDB(state.db);
-      renderList();
-      this.render();
+      saveDB(state.db); render(); this.render();
     };
 
     addBtn.onclick = () => {
-      const val = inputEl.value.trim();
-      if (!val) return;
-      if (!state.db.campusCategories) state.db.campusCategories = [];
-      state.db.campusCategories.push(val);
-      saveDB(state.db);
-      inputEl.value = '';
-      renderList();
-      this.render();
+      const v = input.value.trim();
+      if (v) {
+        state.db.campusCategories.push(v);
+        saveDB(state.db); input.value = ''; render(); this.render();
+      }
     };
 
-    dividerBtn.onclick = () => {
-      if (!state.db.campusCategories) state.db.campusCategories = [];
+    divBtn.onclick = () => {
       state.db.campusCategories.push('{divider}');
-      saveDB(state.db);
-      renderList();
-      this.render();
+      saveDB(state.db); render(); this.render();
     };
 
-    closeBtn.onclick = () => listModal.classList.remove('active');
-    
-    renderList();
-    listModal.classList.add('active');
+    closeBtn.onclick = () => modal.classList.remove('active');
+    render();
+    modal.classList.add('active');
   }
 };
