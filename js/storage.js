@@ -100,7 +100,9 @@ function createEmptyDB() {
     schemaVersion: 5,
     meta: normalizeMeta({}),
     trades: [],
-    memos: []
+    memos: [],
+    campusNotes: [],
+    campusCategories: ['General', 'Strategy', 'Psychology', 'Market', 'Knowledge']
   };
 }
 
@@ -109,6 +111,8 @@ function migrateDB(db) {
   db.meta = normalizeMeta(db.meta || {});
   db.trades = (db.trades || []).map(normalizeTrade).filter(t => t !== null);
   db.memos = (db.memos || []).map(normalizeMemo).filter(m => m !== null);
+  db.campusNotes = (db.campusNotes || []).map(normalizeCampusNote).filter(n => n !== null);
+  if (!db.campusCategories) db.campusCategories = ['General', 'Strategy', 'Psychology', 'Market', 'Knowledge'];
   db.schemaVersion = 5;
   return db;
 }
@@ -182,6 +186,19 @@ export function normalizeMemo(m) {
     content: m.content || '',
     author: m.author || 'Local User',
     authorPhoto: m.authorPhoto || ''
+  };
+}
+
+export function normalizeCampusNote(n) {
+  if (!n || typeof n !== 'object') return null;
+  return {
+    id: n.id || 'cn-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+    date: n.date || new Date().toISOString(),
+    title: n.title || 'Untitled Thought',
+    content: n.content || '',
+    category: n.category || 'General',
+    tags: Array.isArray(n.tags) ? n.tags : [],
+    attachments: Array.isArray(n.attachments) ? n.attachments : []
   };
 }
 

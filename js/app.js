@@ -19,6 +19,7 @@ import {
 } from './storage.js';
 import { runMonteCarlo } from './simulation.js';
 import { macroManager } from './macro.js';
+import { campusManager } from './campus.js';
 
 
 export const state = {
@@ -46,7 +47,7 @@ export const state = {
   }
 };
 
-export const views = ['overview', 'macro', 'journal', 'library'];
+export const views = ['overview', 'macro', 'journal', 'library', 'campus'];
 window.state = state; // Global exposure for MarketService
 export const els = {};
 let draftTimer = null;
@@ -77,7 +78,8 @@ const ID_LIST = [
   'list-manage-modal','list-manage-title','list-manage-input','list-manage-add','list-manage-items','list-manage-close',
   'ql-modal','ql-name','ql-url','ql-icon','ql-add','ql-items','ql-close','open-guide-btn','guide-modal','guide-close',
   'btn-theme-toggle', 'eco-search-input', 'eco-month-filter', 'guide-close-bottom',
-  'btn-edit-journal-subtitle', 'journal-subtitle-text'
+  'btn-edit-journal-subtitle', 'journal-subtitle-text',
+  'view-campus', 'campus-search', 'btn-add-campus-note', 'campus-categories', 'btn-manage-campus-categories', 'campus-feed-container'
 ];
 
 window.__desk = {
@@ -1402,6 +1404,11 @@ function bindEvents() {
 
   // V1.8.5+ Settings & Economic
   bindV18Events();
+
+  // Campus Tab Initialization
+  if (typeof campusManager !== 'undefined' && campusManager.init) {
+    campusManager.init();
+  }
 }
 
 function handleFormMutation() {
@@ -1588,6 +1595,9 @@ export function renderViews() {
   if (state.view === 'macro') {
     safeCall('macroManager.init()', () => macroManager.init());
     safeCall('macroManager.render()', () => macroManager.render());
+  }
+  if (state.view === 'campus') {
+    safeCall('campusManager.render()', () => campusManager.render());
   }
 }
 
@@ -2353,7 +2363,6 @@ function renderOverview() {
     renderOverviewBalance(); 
     renderOverviewPortfolio();
     renderAdvancedMetrics(stats);
-    renderPnLDistributionChart(trades);
     initSimulationUI(trades);
     
     // Auto-run simulation if enough trades exist
@@ -3940,125 +3949,3 @@ function showToast(message, duration = 3000) {
 
 window.addEventListener('DOMContentLoaded', bootstrap);
 
-
-/**
- * 📊 Mark Minervini Style P&L Distribution Chart (Bell Curve)
- */
-function renderPnLDistributionChart(trades) {
-  const container = document.getElementById('pnl-distribution-chart');
-  if (!container) return;
-
-  const closedTrades = trades.filter(t => t.status === 'CLOSED');
-  if (closedTrades.length === 0) {
-    setHtml('pnl-distribution-chart', emptyState('표시할 종료된 트레이드가 없습니다.'));
-    return;
-  }
-
-  // Calculate returns for each trade (Trade Return %)
-  const returns = closedTrades.map(t => {
-    const pnl = Number(t.metrics?.pnl || 0);
-    const avgEntry = Number(t.metrics?.avgEntry || 0);
-    const qty = Number(t.metrics?.qty || 0);
-    const entryNotional = avgEntry * qty;
-    
-    // Fallback to pnl itself if notional is missing (should not happen with valid data)
-    if (entryNotional <= 0) return 0;
-    return (pnl / entryNotional) * 100;
-  });
-
-  // Define Bins (-30% to +30%, 2% step for better resolution)
-  const binStep = 2;
-  const minRange = -30;
-  const maxRange = 30;
-  const bins = {};
-
-  for (let r = minRange; r <= maxRange; r += binStep) {
-    bins[r] = 0;
-  }
-
-  returns.forEach(r => {
-    const clampedR = Math.max(minRange, Math.min(maxRange - 0.1, r));
-    const binKey = Math.floor(clampedR / binStep) * binStep;
-    if (bins[binKey] !== undefined) bins[binKey]++;
-  });
-
-  const binData = Object.keys(bins).sort((a, b) => Number(a) - Number(b)).map(k => ({
-    label: Number(k),
-    value: bins[k]
-  }));
-
-  setHtml('pnl-distribution-chart', distributionSvg(binData));
-}
-
-function distributionSvg(binData) {
-  const width = 780, height = 360, pad = 55;
-  const maxVal = Math.max(...binData.map(b => b.value), 3); 
-  
-  const xStep = (width - pad * 2) / (binData.length - 1);
-  const scaleY = val => height - pad - (val / maxVal) * (height - pad * 2);
-  
-  const barWidth = xStep * 0.85;
-  const bars = binData.map((b, i) => {
-    const x = pad + i * xStep - barWidth / 2;
-    const h = (b.value / maxVal) * (height - pad * 2);
-    const y = height - pad - h;
-    const color = b.label < 0 ? 'rgba(239, 68, 68, 0.35)' : 'rgba(16, 185, 129, 0.35)';
-    return `<rect class="dist-bar" x="${x}" y="${y}" width="${barWidth}" height="${h}" fill="${color}" rx="4">
-              <title>${b.label}% ~ ${b.label + 2}%: ${b.value} trades</title>
-            </rect>`;
-  });
-
-  // Smooth Line Points
-  const curvePoints = binData.map((b, i) => ({
-    x: pad + i * xStep,
-    y: scaleY(b.value)
-  }));
-  
-  // Create path data
-  let d = "";
-  curvePoints.forEach((p, i) => {
-    if (i === 0) d += `M ${p.x} ${p.y}`;
-    else {
-      // Use simple curve logic or just L
-      const prev = curvePoints[i-1];
-      const cp1x = prev.x + (p.x - prev.x) / 2;
-      d += ` C ${cp1x} ${prev.y}, ${cp1x} ${p.y}, ${p.x} ${p.y}`;
-    }
-  });
-
-  // X-Axis Labels (Every 10%)
-  const xLabels = binData.filter(b => b.label % 10 === 0).map(b => {
-    const idx = binData.indexOf(b);
-    const x = pad + idx * xStep;
-    return `<text x="${x}" y="${height - 12}" class="dist-axis-label" text-anchor="middle">${b.label}%</text>`;
-  });
-
-  // Zero Line (Vertical)
-  const zeroIdx = binData.findIndex(b => b.label >= 0);
-  const zeroX = pad + zeroIdx * xStep - (xStep / 2);
-  const zeroLine = `<line x1="${zeroX}" y1="${pad}" x2="${zeroX}" y2="${height - pad}" class="dist-zero-line"></line>`;
-
-  // The Wall (-10%)
-  const wallIdx = binData.findIndex(b => b.label >= -10);
-  const wallX = pad + wallIdx * xStep - (xStep / 2);
-  const wallLine = `
-    <line x1="${wallX}" y1="${pad}" x2="${wallX}" y2="${height - pad}" class="dist-wall-line"></line>
-    <text x="${wallX - 8}" y="${pad + 20}" class="dist-wall-label" text-anchor="end">THE WALL (-10%)</text>
-  `;
-
-  // Annotations
-  const leftNote = `<text x="${pad + 10}" y="${pad + 20}" class="dist-annotation">적을수록 좋음 (손실)</text>`;
-  const rightNote = `<text x="${width - pad - 10}" y="${pad + 20}" class="dist-annotation" text-anchor="end">많을수록 좋음 (수익)</text>`;
-
-  return `
-    <svg viewBox="0 0 ${width} ${height}" class="chart-svg" style="width:100%; height:100%;">
-      ${zeroLine}
-      ${wallLine}
-      ${bars.join('')}
-      <path d="${d}" class="dist-curve"></path>
-      ${xLabels.join('')}
-      ${leftNote}
-      ${rightNote}
-    </svg>
-  `;
-}

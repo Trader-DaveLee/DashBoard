@@ -311,18 +311,6 @@
         </div>
       </article>
 
-      <article class="card pnl-distribution-card" style="margin-bottom: 24px;">
-        <div class="section-head">
-          <div>
-            <h3>수익과 손실 분산 (Bell Curve)</h3>
-            <p>거래 자체 수익률 기준 매매 결과의 통계적 분포 분석</p>
-          </div>
-        </div>
-        <div class="chart-container" style="height: 380px;">
-          <div id="pnl-distribution-chart" class="chart-box"></div>
-        </div>
-      </article>
-
       <article class="card simulation-card" style="margin-bottom: 24px;">
         <div class="simulation-header">
           <div class="simulation-title">
@@ -866,6 +854,43 @@
           </div>
           <div id="detail-insights" class="stack"></div>
         </article>
+      </div>
+    </section>
+
+    <section id="view-campus" class="view">
+      <div class="tab-main-header">
+        <div class="tab-title-group">
+          <h2 class="tab-main-title">Campus</h2>
+          <p class="tab-main-subtitle">생각과 지식을 카테고리별로 정리하고 공유하는 공간</p>
+        </div>
+        <div class="campus-header-actions">
+          <div class="search-box-v2">
+            <input type="text" id="campus-search" placeholder="지식 검색..." />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <button type="button" id="btn-add-campus-note" class="tool-btn primary-btn">
+            <span>+ New Thought</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="campus-container">
+        <aside class="campus-sidebar">
+          <div class="campus-category-card">
+            <h3>Categories</h3>
+            <div id="campus-categories" class="campus-category-list">
+              <!-- Categories will be rendered here -->
+            </div>
+            <button type="button" id="btn-manage-campus-categories" class="tool-btn btn-sm" style="width: 100%; margin-top: 12px;">Manage Categories</button>
+          </div>
+        </aside>
+
+        <main class="campus-feed">
+          <div id="campus-feed-container" class="campus-feed-grid">
+            <!-- Notes will be rendered here -->
+            <div class="empty-placeholder">기록된 생각이 없습니다. 첫 번째 생각을 남겨보세요!</div>
+          </div>
+        </main>
       </div>
     </section>
 

@@ -3383,63 +3383,278 @@ body {
   }
 }
 
-/* P&L Distribution Chart (Bell Curve) */
-.pnl-distribution-card .chart-box {
-  background: var(--bg-panel);
-  border-radius: 16px;
-  overflow: hidden;
+/* ==========================================================================
+   Campus Tab Styles
+   ========================================================================== */
+.campus-header-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.search-box-v2 {
   position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
+  padding: 0 12px;
+  transition: all 0.2s ease;
 }
 
-.dist-bar {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.search-box-v2:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+}
+
+.search-box-v2 input {
+  background: transparent;
+  border: none;
+  height: 40px;
+  padding: 0 8px;
+  font-size: 14px;
+  color: var(--text-main);
+  width: 200px;
+}
+
+.search-box-v2 .search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+}
+
+.campus-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+@media (max-width: 1024px) {
+  .campus-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.campus-sidebar {
+  position: sticky;
+  top: 100px;
+}
+
+.campus-category-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.campus-category-card h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: var(--text-main);
+}
+
+.campus-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.dist-bar:hover {
-  filter: brightness(1.1);
-  stroke: var(--accent);
-  stroke-width: 1.5px;
+.category-item:hover {
+  background: var(--bg-input);
+  color: var(--text-main);
 }
 
-.dist-curve {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 3px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 4px 10px rgba(var(--accent-rgb), 0.3));
+.category-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
-.dist-wall-line {
-  stroke: var(--red);
-  stroke-width: 2px;
-  stroke-dasharray: 4 4;
+.category-count {
+  font-size: 12px;
+  background: var(--bg-panel);
+  padding: 2px 8px;
+  border-radius: 20px;
+  opacity: 0.7;
 }
 
-.dist-wall-label {
-  fill: var(--red);
-  font-size: 10px;
+.campus-feed-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.campus-note-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+  border-radius: 24px;
+  padding: 32px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.campus-note-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-lg);
+}
+
+.campus-note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.campus-note-category {
+  font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 4px 10px;
+  border-radius: 8px;
 }
 
-.dist-axis-label {
-  fill: var(--text-muted);
-  font-size: 9px;
-  font-weight: 800;
-  font-family: var(--font-mono);
+.campus-note-date {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-.dist-zero-line {
-  stroke: var(--chart-axis);
-  stroke-width: 1px;
-  stroke-dasharray: 2 2;
-}
-
-.dist-annotation {
-  font-size: 11px;
+.campus-note-title {
+  font-size: 20px;
   font-weight: 900;
-  fill: var(--text-muted);
-  opacity: 0.6;
+  color: var(--text-main);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.campus-note-content {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.campus-note-content.expanded {
+  -webkit-line-clamp: unset;
+}
+
+.campus-note-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.campus-note-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.campus-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.campus-note-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-note-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border-main);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-note-action:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-note-action.danger:hover {
+  background: var(--red-soft);
+  color: var(--red);
+  border-color: var(--red);
+}
+
+/* Modal for Campus Note */
+.campus-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.campus-input-title {
+  font-size: 24px;
+  font-weight: 800;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border-main);
+  padding: 12px 0;
+  color: var(--text-main);
+  width: 100%;
+}
+
+.campus-input-title:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.campus-input-content {
+  min-height: 300px;
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--bg-input);
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--text-main);
+  resize: vertical;
+}
+
+.campus-input-content:focus {
+  outline: none;
+  border-color: var(--accent);
 }
