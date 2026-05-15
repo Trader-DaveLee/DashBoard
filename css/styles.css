@@ -3658,3 +3658,162 @@ body {
   outline: none;
   border-color: var(--accent);
 }
+
+/* ==========================================================================
+   Campus Composer Styles
+   ========================================================================== */
+.campus-composer-card {
+  padding: 16px !important;
+  margin-bottom: 24px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.composer-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.composer-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.composer-placeholder-trigger {
+  flex: 1;
+  background: var(--bg-input);
+  border-radius: 20px;
+  padding: 10px 16px;
+  color: var(--text-muted);
+  font-size: 15px;
+  transition: background 0.2s;
+}
+
+.composer-header:hover .composer-placeholder-trigger {
+  background: rgba(var(--accent-rgb), 0.05);
+}
+
+.composer-expanded {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.campus-input-title-mini {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 16px;
+  font-weight: 700;
+  padding: 8px 0;
+  color: var(--text-main);
+  width: 100%;
+}
+
+.campus-input-title-mini:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.campus-editor-toolbar {
+  padding: 8px;
+  background: var(--bg-input);
+  border-radius: 10px;
+  display: flex;
+  gap: 4px;
+}
+
+.composer-editor-wrapper {
+  min-height: 120px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
+  background: var(--bg-input);
+}
+
+.modern-briefing-editor.rich-editor {
+  min-height: 120px;
+  padding: 16px;
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.composer-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.composer-meta-inputs {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.composer-select {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-main);
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+.composer-input-tags {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-main);
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+.composer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.campus-note-content {
+  /* Allow rich text to be displayed */
+  display: block; 
+  -webkit-line-clamp: unset; 
+  max-height: 300px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.campus-note-content.expanded {
+  max-height: none;
+}
+
+.campus-note-content h1, .campus-note-content h2, .campus-note-content h3 {
+  margin: 1em 0 0.5em;
+  color: var(--text-main);
+}
+
+.campus-note-content b, .campus-note-content strong {
+  font-weight: 800;
+  color: var(--accent);
+}

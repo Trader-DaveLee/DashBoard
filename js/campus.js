@@ -4,12 +4,43 @@ import { saveDB } from './storage.js';
 export const campusManager = {
   activeCategory: 'All',
   searchQuery: '',
+  editingId: null,
 
   init() {
-    if (els['btn-add-campus-note']) {
-      els['btn-add-campus-note'].onclick = () => this.openNoteModal();
+    console.log('[Campus] Initializing...');
+
+    // Composer Toggle
+    if (els['composer-trigger']) {
+      els['composer-trigger'].onclick = () => {
+        els['composer-expanded'].classList.remove('hidden');
+        els['composer-trigger'].parentElement.classList.add('hidden');
+        els['campus-note-content'].focus();
+      };
     }
 
+    if (els['btn-cancel-note']) {
+      els['btn-cancel-note'].onclick = () => this.resetComposer();
+    }
+
+    if (els['btn-save-note']) {
+      els['btn-save-note'].onclick = () => this.saveNote();
+    }
+
+    // Rich Text Toolbar
+    const toolbar = document.getElementById('campus-editor-toolbar');
+    if (toolbar) {
+      toolbar.querySelectorAll('button[data-command]').forEach(btn => {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          const cmd = btn.dataset.command;
+          const val = btn.dataset.value || null;
+          document.execCommand(cmd, false, val);
+          els['campus-note-content'].focus();
+        };
+      });
+    }
+
+    // Search
     if (els['campus-search']) {
       els['campus-search'].oninput = (e) => {
         this.searchQuery = e.target.value.toLowerCase();
@@ -17,14 +48,81 @@ export const campusManager = {
       };
     }
 
+    // Manage Categories
     if (els['btn-manage-campus-categories']) {
       els['btn-manage-campus-categories'].onclick = () => this.manageCategories();
     }
+
+    // Initialize category dropdown in composer
+    this.updateComposerCategories();
+  },
+
+  resetComposer() {
+    this.editingId = null;
+    if (els['campus-note-title']) els['campus-note-title'].value = '';
+    if (els['campus-note-content']) els['campus-note-content'].innerHTML = '';
+    if (els['campus-note-tags']) els['campus-note-tags'].value = '';
+    
+    if (els['composer-expanded']) els['composer-expanded'].classList.add('hidden');
+    if (els['composer-trigger']) els['composer-trigger'].parentElement.classList.remove('hidden');
+    
+    if (els['btn-save-note']) els['btn-save-note'].innerText = 'Post';
+  },
+
+  updateComposerCategories() {
+    const select = document.getElementById('campus-note-category');
+    if (!select) return;
+    
+    const categories = state.db.campusCategories || ['General'];
+    select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+  },
+
+  saveNote() {
+    const title = els['campus-note-title'].value.trim();
+    const content = els['campus-note-content'].innerHTML.trim();
+    const category = els['campus-note-category'].value;
+    const tags = els['campus-note-tags'].value.split(',').map(t => t.trim()).filter(t => t);
+
+    if (!content || content === '<br>') {
+      alert('내용을 입력해주세요.');
+      return;
+    }
+
+    if (this.editingId) {
+      const idx = state.db.campusNotes.findIndex(n => n.id === this.editingId);
+      if (idx !== -1) {
+        state.db.campusNotes[idx] = { 
+          ...state.db.campusNotes[idx], 
+          title, 
+          content, 
+          category, 
+          tags,
+          updatedAt: new Date().toISOString()
+        };
+      }
+    } else {
+      state.db.campusNotes.push({
+        id: 'cn-' + Date.now(),
+        date: new Date().toISOString(),
+        title,
+        content,
+        category,
+        tags
+      });
+    }
+
+    saveDB(state.db);
+    this.resetComposer();
+    this.render();
+    
+    // Toast notification if available
+    if (window.showToast) window.showToast('생각이 저장되었습니다.');
   },
 
   render() {
     this.renderCategories();
     this.renderFeed();
+    this.updateComposerCategories();
   },
 
   renderCategories() {
@@ -69,9 +167,9 @@ export const campusManager = {
     // Search query
     if (this.searchQuery) {
       notes = notes.filter(n => 
-        n.title.toLowerCase().includes(this.searchQuery) || 
-        n.content.toLowerCase().includes(this.searchQuery) ||
-        n.tags.some(t => t.toLowerCase().includes(this.searchQuery))
+        (n.title && n.title.toLowerCase().includes(this.searchQuery)) || 
+        (n.content && n.content.toLowerCase().includes(this.searchQuery)) ||
+        (n.tags && n.tags.some(t => t.toLowerCase().includes(this.searchQuery)))
       );
     }
 
@@ -89,8 +187,8 @@ export const campusManager = {
           <span class="campus-note-category">${note.category}</span>
           <span class="campus-note-date">${new Date(note.date).toLocaleDateString()}</span>
         </div>
-        <h3 class="campus-note-title">${this.escapeHtml(note.title)}</h3>
-        <div class="campus-note-content">${this.escapeHtml(note.content)}</div>
+        ${note.title ? `<h3 class="campus-note-title">${this.escapeHtml(note.title)}</h3>` : ''}
+        <div class="campus-note-content">${note.content}</div>
         <div class="campus-note-footer">
           <div class="campus-note-tags">
             ${(note.tags || []).map(tag => `<span class="campus-tag">#${tag}</span>`).join('')}
@@ -112,7 +210,7 @@ export const campusManager = {
       const id = card.dataset.id;
       card.querySelector('.btn-edit-note').onclick = (e) => {
         e.stopPropagation();
-        this.openNoteModal(id);
+        this.editNote(id);
       };
       card.querySelector('.btn-delete-note').onclick = (e) => {
         e.stopPropagation();
@@ -124,67 +222,23 @@ export const campusManager = {
     });
   },
 
-  openNoteModal(noteId = null) {
-    const note = noteId 
-      ? state.db.campusNotes.find(n => n.id === noteId) 
-      : { title: '', content: '', category: 'General', tags: [] };
+  editNote(id) {
+    const note = state.db.campusNotes.find(n => n.id === id);
+    if (!note) return;
 
-    const modal = document.getElementById('app-modal');
-    const titleEl = document.getElementById('modal-title');
-    const descEl = document.getElementById('modal-desc');
-    const confirmBtn = document.getElementById('modal-btn-confirm');
-    const cancelBtn = document.getElementById('modal-btn-cancel');
-    const inputEl = document.getElementById('modal-input');
+    this.editingId = id;
+    els['campus-note-title'].value = note.title || '';
+    els['campus-note-content'].innerHTML = note.content || '';
+    els['campus-note-category'].value = note.category;
+    els['campus-note-tags'].value = (note.tags || []).join(', ');
 
-    titleEl.innerText = noteId ? 'Edit Thought' : 'New Thought';
-    inputEl.style.display = 'none'; // Hide default input
-
-    descEl.innerHTML = `
-      <div class="campus-modal-body">
-        <input type="text" id="note-title" class="campus-input-title" placeholder="Title..." value="${this.escapeHtml(note.title)}" />
-        <select id="note-category" style="width: 100%; padding: 10px; border-radius: 8px;">
-          ${(state.db.campusCategories || []).map(cat => `
-            <option value="${cat}" ${note.category === cat ? 'selected' : ''}>${cat}</option>
-          `).join('')}
-        </select>
-        <textarea id="note-content" class="campus-input-content" placeholder="What's on your mind?">${this.escapeHtml(note.content)}</textarea>
-        <input type="text" id="note-tags" placeholder="Tags (comma separated)..." value="${(note.tags || []).join(', ')}" />
-      </div>
-    `;
-
-    modal.classList.add('active');
-
-    confirmBtn.onclick = () => {
-      const newTitle = document.getElementById('note-title').value.trim();
-      const newContent = document.getElementById('note-content').value.trim();
-      const newCategory = document.getElementById('note-category').value;
-      const newTags = document.getElementById('note-tags').value.split(',').map(t => t.trim()).filter(t => t);
-
-      if (!newTitle || !newContent) {
-        alert('Please enter both title and content.');
-        return;
-      }
-
-      if (noteId) {
-        const idx = state.db.campusNotes.findIndex(n => n.id === noteId);
-        state.db.campusNotes[idx] = { ...state.db.campusNotes[idx], title: newTitle, content: newContent, category: newCategory, tags: newTags };
-      } else {
-        state.db.campusNotes.push({
-          id: 'cn-' + Date.now(),
-          date: new Date().toISOString(),
-          title: newTitle,
-          content: newContent,
-          category: newCategory,
-          tags: newTags
-        });
-      }
-
-      saveDB(state.db);
-      this.render();
-      modal.classList.remove('active');
-    };
-
-    cancelBtn.onclick = () => modal.classList.remove('active');
+    els['composer-expanded'].classList.remove('hidden');
+    els['composer-trigger'].parentElement.classList.add('hidden');
+    els['btn-save-note'].innerText = 'Update';
+    
+    // Scroll to top to see composer
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    els['campus-note-content'].focus();
   },
 
   deleteNote(id) {
@@ -241,6 +295,7 @@ export const campusManager = {
   },
 
   escapeHtml(str) {
+    if (!str) return '';
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
