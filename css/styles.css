@@ -3382,3 +3382,64 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* P&L Distribution Chart (Bell Curve) */
+.pnl-distribution-card .chart-box {
+  background: var(--bg-panel);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dist-bar {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.dist-bar:hover {
+  filter: brightness(1.1);
+  stroke: var(--accent);
+  stroke-width: 1.5px;
+}
+
+.dist-curve {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 4px 10px rgba(var(--accent-rgb), 0.3));
+}
+
+.dist-wall-line {
+  stroke: var(--red);
+  stroke-width: 2px;
+  stroke-dasharray: 4 4;
+}
+
+.dist-wall-label {
+  fill: var(--red);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.dist-axis-label {
+  fill: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.dist-zero-line {
+  stroke: var(--chart-axis);
+  stroke-width: 1px;
+  stroke-dasharray: 2 2;
+}
+
+.dist-annotation {
+  font-size: 11px;
+  font-weight: 900;
+  fill: var(--text-muted);
+  opacity: 0.6;
+}
