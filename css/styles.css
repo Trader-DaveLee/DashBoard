@@ -4031,6 +4031,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer; /* Clickable */
+}
+
+.campus-chart-preview a {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .campus-chart-preview img {
@@ -4038,6 +4045,7 @@ body {
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
+  display: block;
 }
 
 .campus-chart-preview:hover img {

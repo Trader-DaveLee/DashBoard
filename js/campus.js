@@ -370,7 +370,9 @@ export const campusManager = {
           <div class="campus-note-charts">
             ${note.charts.map(url => `
               <div class="campus-chart-preview">
-                <img src="${url}" alt="Chart" onerror="this.parentElement.innerHTML='<a href=\'${url}\' target=\'_blank\' class=\'chart-link-fallback\'>🔗 View Chart</a>'" />
+                <a href="${url}" target="_blank" title="Click to view full image">
+                  <img src="${url}" alt="Chart" onerror="this.parentElement.innerHTML='<span class=\'chart-link-fallback\'>🔗 View Chart</span>'" />
+                </a>
               </div>
             `).join('')}
           </div>
