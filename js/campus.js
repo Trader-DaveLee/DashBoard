@@ -216,6 +216,10 @@ export const campusManager = {
       const content = this.getEl('campus-note-content');
       if (content) content.focus();
     }
+    // Start sticky toolbar scroll listener
+    this._stickyBound = () => this._updateToolbarSticky();
+    window.addEventListener('scroll', this._stickyBound, { passive: true });
+    this._updateToolbarSticky();
   },
 
   resetComposer() {
@@ -232,6 +236,73 @@ export const campusManager = {
     if (header) header.classList.remove('hidden');
     const btnSave = this.getEl('btn-save-note');
     if (btnSave) btnSave.innerText = 'Post';
+
+    // Remove sticky scroll listener and reset toolbar
+    if (this._stickyBound) {
+      window.removeEventListener('scroll', this._stickyBound);
+      this._stickyBound = null;
+    }
+    this._unstickToolbar();
+  },
+
+  /**
+   * Scroll listener: applies/removes fixed positioning to the toolbar
+   * based on whether the toolbar has scrolled above the topbar.
+   */
+  _updateToolbarSticky() {
+    const toolbar = this.getEl('campus-editor-toolbar');
+    const card    = this.getEl('campus-composer-card');
+    if (!toolbar || !card) return;
+
+    const TOPBAR_H = 96; // height of the sticky topbar
+    const cardRect = card.getBoundingClientRect();
+    const toolbarH = toolbar.offsetHeight;
+
+    // Toolbar should be fixed when:
+    // 1. The card's top has scrolled above the topbar (cardRect.top < TOPBAR_H)
+    // 2. The card's bottom is still below the toolbar's fixed position + toolbar height
+    const shouldFix = cardRect.top < TOPBAR_H &&
+                      cardRect.bottom > (TOPBAR_H + toolbarH + 20);
+
+    if (shouldFix) {
+      if (!toolbar.classList.contains('toolbar-is-fixed')) {
+        // Measure exact position of the card to align toolbar with it
+        const cardLeft  = card.getBoundingClientRect().left;
+        const cardWidth = card.offsetWidth;
+
+        toolbar.classList.add('toolbar-is-fixed');
+        toolbar.style.top   = TOPBAR_H + 'px';
+        toolbar.style.left  = cardLeft + 'px';
+        toolbar.style.width = cardWidth + 'px';
+
+        // Add spacer inside card to prevent layout jump
+        if (!this.getEl('campus-toolbar-spacer')) {
+          const spacer = document.createElement('div');
+          spacer.id = 'campus-toolbar-spacer';
+          spacer.style.height = toolbarH + 'px';
+          toolbar.parentElement.insertBefore(spacer, toolbar);
+        }
+      } else {
+        // Update left/width on resize or scroll (in case layout shifted)
+        toolbar.style.left  = card.getBoundingClientRect().left + 'px';
+        toolbar.style.width = card.offsetWidth + 'px';
+      }
+    } else {
+      this._unstickToolbar();
+    }
+  },
+
+  _unstickToolbar() {
+    const toolbar = this.getEl('campus-editor-toolbar');
+    if (toolbar) {
+      toolbar.classList.remove('toolbar-is-fixed');
+      toolbar.style.top   = '';
+      toolbar.style.left  = '';
+      toolbar.style.width = '';
+    }
+    // Remove spacer
+    const spacer = this.getEl('campus-toolbar-spacer');
+    if (spacer) spacer.remove();
   },
 
   addChart() {
