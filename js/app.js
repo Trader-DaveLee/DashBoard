@@ -976,12 +976,42 @@ function swapArray(arr, idx1, idx2) {
   arr[idx2] = temp;
 }
 
+// ── Quick Links 전용 독립 저장소 (IDB 타임스탬프 경쟁에서 완전히 분리) ──
+const QUICK_LINKS_STORAGE_KEY = 'dashboard_quick_links_v1';
+
+function saveQuickLinks(links) {
+  try {
+    localStorage.setItem(QUICK_LINKS_STORAGE_KEY, JSON.stringify(links || []));
+  } catch(e) {
+    console.error('[QuickLinks] Save failed:', e);
+  }
+}
+
+function loadQuickLinks() {
+  try {
+    const json = localStorage.getItem(QUICK_LINKS_STORAGE_KEY);
+    if (!json) return null;
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch(e) {
+    return null;
+  }
+}
+
 function initMeta() {
   state.db.meta.tagPresets = state.db.meta.tagPresets || ['trend', 'sweep'];
   state.db.meta.mistakePresets = state.db.meta.mistakePresets || ['fomo', 'early exit'];
   state.db.meta.balanceHistory = Array.isArray(state.db.meta.balanceHistory) ? state.db.meta.balanceHistory : [];
   state.db.meta.checklists = Array.isArray(state.db.meta.checklists) ? state.db.meta.checklists : [];
   state.db.meta.ecoEvents = Array.isArray(state.db.meta.ecoEvents) ? state.db.meta.ecoEvents : [];
+
+  // ── 즐겨찾기(Quick Links) 독립 저장소에서 복원 (IDB보다 우선) ──
+  const savedLinks = loadQuickLinks();
+  if (savedLinks !== null) {
+    state.db.meta.quickLinks = savedLinks;
+  } else if (!Array.isArray(state.db.meta.quickLinks)) {
+    state.db.meta.quickLinks = [];
+  }
 
   // Initialize Eco Filters
   const savedFilters = localStorage.getItem('eco_filters');
@@ -1082,20 +1112,20 @@ function openQuickLinkManager() {
 
     els['ql-items'].querySelectorAll('.btn-up').forEach(btn => btn.onclick = (e) => {
       swapArray(arr, Number(e.target.dataset.idx), Number(e.target.dataset.idx) - 1);
+      saveQuickLinks(state.db.meta.quickLinks); // 독립 저장 (즉각)
       saveDB(state.db);
-
       renderItems(); renderQuickLaunch();
     });
     els['ql-items'].querySelectorAll('.btn-down').forEach(btn => btn.onclick = (e) => {
       swapArray(arr, Number(e.target.dataset.idx), Number(e.target.dataset.idx) + 1);
+      saveQuickLinks(state.db.meta.quickLinks); // 독립 저장 (즉각)
       saveDB(state.db);
-
       renderItems(); renderQuickLaunch();
     });
     els['ql-items'].querySelectorAll('.btn-del-item').forEach(btn => btn.onclick = (e) => {
-      arr.splice(e.target.dataset.idx, 1);
+      arr.splice(Number(e.target.dataset.idx), 1); // 인덱스를 숫자로 명시 변환
+      saveQuickLinks(state.db.meta.quickLinks); // 독립 저장 (즉각)
       saveDB(state.db);
-
       renderItems(); renderQuickLaunch();
     });
   };
@@ -1107,8 +1137,8 @@ function openQuickLinkManager() {
     if (!name || !url) { showModal({ type: 'ALERT', title: '입력 오류', desc: '이름과 URL은 필수입니다.' }); return; }
     if (!state.db.meta.quickLinks) state.db.meta.quickLinks = [];
     state.db.meta.quickLinks.push({ name, url: sanitizeUrl(url), icon: icon || '🔗' });
+    saveQuickLinks(state.db.meta.quickLinks); // 독립 저장 (즉각, 강력새로고침 대비)
     saveDB(state.db);
-
     setVal('ql-name', ''); setVal('ql-url', ''); setVal('ql-icon', '');
     renderItems(); renderQuickLaunch();
   };
