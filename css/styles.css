@@ -3713,9 +3713,24 @@ body {
   justify-content: space-between !important;
   align-items: center !important;
   padding: 12px 20px !important;
-  background: rgba(var(--accent-rgb), 0.03);
+  background: var(--glass-bg) !important;
   border-bottom: 1px solid var(--border-main) !important;
   gap: 20px;
+
+  /* ── Sticky toolbar: stays visible while scrolling during editing ── */
+  position: sticky;
+  top: 96px;           /* just below the topbar (~96px) */
+  z-index: 40;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease;
+}
+
+/* Slightly stronger shadow when toolbar is actively "stuck" */
+.campus-editor-toolbar:not([style*="display: none"]) {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
 }
 
 .toolbar-group-left, .toolbar-group-right {
@@ -3839,9 +3854,9 @@ body {
 /* ==========================================================================
    Campus Composer Refined Toolbar
    ========================================================================== */
+/* campus-editor-toolbar sticky styles defined above – only padding override here */
 .campus-editor-toolbar {
-  justify-content: space-between !important;
-  padding: 6px 12px !important;
+  padding: 10px 16px !important;
 }
 
 .toolbar-group {
@@ -3904,11 +3919,8 @@ body {
   color: #000 !important; /* Force deep black for better readability */
 }
 
+/* campus-editor-toolbar additional layout (sticky defined above) */
 .campus-editor-toolbar {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  padding: 8px 16px !important;
   gap: 12px;
   flex-wrap: nowrap !important;
 }
