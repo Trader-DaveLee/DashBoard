@@ -135,8 +135,8 @@ export const campusManager = {
   },
 
   /**
-   * Apply exact pixel font size to selected text using inline <span>.
-   * This replaces execCommand('fontSize') which uses imprecise size attributes.
+   * Apply exact pixel font size ONLY to selected text (or set pending size for next typed chars).
+   * NEVER modifies the editor's overall font size.
    */
   applyFontSize(px) {
     const sel = window.getSelection();
@@ -144,65 +144,64 @@ export const campusManager = {
 
     const range = sel.getRangeAt(0);
 
-    // If nothing selected, wrap the current caret line context
     if (range.collapsed) {
-      // Just update the editor's default and insert a zero-width span as anchor
-      const editor = this.getEl('campus-note-content');
-      if (editor) editor.style.fontSize = px + 'px';
+      // ── No selection: insert a sized span at cursor so next typed chars use this size ──
+      const span = document.createElement('span');
+      span.style.fontSize = px + 'px';
+      span.style.lineHeight = '1.7';
+      // Use a zero-width non-joiner as placeholder so span is valid
+      span.appendChild(document.createTextNode('\u200B'));
+
+      range.insertNode(span);
+
+      // Move cursor INSIDE the span (after the zero-width char)
+      const newRange = document.createRange();
+      newRange.setStartAfter(span.firstChild);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
       return;
     }
 
-    // Wrap selected text in a <span style="font-size:Xpx">
+    // ── Text is selected: wrap ONLY the selection in a sized span ──
     try {
-      // Remove any existing font-size spans within the selection first
-      document.execCommand('removeFormat', false, null);
-
-      // Re-get range after removeFormat
-      const freshSel = window.getSelection();
-      if (!freshSel || freshSel.rangeCount === 0) return;
-      const freshRange = freshSel.getRangeAt(0);
-
-      const span = document.createElement('span');
-      span.style.fontSize = px + 'px';
-      span.style.lineHeight = '1.6';
-
-      freshRange.surroundContents(span);
-
-      // Collapse selection to end
-      freshSel.collapseToEnd();
-    } catch (e) {
-      // surroundContents fails on partial selections across block elements
-      // Fallback: use execCommand with post-processing
+      // Use execCommand fontSize=7 as a marker, then replace with proper span
       document.execCommand('fontSize', false, '7');
+
       const editor = this.getEl('campus-note-content');
-      if (editor) {
-        editor.querySelectorAll('font[size="7"]').forEach(font => {
-          const span = document.createElement('span');
-          span.style.fontSize = px + 'px';
-          span.style.lineHeight = '1.6';
-          while (font.firstChild) span.appendChild(font.firstChild);
-          font.parentNode.replaceChild(span, font);
-        });
-      }
+      if (!editor) return;
+
+      // Replace every <font size="7"> marker with <span style="font-size:Xpx">
+      editor.querySelectorAll('font[size="7"]').forEach(font => {
+        const span = document.createElement('span');
+        span.style.fontSize = px + 'px';
+        span.style.lineHeight = '1.7';
+        while (font.firstChild) span.appendChild(font.firstChild);
+        font.parentNode.replaceChild(span, font);
+      });
+
+      // Collapse selection to end to deselect
+      sel.collapseToEnd();
+    } catch (e) {
+      console.warn('[Campus] applyFontSize fallback:', e);
     }
   },
 
   /**
    * Normalize newly created lines after Enter press.
-   * Removes inherited large font sizes from <div>/<p> wrappers.
+   * Removes inherited large font sizes from block wrappers.
    */
   _normalizeNewLine(editor) {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
 
     const node = sel.anchorNode;
-    // Walk up to find the block element
     let block = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
-    while (block && block !== editor && !['DIV', 'P', 'BR'].includes(block.tagName)) {
+    while (block && block !== editor && !['DIV', 'P'].includes(block.tagName)) {
       block = block.parentElement;
     }
+    // Only reset if the block itself (not a child span) has a font-size
     if (block && block !== editor && block.style && block.style.fontSize) {
-      // New block inherited large font — reset it
       block.style.fontSize = '';
     }
   },
