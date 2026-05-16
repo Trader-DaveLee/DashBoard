@@ -87,6 +87,7 @@ body {
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overscroll-behavior-x: none;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

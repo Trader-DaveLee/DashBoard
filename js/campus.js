@@ -395,7 +395,12 @@ export const campusManager = {
       const id = card.dataset.id;
       card.querySelector('.btn-edit-note').onclick = (e) => { e.stopPropagation(); this.editNote(id); };
       card.querySelector('.btn-delete-note').onclick = (e) => { e.stopPropagation(); this.deleteNote(id); };
-      card.onclick = () => {
+      
+      card.onclick = (e) => {
+        // [IMPORTANT] If user is selecting/dragging text, don't toggle expansion
+        const selection = window.getSelection().toString();
+        if (selection) return;
+
         const c = card.querySelector('.campus-note-content');
         if (c) c.classList.toggle('expanded');
       };
