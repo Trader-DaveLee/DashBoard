@@ -3690,7 +3690,7 @@ body {
   border: 1px solid var(--border-main);
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  overflow: hidden; /* Ensure toolbar border doesn't clip */
+  /* overflow: hidden; - REMOVED to allow sticky toolbar */
   transition: all 0.3s ease;
 }
 
@@ -3713,25 +3713,19 @@ body {
   justify-content: space-between !important;
   align-items: center !important;
   padding: 10px 20px !important;
-  background: var(--bg-panel);
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-main) !important;
   border-radius: 20px 20px 0 0;
   gap: 20px;
-  transition: box-shadow 0.2s ease, border-radius 0.15s ease;
-}
 
-/* JS가 스크롤 감지 후 fixed 적용 시 */
-.campus-editor-toolbar.toolbar-is-fixed {
-  position: fixed !important;
-  z-index: 200 !important;
-  border-radius: 0 !important;
-  border-left: none !important;
-  border-right: none !important;
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12) !important;
-  border-bottom: 1px solid var(--glass-border) !important;
+  /* ── Native Sticky: Stays below Topbar (96px) ── */
+  position: sticky;
+  top: 96px;
+  z-index: 40;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
 }
 
 .toolbar-group-left, .toolbar-group-right {
