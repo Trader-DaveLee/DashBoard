@@ -91,19 +91,122 @@ export const campusManager = {
       };
     }
 
-    // Rich Text Toolbar
+    // Rich Text Toolbar — custom handler for font size (px-precise)
     const toolbar = this.getEl('campus-editor-toolbar');
+    const editor = this.getEl('campus-note-content');
+
     if (toolbar) {
+      // Bold / Italic / Underline (standard execCommand)
       toolbar.querySelectorAll('button[data-command]').forEach(btn => {
         btn.onclick = (e) => {
           e.preventDefault();
           document.execCommand(btn.dataset.command, false, btn.dataset.value || null);
-          const editor = this.getEl('campus-note-content');
+          if (editor) editor.focus();
+        };
+      });
+
+      // Font Size buttons — use precise px via inline <span> (NOT execCommand fontSize)
+      toolbar.querySelectorAll('button.font-size-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          this.applyFontSize(parseInt(btn.dataset.px, 10));
           if (editor) editor.focus();
         };
       });
     }
+
+    // Initialize editor: set default 16px on focus if empty
+    if (editor) {
+      editor.addEventListener('focus', () => {
+        // If completely empty, ensure default font size
+        if (!editor.textContent.trim() && !editor.querySelector('*')) {
+          editor.style.fontSize = '16px';
+        }
+      });
+
+      // Prevent font size inheritance on Enter — reset new line to default 16px
+      editor.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          // Let browser insert the line break first, then normalize
+          setTimeout(() => this._normalizeNewLine(editor), 0);
+        }
+      });
+    }
   },
+
+  /**
+   * Apply exact pixel font size to selected text using inline <span>.
+   * This replaces execCommand('fontSize') which uses imprecise size attributes.
+   */
+  applyFontSize(px) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const range = sel.getRangeAt(0);
+
+    // If nothing selected, wrap the current caret line context
+    if (range.collapsed) {
+      // Just update the editor's default and insert a zero-width span as anchor
+      const editor = this.getEl('campus-note-content');
+      if (editor) editor.style.fontSize = px + 'px';
+      return;
+    }
+
+    // Wrap selected text in a <span style="font-size:Xpx">
+    try {
+      // Remove any existing font-size spans within the selection first
+      document.execCommand('removeFormat', false, null);
+
+      // Re-get range after removeFormat
+      const freshSel = window.getSelection();
+      if (!freshSel || freshSel.rangeCount === 0) return;
+      const freshRange = freshSel.getRangeAt(0);
+
+      const span = document.createElement('span');
+      span.style.fontSize = px + 'px';
+      span.style.lineHeight = '1.6';
+
+      freshRange.surroundContents(span);
+
+      // Collapse selection to end
+      freshSel.collapseToEnd();
+    } catch (e) {
+      // surroundContents fails on partial selections across block elements
+      // Fallback: use execCommand with post-processing
+      document.execCommand('fontSize', false, '7');
+      const editor = this.getEl('campus-note-content');
+      if (editor) {
+        editor.querySelectorAll('font[size="7"]').forEach(font => {
+          const span = document.createElement('span');
+          span.style.fontSize = px + 'px';
+          span.style.lineHeight = '1.6';
+          while (font.firstChild) span.appendChild(font.firstChild);
+          font.parentNode.replaceChild(span, font);
+        });
+      }
+    }
+  },
+
+  /**
+   * Normalize newly created lines after Enter press.
+   * Removes inherited large font sizes from <div>/<p> wrappers.
+   */
+  _normalizeNewLine(editor) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const node = sel.anchorNode;
+    // Walk up to find the block element
+    let block = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+    while (block && block !== editor && !['DIV', 'P', 'BR'].includes(block.tagName)) {
+      block = block.parentElement;
+    }
+    if (block && block !== editor && block.style && block.style.fontSize) {
+      // New block inherited large font — reset it
+      block.style.fontSize = '';
+    }
+  },
+
 
   expandComposer() {
     const expanded = this.getEl('composer-expanded');

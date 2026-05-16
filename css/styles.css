@@ -3334,8 +3334,8 @@ body {
   border: none;
   background: transparent;
   padding: 32px;
-  font-size: 15px;
-  line-height: 1.8;
+  font-size: 16px;  /* default = A- (16px) */
+  line-height: 1.7;
   color: var(--text-main);
   resize: none;
   font-weight: 500;
@@ -3354,11 +3354,16 @@ body {
 
 /* Rich Editor Content Formatting */
 .rich-editor b, .rich-editor strong { font-weight: 800; color: var(--text-main); }
+.rich-editor i, .rich-editor em { font-style: italic; }
 .rich-editor u { text-decoration: underline; text-underline-offset: 4px; }
 .rich-editor ul, .rich-editor ol { padding-left: 24px; margin: 12px 0; }
 .rich-editor li { margin-bottom: 6px; }
 .rich-editor ul { list-style-type: disc; }
 .rich-editor ol { list-style-type: decimal; }
+/* CRITICAL: Allow inline font-size spans to render at their actual sizes */
+.rich-editor span[style*="font-size"] { display: inline; }
+/* Neutralize any browser resets that might strip inline font sizes */
+.rich-editor font { font-size: inherit; }
 
 /* Status Icon Animation */
 .pulse-icon {
@@ -3552,19 +3557,29 @@ body {
   line-height: 1.4;
 }
 
+/* Campus feed note content — renders saved rich-text HTML correctly */
 .campus-note-content {
-  font-size: 15px;
-  color: var(--text-muted);
+  font-size: 16px;
+  color: var(--text-secondary);
   line-height: 1.7;
   white-space: pre-wrap;
   display: -webkit-box;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* CRITICAL: allow inline font-size spans from the editor to render */
+  word-break: break-word;
 }
+
+/* Ensure inline formatting passes through correctly in the feed */
+.campus-note-content span[style*="font-size"] { display: inline; }
+.campus-note-content b, .campus-note-content strong { font-weight: 700; }
+.campus-note-content i, .campus-note-content em { font-style: italic; }
+.campus-note-content u { text-decoration: underline; }
 
 .campus-note-content.expanded {
   -webkit-line-clamp: unset;
+  overflow: visible;
 }
 
 .campus-note-footer {
