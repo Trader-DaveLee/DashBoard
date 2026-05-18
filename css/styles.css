@@ -3561,8 +3561,8 @@ body {
 .campus-note-content {
   font-size: 16px;
   color: var(--text-secondary);
-  line-height: 1.7;
-  white-space: pre-wrap;
+  line-height: 1.8;
+  white-space: normal;
   display: -webkit-box;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
@@ -4002,6 +4002,7 @@ body {
 .campus-note-content li, 
 .campus-note-content div {
   color: #000 !important;
+  line-height: 1.8;
 }
 
 /* Dark mode adjustment if needed */

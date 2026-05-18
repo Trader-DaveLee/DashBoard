@@ -148,7 +148,7 @@ export const campusManager = {
       // ── No selection: insert a sized span at cursor so next typed chars use this size ──
       const span = document.createElement('span');
       span.style.fontSize = px + 'px';
-      span.style.lineHeight = '1.7';
+      span.style.lineHeight = '1.8';
       // Use a zero-width non-joiner as placeholder so span is valid
       span.appendChild(document.createTextNode('\u200B'));
 
@@ -175,7 +175,7 @@ export const campusManager = {
       editor.querySelectorAll('font[size="7"]').forEach(font => {
         const span = document.createElement('span');
         span.style.fontSize = px + 'px';
-        span.style.lineHeight = '1.7';
+        span.style.lineHeight = '1.8';
         while (font.firstChild) span.appendChild(font.firstChild);
         font.parentNode.replaceChild(span, font);
       });
